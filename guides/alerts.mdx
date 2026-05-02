@@ -90,10 +90,15 @@ curl -fsS \
 
 The response includes:
 
-- `status` — the current dispatch safety state and queue counts
-- `active_run_detail` — the active queue item, run record, project record, and recent events
-- `latest_alert_check` — the result of the most recent alert evaluation, including `should_alert` and `findings`
+- `ok` — request succeeded (always `true`)
+- `source` — `"control_api_queue_health"`
+- `authority` — `"aggregated queue health read model"`
+- `generated_at` — UTC timestamp
+- `status` — the full `DashboardStatusResponse` including dispatch safety, flags, config, counts, warnings, and conflicts
+- `active_run_detail` — an object with keys `queue_item`, `run`, `project`, and `events` for the first active queue item (or `null` values if none)
+- `latest_alert_check` — the result of the most recent alert evaluation, including `should_alert`, `findings`, `sent`, `suppressed_by_cooldown`, and `fingerprint`
 - `recent_alert_events` — the last 20 alert events from the audit log
+- `recent_worker_callbacks` — the last 20 worker callback events
 
 <Tip>
 The queue health endpoint always evaluates alerts in dry-run mode, so viewing it never triggers a Pushover notification. Use the manual script or wait for the timer to fire actual notifications.
