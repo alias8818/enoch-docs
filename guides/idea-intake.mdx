@@ -125,7 +125,7 @@ If you are integrating an upstream workflow tool, you can push queue and paper r
 
 ```bash
 curl -fsS \
-  -H "Authorization: Bearer ***" \\
+  -H "Authorization: Bearer ***" \
   -H "Content-Type: application/json" \
   -d '{
     "idempotency_key": "snapshot-2026-05-02T120000Z",
@@ -148,7 +148,7 @@ To view the current Notion intake sync status and queued-project projection on t
 
 ```bash
 curl -fsS \
-  -H "Authorization: Bearer ***" \\
+  -H "Authorization: Bearer ***" \
   http://127.0.0.1:8787/control/api/intake/notion | python3 -m json.tool
 ```
 

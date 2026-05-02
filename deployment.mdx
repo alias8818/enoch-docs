@@ -62,7 +62,7 @@ A production Enoch deployment splits responsibility across two machines: a contr
     sudo editor /etc/enoch/config.json
     ```
 
-    Set at minimum the following required fields in `/etc/enoch/config.json`:
+    Set at minimum the following required fields in `/etc/enoch/config.json`. The example below enables live dispatch for the pipeline described in steps 6 and 7:
 
     ```json
     {
@@ -75,7 +75,8 @@ A production Enoch deployment splits responsibility across two machines: a contr
       "completion_callback_url": "https://automation.example.com/webhook/omx-wake-ready",
       "completion_callback_token": "generate-a-long-random-token",
       "worker_wake_gate_url": "http://worker.example:8787",
-      "worker_wake_gate_bearer_token": "worker-api-token"
+      "worker_wake_gate_bearer_token": "worker-api-token",
+      "live_dispatch_enabled": true
     }
     ```
 
