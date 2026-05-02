@@ -88,7 +88,7 @@ Papers move through a defined review lifecycle. You interact with the review que
 
 ```bash
 curl -fsS \
-  -H "Authorization: Bearer $TOKEN" \
+  -H "Authorization: Bearer ***" \
   "http://127.0.0.1:8787/control/api/paper-reviews?paper_status=publication_draft" \
   | python3 -m json.tool
 ```
@@ -97,7 +97,7 @@ curl -fsS \
 
 ```bash
 curl -fsS \
-  -H "Authorization: Bearer $TOKEN" \
+  -H "Authorization: Bearer ***" \
   -H "Content-Type: application/json" \
   -d '{
     "idempotency_key": "rewrite-draft:my-paper-id:2026-05-02T00:00:00Z",
@@ -114,7 +114,7 @@ The batch rewrite endpoint processes up to 200 papers in one request (default 10
 
 ```bash
 curl -fsS \
-  -H "Authorization: Bearer $TOKEN" \
+  -H "Authorization: Bearer ***" \
   -H "Content-Type: application/json" \
   -d '{
     "idempotency_key": "bulk-rewrite:2026-05-02T00:00:00Z",
@@ -139,7 +139,7 @@ Once the checklist passes and the review is complete, approve the paper:
 
 ```bash
 curl -fsS \
-  -H "Authorization: Bearer $TOKEN" \
+  -H "Authorization: Bearer ***" \
   -H "Content-Type: application/json" \
   -d '{
     "idempotency_key": "approve:my-paper-id:2026-05-02T00:00:00Z",
@@ -159,6 +159,6 @@ curl -fsS \
 | Endpoint | Method | Description |
 |---|---|---|
 | `GET /control/api/paper-reviews` | GET | Lists all papers in the review queue, paginated and sorted by rank score. |
-| `POST /control/api/paper-reviews/{id}/rewrite-draft` | POST | Syncs evidence and rewrites the draft artifact for a single paper. |
+| `POST /control/api/paper-reviews/{paper_id}/rewrite-draft` | POST | Syncs evidence and rewrites the draft artifact for a single paper. |
 | `POST /control/api/paper-reviews/rewrite-batch` | POST | Rewrites up to 200 papers in a single request (default 10). |
-| `POST /control/api/paper-reviews/{id}/approve-finalization` | POST | Approves a paper review for finalization. |
+| `POST /control/api/paper-reviews/{paper_id}/approve-finalization` | POST | Approves a paper review for finalization. |

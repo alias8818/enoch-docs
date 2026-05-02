@@ -96,8 +96,8 @@ A `RunRecord` on the wake gate side moves through the following `GateState` valu
 | `waiting_for_process_exit` | Tracked processes still alive; quiet samples cleared until all exit before threshold evaluation |
 | `waiting_for_quiet_window` | Processes exited; building up a full quiet-window sample set |
 | `question_pending` | Agent paused waiting for user input (`ask-user-question` event received) |
-| `finished_pending_gate` | Session-end event received; gate still evaluating quiet window |
 | `wake_ready` | All conditions satisfied after `session-idle`; callback fired with `wake_ready` event |
+| `finished_pending_gate` | `session-end` or `session-stop` event received; gate still evaluating quiet window |
 | `finished_ready` | All conditions satisfied after `session-end`; callback fired with `session_finished_ready` |
 | `cancelled` | Run cancelled before gate completion |
 | `error` | Gate encountered an unrecoverable error |
