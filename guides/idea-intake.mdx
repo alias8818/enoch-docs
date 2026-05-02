@@ -125,11 +125,11 @@ If you are integrating an upstream workflow tool, you can push queue and paper r
 
 ```bash
 curl -fsS \
-  -H "Authorization: Bearer $TOKEN" \
+  -H "Authorization: Bearer ***" \
   -H "Content-Type: application/json" \
   -d '{
     "idempotency_key": "snapshot-2026-05-02T120000Z",
-    "source": "n8n",
+    "source": "snapshot-intake",
     "mode": "shadow",
     "queue_rows": [],
     "paper_rows": [],
@@ -138,13 +138,17 @@ curl -fsS \
   http://127.0.0.1:8787/enoch-core/snapshots/n8n-queue | python3 -m json.tool
 ```
 
-The `mode` field controls how the snapshot is applied. Use `shadow` during migration (records only, no side effects). Use `enforce` once you have verified the projection looks correct.
+<Note>
+The endpoint path `n8n-queue` and the `source` field default `"n8n"` are legacy naming artifacts. The endpoint accepts any string for `source` and is not specific to n8n.
+</Note>
+
+The `mode` field accepts four values defined by the `EnochCoreMode` type: `off`, `shadow`, `compare`, and `enforce`. In practice, the snapshot ingestion endpoint always records locally with no external side effects regardless of mode — the `would_apply` field in the response is always `false`.
 
 To view the current Notion intake sync status and queued-project projection on the control plane:
 
 ```bash
 curl -fsS \
-  -H "Authorization: Bearer $TOKEN" \
+  -H "Authorization: Bearer ***" \
   http://127.0.0.1:8787/control/api/intake/notion | python3 -m json.tool
 ```
 

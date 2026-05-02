@@ -113,6 +113,7 @@ Query parameters:
 | `page_size` | `50` | Rows per page (1–500) |
 | `search` | `""` | Full-text filter across all string fields |
 | `status` | `""` | Exact `QueueStatus` value filter |
+| `sort` | `dispatch_priority` | Sort column; prefix with `-` for descending (e.g. `-updated_at`) |
 
 ```bash
 curl -fsS \
@@ -198,7 +199,7 @@ Response (`WorkerPreflightResponse`):
 
 <Accordion title="Project Operations">
 
-### `GET /control/api/projects/{id}`
+### `GET /control/api/projects/{project_id}`
 
 Returns project detail aggregating the project record, current queue item, all run records, associated papers, recent events, and cached worker observations.
 
@@ -209,7 +210,7 @@ curl -fsS \
   | python3 -m json.tool
 ```
 
-Returns `404` if neither a project record nor a queue item is found for `{id}`.
+Returns `404` if neither a project record nor a queue item is found for `{project_id}`.
 
 </Accordion>
 
@@ -227,6 +228,7 @@ Query parameters:
 | `page_size` | `50` | Rows per page (1–500) |
 | `search` | `""` | Full-text filter |
 | `status` | `""` | Exact `paper_status` filter |
+| `sort` | `-updated_at` | Sort column; prefix with `-` for descending (e.g. `paper_status`) |
 
 ```bash
 curl -fsS \
@@ -250,6 +252,7 @@ Query parameters:
 | `review_status` | `""` | One of `triage_ready`, `unreviewed`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, `rejected` |
 | `paper_status` | `""` | One of `eligible`, `draft_generating`, `draft_review`, `publication_generating`, `publication_draft`, `human_review_required`, `archived` |
 | `include_rank_reasons` | `true` | Include per-item rank reason arrays |
+| `sort` | `-rank_score` | Sort column; prefix with `-` for descending (e.g. `rank_score`) |
 
 ```bash
 curl -fsS \
@@ -475,6 +478,7 @@ Request body (`OmxEvent`) key fields:
   "question": null,
   "root_pid": null,
   "process_group_id": null,
+  "timestamp": "2025-05-01T12:00:00+00:00",
   "tmux_session": null,
   "message": null
 }
@@ -594,7 +598,9 @@ Valid `mode` values: `off`, `shadow`, `compare`, `enforce`.
 
 ### `POST /enoch-core/snapshots/n8n-queue`
 
-Ingests a queue snapshot from n8n (or any compatible source). The `idempotency_key` is required; the same key with the same payload is accepted idempotently, but the same key with a different payload returns `409`.
+<Warning>This endpoint retains its legacy `n8n-queue` name for backward compatibility, but n8n is no longer used. Any source can post queue snapshots.</Warning>
+
+Ingests a queue snapshot from any compatible source. The `idempotency_key` is required; the same key with the same payload is accepted idempotently, but the same key with a different payload returns `409`.
 
 ```bash
 curl -fsS \

@@ -25,7 +25,7 @@ Look at `dispatch_safe`, `dispatch_blockers`, `flags.queue_paused`, and `flags.m
 
 | Blocker | Cause | Fix |
 |---|---|---|
-| `"queue paused"` | `flags.queue_paused` is `true` | Resume the queue via the dashboard or `POST /control/api/resume` |
+| `"queue paused"` | `flags.queue_paused` is `true` | Resume the queue via the dashboard or `POST /control/resume` |
 | `"maintenance mode"` | `flags.maintenance_mode` is `true` | Disable maintenance mode before live dispatch |
 | `"live dispatch disabled"` | `live_dispatch_enabled` is `false` in config | Set `"live_dispatch_enabled": true` in `/etc/enoch/config.json` and restart |
 | `"active GB10 lane exists"` | A run is already active | Wait for it to complete or reconcile if the worker exited unexpectedly |
@@ -73,7 +73,7 @@ Inspect the `checks` array in the response. Each check has a `name`, `ok`, and `
    If that fails, SSH to the worker and check the service:
 
    ```bash
-   sudo systemctl status enoch-control-plane.service
+   sudo systemctl status omx-wake-gate.service
    ```
 
 2. **Bearer token mismatch** — verify that `worker_wake_gate_bearer_token` in the control VM config matches `omx_inbound_bearer_token` in the worker config. They must be identical.
@@ -97,15 +97,15 @@ curl -fsS \
   | python3 -m json.tool
 ```
 
-Look for the `gate_state` field on the active run. Possible states include `running`, `pending_idle_gate`, `waiting_for_process_exit`, and `waiting_for_quiet_window`.
+Look for the `gate_state` field on the active run. Possible states include `running`, `pending_idle_gate`, `waiting_for_process_exit`, `waiting_for_quiet_window`, `question_pending`, `wake_ready`, `finished_pending_gate`, `finished_ready`, `cancelled`, and `error`.
 
 **Key configuration thresholds to review** in the worker config:
 
 | Config key | Default | Description |
 |---|---|---|
 | `idle_sustain_sec` | `180` | Seconds of continuous quiet required before the gate fires |
-| `gpu_idle_avg_threshold_pct` | — | Average GPU utilisation must stay below this to count as idle |
-| `gpu_idle_peak_threshold_pct` | — | Peak GPU utilisation must stay below this during the quiet window |
+| `gpu_idle_avg_threshold_pct` | `10.0` | Average GPU utilisation must stay below this to count as idle |
+| `gpu_idle_peak_threshold_pct` | `20.0` | Peak GPU utilisation must stay below this during the quiet window |
 
 **Common causes:**
 
@@ -117,7 +117,7 @@ Look for the `gate_state` field on the active run. Possible states include `runn
 
 <Accordion title="Stale processes accumulate">
 
-If prior agent runs leave orphaned processes on the worker, enable the stale process reaper:
+If prior agent runs leave orphaned processes on the worker, the stale process reaper handles them automatically. It is enabled by default (`stale_project_process_reaper_enabled` defaults to `true`). Verify it is enabled in config:
 
 ```json
 {
@@ -212,8 +212,8 @@ The control plane syncs evidence from the worker before rewriting a paper draft.
 
    ```json
    {
-     "paper_evidence_sync_ssh_host": "worker.example",
-     "paper_evidence_sync_remote_root": "/home/user/projects"
+     "paper_evidence_sync_ssh_host": "worker-user@worker.example",
+     "paper_evidence_sync_remote_root": "~/enoch/projects"
    }
    ```
 
@@ -223,7 +223,7 @@ The control plane syncs evidence from the worker before rewriting a paper draft.
    ssh -o BatchMode=yes worker.example echo ok
    ```
 
-4. **What is synced** — the sync collects `run_notes.md`, `.omx/project_decision.json`, `.omx/metrics.json`, selected `results/` JSON files, and any existing `papers/{run_id}/` artifacts from the worker project directory.
+4. **What is synced** — the sync collects `run_notes.md`, `.omx/project_decision.json`, `.omx/metrics.json`, selected `results/` JSON files, and any existing `papers/{base_run}/` artifacts (where `base_run` is the run ID with the `-publication` suffix stripped) from the worker project directory.
 
 </Accordion>
 

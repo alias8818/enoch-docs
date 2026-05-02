@@ -4,7 +4,7 @@ description: "A complete guide to the Enoch JSON config file: required fields, w
 sidebarTitle: "Overview"
 ---
 
-Enoch reads its configuration from a single JSON file whose path you set in the `OMX_WAKE_GATE_CONFIG` environment variable. Every field is validated at startup using Pydantic; the service refuses to start if a required field is missing or a value is out of range. This page documents every top-level field, shows you how to generate the secure tokens the service needs, and walks through the complete annotated example from `config.example.json`.
+Enoch reads its configuration from a single JSON file whose path you set in the `OMX_WAKE_GATE_CONFIG` environment variable. Every field is validated at startup using Pydantic; the service refuses to start if a required field is missing or a value is out of range. This page documents the core configuration fields, shows you how to generate the secure tokens the service needs, and walks through the complete annotated example from `config.example.json`. Worker, evidence-sync, and paper-writer fields are covered on their respective sub-pages.
 
 <Warning>
   Never commit your live config file to version control. It contains bearer tokens and callback credentials that grant full control over your deployment. Use a secrets manager or environment-specific file that is excluded from your repository.
@@ -32,6 +32,8 @@ Run this command separately for each token — `omx_inbound_bearer_token`, `comp
 
 ## Required fields
 
+These fields have no usable defaults and must be set before the service will start.
+
 <ParamField path="omx_inbound_bearer_token" type="string" required>
   Authenticates all dashboard and control API calls as well as incoming OMX event posts. Pass this value as a `Bearer` token in the `Authorization` header when calling the control-plane API or the dashboard.
 </ParamField>
@@ -43,6 +45,10 @@ Run this command separately for each token — `omx_inbound_bearer_token`, `comp
 <ParamField path="completion_callback_token" type="string" required>
   Bearer token the wake gate sends with every completion callback request. Your webhook endpoint should validate this value before processing the event.
 </ParamField>
+
+## Core paths
+
+These fields have sensible defaults for local development but you should set them explicitly in production.
 
 <ParamField path="state_dir" type="string" default="~/.local/state/omx-wake-gate">
   Absolute or `~`-prefixed path to the local durable state directory. The service stores queue state, run records, and internal databases here.
@@ -175,7 +181,7 @@ The following JSON is the full `config.example.json` from the repository. Copy i
 
 ## Configuration sections
 
-The full configuration covers three main areas, each documented on its own page:
+The full configuration covers two additional areas, each documented on its own page:
 
 - **[Worker and evidence sync](/configuration/worker)** — connecting the control plane to a worker machine, enabling evidence sync, and configuring the stale-process reaper.
 - **[Paper writer and AI model settings](/configuration/paper-writer)** — choosing between the `deterministic` template provider and the `synthetic.new` production provider, and tuning generation parameters.

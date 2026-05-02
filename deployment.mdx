@@ -123,10 +123,10 @@ A production Enoch deployment splits responsibility across two machines: a contr
     curl -fsS http://127.0.0.1:8787/healthz
     ```
 
-    Open the dashboard in your browser. Use `omx_inbound_bearer_token` as the login token:
+    Open the control plane dashboard in your browser. Use `omx_inbound_bearer_token` as the login token:
 
     ```text
-    http://<control-vm>:8787/dashboard
+    http://<control-vm>:8787/control/dashboard
     ```
   </Step>
 
@@ -190,13 +190,13 @@ A production Enoch deployment splits responsibility across two machines: a contr
   </Step>
 
   <Step title="Review the dispatch flow">
-    Every dispatch request passes through the following checks in order. Understanding this sequence helps you diagnose failures at each stage:
+    Every live dispatch request passes through the following checks in order. Understanding this sequence helps you diagnose failures at each stage:
 
-    1. A queue item exists.
-    2. The control plane is not paused.
-    3. Maintenance mode is not active.
-    4. Worker preflight is healthy.
-    5. No conflicting active GPU lane exists.
+    1. No conflicting active GPU lane exists (single active lane enforced).
+    2. A queue item exists.
+    3. Live dispatch is enabled (`live_dispatch_enabled` must be `true` in config).
+    4. The control plane is not paused and maintenance mode is not active (checked together).
+    5. Worker preflight is healthy.
     6. The dispatch script launches the agent run.
     7. The wake gate tracks process and telemetry truth.
     8. The completion callback or status update is emitted only after the gate is satisfied.

@@ -148,16 +148,16 @@ Papers also have a separate `ReviewStatus` enum that tracks the operator review 
 | `finalized` | Paper finalized; terminal state |
 | `rejected` | Paper rejected; terminal state |
 
-The allowed transitions form a state machine: `unreviewed` → `triage_ready` → `in_review` → `approved_for_finalization` → `finalized`, with `blocked`, `changes_requested`, and `rejected` as branches at various points.
+The allowed transitions form a state machine: `unreviewed` → `triage_ready` → `in_review` → `approved_for_finalization` → `finalized`. The re-enterable branches are `changes_requested` (from `in_review`; returns to `in_review`), `blocked` (from `unreviewed`, `triage_ready`, `in_review`, or `changes_requested`; returns to `triage_ready` or `in_review`), and `rejected` (from any non-terminal state; terminal). `approved_for_finalization` can also return to `in_review`. `finalized` and `rejected` are terminal — no outgoing transitions.
 
 ## API surface
 
-Control-plane endpoints are served under the `/control` prefix. Most data endpoints live under `/control/api/*`, while operator controls (`/control/pause`, `/control/resume`, `/control/dispatch-next`) are mounted directly under `/control`. The dashboard status endpoint (`GET /control/api/status`) is the primary health and state surface: it returns `flags`, `config`, `counts`, `active_items`, `next_candidate`, `dispatch_safe`, `dispatch_blockers`, `source_freshness`, `warnings`, and `conflicts` in a single response.
+Control-plane endpoints are served under the `/control` prefix. Most data endpoints live under `/control/api/*`, while operator controls (`/control/pause`, `/control/resume`, `/control/dispatch-next`) are mounted directly under `/control`. The dashboard status endpoint (`GET /control/api/status`) is the primary health and state surface: it returns `flags`, `config`, `counts`, `active_items`, `next_candidate`, `dispatch_safe`, `dispatch_blockers`, `source_freshness`, `observations`, `warnings`, `conflicts`, and `recent_events` in a single response.
 
 <AccordionGroup>
   <Accordion title="Key endpoint groups">
     - **`GET /control/api/status`** — aggregated dashboard status with dispatch safety
-    - **`GET /control/api/queues/{queue}`** — paginated queue rows filtered by status group (`active`, `queued`, `blocked`, `paused`, `completed`)
+    - **`GET /control/api/queues/{queue}`** — paginated queue rows filtered by status group (`all`, `active`, `queued`, `blocked`, `paused`, `completed`)
     - **`POST /control/dispatch-next`** — evaluate and optionally execute the next dispatch
     - **`POST /control/pause`** / **`POST /control/resume`** — operator pause and resume controls
     - **`GET /control/api/projects/{project_id}`** — project detail, runs, papers, and events

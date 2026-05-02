@@ -22,14 +22,14 @@ When an agent run reaches a `finalize_positive` decision, the control plane crea
 | Claim ledger | `papers/{run_id}/claim_ledger.json` | Structured list of claims extracted from the evidence, with limitation notes |
 | Paper manifest | `papers/{run_id}/paper_manifest.json` | Provenance metadata: `paper_id`, `generated_at`, and artifact paths |
 
-These artifacts are generated from automated run notes, evidence bundles, claim ledgers, and run metrics that the agent wrote during execution — not from human research activity.
+These artifacts are generated from automated run notes, evidence bundles, claim ledgers, and reproducibility traces that the agent wrote during execution — not from human research activity.
 
 ## Who should be credited
 
 The source file for this project's release policy states the following:
 
 <Note>
-The reports produced by this system are AI-generated research artifacts created from automated run notes, evidence bundles, claim ledgers, and run metrics. The maintainer releases the corpus for inspection and critique but does not claim personal authorship of the generated papers, arguments, or prose.
+The reports produced by this system are AI-generated research artifacts created from automated run notes, evidence bundles, claim ledgers, and reproducibility traces. The maintainer releases the corpus for inspection and critique but does not claim personal authorship of the generated papers, arguments, or prose.
 </Note>
 
 In practice this means:
@@ -46,8 +46,9 @@ The claim ledger (`claim_ledger.json`) is the authoritative record of what Enoch
 
 - A `claims` array: each entry records a specific, evidence-grounded assertion made by the paper writer.
 - A `limitations` array: explicit statements about what the claims do not cover, what evidence is absent, and where human review is required.
+- A `writer_provider` field: metadata identifying the provider and model that produced the draft (e.g., `{"provider": "synthetic.new", "model": "..."}`).
 
-You should read the claim ledger before approving any paper for finalization. A deterministic fallback draft (produced when the AI writer is unavailable or `paper_writer_fallback_enabled` is `true`) will contain an empty `claims` array and a limitation noting that human review and richer claim extraction are still required.
+You should read the claim ledger before approving any paper for finalization. A deterministic fallback draft (produced when the AI writer fails and `paper_writer_fallback_enabled` is `true`, or when the provider is set to `deterministic`) will contain an empty `claims` array and a limitation noting that human review is still required (e.g., `"MVP draft; human review required."` or `"Model-authored draft; human claim audit required."`).
 
 ## Provenance metadata in `paper_manifest.json`
 
@@ -56,7 +57,8 @@ Every generated paper includes a `paper_manifest.json` file. At minimum it conta
 ```json
 {
   "paper_id": "<project_id>:<run_id>:arxiv_draft",
-  "generated_at": "<ISO-8601 UTC timestamp>"
+  "generated_at": "<ISO-8601 UTC timestamp>",
+  "writer_provider": "<provider metadata object>"
 }
 ```
 
@@ -82,7 +84,7 @@ The control plane enforces a publication review workflow before any artifact can
 
 2. **Checklist completion** — each paper review item has a checklist. Every required checklist item must reach `pass` or `accepted_risk` status before approval, except for the `final_human_approval` item, which must reach `pass` specifically — `accepted_risk` is not permitted for that item. You update individual items with `POST /control/api/paper-reviews/{id}/checklist/{item_id}`.
 
-3. **Review status progression** — a paper must pass through `triage_ready` → `in_review` → `approved_for_finalization` before you call `POST /control/api/paper-reviews/{id}/approve-finalization`. You can block a paper at any stage by setting `review_status` to `blocked` and recording a `blocker` reason.
+3. **Review status progression** — a paper must pass through `triage_ready` → `in_review` → `approved_for_finalization` before you call `POST /control/api/paper-reviews/{id}/approve-finalization`. You can block a paper at any stage by setting `review_status` to `blocked` and recording a `blocker` or `note` reason.
 
 4. **Finalization package** — after approval you can call `POST /control/api/paper-reviews/{id}/prepare-finalization-package` (with `dry_run: false`) to assemble the artifact bundle before external publication.
 

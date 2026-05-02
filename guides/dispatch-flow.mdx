@@ -14,7 +14,7 @@ Always run a dry dispatch first. Never send `dry_run: false` until you have conf
 
 <Step title="Confirm a queue item exists">
 
-Before any dispatch can proceed, the queue must have at least one item in the `queued` status with no blocking conditions. Check the current control-plane state:
+Before any dispatch can proceed, the queue must have at least one item in the `queued` status that is not flagged `manual_review_required` (store.py:1180). Check the current control-plane state:
 
 ```bash
 TOKEN=$(python3 - <<'PY'
@@ -28,7 +28,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/status | python3 -m json.tool
 ```
 
-Look for `dispatch_safe: true` and an empty `dispatch_blockers` list in the response. If `dispatch_safe` is `false`, the response includes a `dispatch_blockers` array explaining which conditions are blocking dispatch — address each one before continuing.
+Look for `dispatch_safe: true` and an empty `dispatch_blockers` list in the response. If `dispatch_safe` is `false`, the response includes a `dispatch_blockers` array explaining which conditions are blocking dispatch — address each one before continuing. Note that `dispatch_safe` is `false` whenever `dispatch_blockers` is non-empty **or** `conflicts` contains any entry with `severity: "critical"` (router.py:691).
 
 </Step>
 
@@ -77,7 +77,19 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/preflight | python3 -m json.tool
 ```
 
-The response includes an `ok` field and a `checks` array. Each check has a `name`, `ok`, `detail`, and `data` field. When `strict` is `false` (the default), only the required checks must pass for `ok` to be `true`; when `strict` is `true`, every check must pass. The live dispatch always runs preflight with `strict: false`. Key checks include `wake_gate_healthz`, `worker_no_live_runs`, and `wake_gate_dashboard_api`.
+The response includes an `ok` field, a `target` string, a `summary` string, and a `checks` array. Each check has a `name`, `ok`, `detail`, and `data` field. When `strict` is `false` (the default), only the required checks must pass for `ok` to be `true`; when `strict` is `true`, every check must pass. The live dispatch always runs preflight with `strict: false`. The full set of checks (worker_adapter.py:66-111) includes:
+
+- **`control_queue_paused`** — only when `require_paused: true`; confirms the control-plane queue is paused
+- **`control_maintenance_mode`** — always runs; confirms maintenance mode state
+- **`wake_gate_healthz`** — always runs; pings the worker's `/healthz` endpoint
+- **`wake_gate_dashboard_api`** — when `bearer_token` is provided; verifies the worker dashboard API is reachable
+- **`worker_gpu_idle`** — when `bearer_token` is provided; checks GPU utilisation is below `max_gpu_pct` (default 5%) with no GPU compute PIDs
+- **`worker_memory_available`** — when `bearer_token` is provided; checks available memory exceeds `min_memory_available_mib` (default 16,384 MiB)
+- **`worker_no_live_runs`** — when `bearer_token` is provided; confirms no active or waiting runs on the worker
+- **`worker_queue_snapshot_no_active`** — when `bearer_token` is provided; confirms the worker's own queue has zero active items
+- **`worker_swapless_allowed`** — when `bearer_token` is provided; informational check reporting swap-free memory
+
+The required checks (those that must pass for `ok: true`) are `wake_gate_healthz` plus, when `bearer_token` is provided: `wake_gate_dashboard_api`, `worker_gpu_idle`, `worker_memory_available`, `worker_no_live_runs`, and `worker_queue_snapshot_no_active` (worker_adapter.py:116-118).
 
 </Step>
 
@@ -99,7 +111,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/dispatch-next | python3 -m json.tool
 ```
 
-A successful dry run returns `action: "dry_run_dispatch"` with the selected `candidate`. Review the candidate fields — especially `project_id`, `project_name`, and `machine_target` — before proceeding.
+A successful dry run returns `action: "dry_run_dispatch"` with the selected `candidate` (candidate selection, single-lane check, and pause gate all passed). If the queue is paused, it returns `action: "paused"`; if no eligible candidate exists or an active lane already exists, it returns `action: "noop"`. In all three cases `ok` is `true` (router.py:1506). Review the candidate fields — especially `project_id`, `project_name`, and `machine_target` — before proceeding.
 
 </Step>
 
@@ -115,13 +127,13 @@ curl -fsS \
   http://127.0.0.1:8787/control/dispatch-next | python3 -m json.tool
 ```
 
-A successful live dispatch returns `action: "live_dispatch"` with the `run_id`, `project_id`, `project_dir`, and `preflight` result. The worker will receive the dispatch and begin the agent run.
+A successful live dispatch returns `action: "live_dispatch"` with top-level fields `candidate`, `active_count`, `event_id`, and `reason`. The `live` field contains a `LiveDispatchResult` object (models.py:376-383) with `run_id`, `project_id`, `project_dir`, `prompt_file`, `prepare`, `dispatch`, and `preflight`. The worker will receive the dispatch and begin the agent run.
 
 </Step>
 
 <Step title="Wake gate tracks run to completion">
 
-After dispatch, the worker's wake gate takes over process and telemetry tracking. The control plane receives completion signals only after the wake gate is satisfied — meaning the process tree has exited, CPU and GPU usage have returned to idle thresholds, and the quiet-window timer has elapsed. A completion callback fires to the configured `completion_callback_url` only after these conditions are met.
+After dispatch, the worker's wake gate takes over process and telemetry tracking. The control plane receives completion signals only after the wake gate is satisfied — meaning the process tree has exited, CPU and GPU averages are below idle thresholds, GPU peak is below its threshold, memory/VRAM has settled (UMA allocatable memory exceeds the threshold or dedicated VRAM returned to baseline), and a sustained quiet-window of samples has accumulated (gate.py:166-172). The gate transitions to `WAKE_READY` (if the session is still idle) or `FINISHED_READY` (if a `session-end` event was received), then fires a completion callback to the configured `completion_callback_url`.
 
 Monitor progress via the status endpoint or the control dashboard at:
 
@@ -140,5 +152,5 @@ http://<control-vm>:8787/control/dashboard
 | `GET /control/api/status` | GET | Returns dispatch safety state, queue counts, active items, and source freshness. |
 | `POST /control/api/preflight` | POST | Runs a non-mutating worker preflight check and records the result. |
 | `POST /control/dispatch-next` | POST | Dispatches the next queued candidate. Accepts `dry_run: true` for safe previewing. |
-| `POST /control/pause` | POST | Pauses the queue and optionally enables maintenance mode. |
-| `POST /control/resume` | POST | Resumes the queue and optionally clears maintenance mode. |
+| `POST /control/pause` | POST | Pauses the queue. Enables `maintenance_mode` by default (pass `maintenance_mode: false` to pause without it). |
+| `POST /control/resume` | POST | Resumes the queue and clears `maintenance_mode` by default (pass `maintenance_mode: true` to keep it on). |

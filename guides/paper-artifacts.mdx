@@ -24,10 +24,14 @@ Evidence paths the control plane looks for include:
 run_notes.md
 .omx/project_decision.json
 .omx/metrics.json
-results/
+results/<summary files>.json
 papers/<run_id>/evidence_bundle.json
 papers/<run_id>/claim_ledger.json
+papers/<run_id>/paper.md
+papers/<run_id>/paper_manifest.json
 ```
+
+The HTTP sync retrieves specific high-signal files from `results/` (e.g. `hot_cold_sim_results.json`, `smoke.json`) rather than the entire directory. The SSH fallback syncs the entire `papers/` directory plus specific result files.
 
 If `paper_evidence_sync_enabled` is `true` in your config and no local evidence is found after sync, the rewrite request returns HTTP 424 with an `evidence_sync` detail object explaining what was tried.
 
