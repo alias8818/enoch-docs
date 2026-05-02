@@ -77,7 +77,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/preflight | python3 -m json.tool
 ```
 
-The response includes an `ok` field and a `checks` array. Each check has a `name`, `ok`, and `detail` field. All checks must pass before a live dispatch is accepted. Key checks include `wake_gate_healthz`, `worker_no_live_runs`, and `wake_gate_dashboard_api`.
+The response includes an `ok` field and a `checks` array. Each check has a `name`, `ok`, `detail`, and `data` field. When `strict` is `false` (the default), only the required checks must pass for `ok` to be `true`; when `strict` is `true`, every check must pass. The live dispatch always runs preflight with `strict: false`. Key checks include `wake_gate_healthz`, `worker_no_live_runs`, and `wake_gate_dashboard_api`.
 
 </Step>
 

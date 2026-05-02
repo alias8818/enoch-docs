@@ -106,7 +106,7 @@ Any time a tracked process becomes alive again while in `waiting_for_quiet_windo
 
 ## Stale process reaper
 
-The wake gate includes an optional stale process reaper that terminates project processes that have been running longer than `stale_project_process_grace_sec` (default 900 seconds) and match at least one command marker. The built-in markers are:
+The wake gate includes an optional stale process reaper that terminates project processes that have been running longer than `stale_project_process_grace_sec` (default 900 seconds) and either match at least one command marker or appear in the GPU compute process list from telemetry. The built-in markers are:
 
 ```json
 ["timeout ", "llama-cli", "llama-server", "vllm", "sglang"]

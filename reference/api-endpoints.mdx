@@ -102,6 +102,7 @@ Returns a paginated list of queue rows filtered to one logical queue group.
 | `queued` | Items waiting to be dispatched |
 | `blocked` | Items in `blocked`, `needs_review`, or `dispatch_error` status, or any item with `manual_review_required` set |
 | `paused` | Items in `paused` status |
+| `completed` | Items in `completed` or `canceled` status |
 | `all` | All rows regardless of status |
 
 Query parameters:
