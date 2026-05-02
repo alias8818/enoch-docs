@@ -93,7 +93,7 @@ A `RunRecord` on the wake gate side moves through the following `GateState` valu
 |---|---|
 | `running` | Session is active; gate is not yet evaluating |
 | `pending_idle_gate` | Session signaled idle; gate is starting to collect samples |
-| `waiting_for_process_exit` | Thresholds met but tracked processes are still alive |
+| `waiting_for_process_exit` | Tracked processes still alive; quiet samples cleared until all exit before threshold evaluation |
 | `waiting_for_quiet_window` | Processes exited; building up a full quiet-window sample set |
 | `question_pending` | Agent paused waiting for user input (`ask-user-question` event received) |
 | `finished_pending_gate` | Session-end event received; gate still evaluating quiet window |

@@ -23,7 +23,7 @@ The recommended provider for production deployments. Enoch sends the paper conte
 ## Configuration fields
 
 <ParamField path="paper_writer_provider" type="string" default="deterministic">
-  Selects the paper-writing backend. Accepted values are `deterministic` and `synthetic.new`. Any other value is rejected when a paper write is attempted, not at config load time.
+  Selects the paper-writing backend. Accepted values are `deterministic`, `template` (alias for `deterministic`), `synthetic.new`, `synthetic` (alias for `synthetic.new`), and `synthetic_glm` (alias for `synthetic.new`). Any other value is rejected when a paper write is attempted, not at config load time.
 </ParamField>
 
 <ParamField path="paper_writer_base_url" type="string" default="https://api.synthetic.new/openai/v1">

@@ -104,9 +104,9 @@ curl -fsS \
   | python3 -m json.tool
 ```
 
-**Rewrite a batch of up to 10 papers:**
+**Rewrite a batch of papers (default 10, max 200):**
 
-The batch rewrite endpoint processes up to 10 papers in one request. The default filters target `publication_draft` papers that have not yet been rewritten.
+The batch rewrite endpoint processes up to 200 papers in one request (default 10). The default filters target `publication_draft` papers that have not yet been rewritten.
 
 ```bash
 curl -fsS \
@@ -156,5 +156,5 @@ curl -fsS \
 |---|---|---|
 | `GET /control/api/paper-reviews` | GET | Lists all papers in the review queue, paginated and sorted by rank score. |
 | `POST /control/api/paper-reviews/{id}/rewrite-draft` | POST | Syncs evidence and rewrites the draft artifact for a single paper. |
-| `POST /control/api/paper-reviews/rewrite-batch` | POST | Rewrites up to 10 papers in a single request. |
+| `POST /control/api/paper-reviews/rewrite-batch` | POST | Rewrites up to 200 papers in a single request (default 10). |
 | `POST /control/api/paper-reviews/{id}/approve-finalization` | POST | Approves a paper review for finalization. |

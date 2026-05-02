@@ -202,7 +202,7 @@ A production Enoch deployment splits responsibility across two machines: a contr
     8. The completion callback or status update is emitted only after the gate is satisfied.
 
     <Tip>
-      Always use dry-run dispatch first when testing a new deployment. It exercises the full dispatch path — queue state, pause checks, preflight, and lane safety — without launching a real agent run.
+      Always use dry-run dispatch first when testing a new deployment. It exercises the core dispatch guards — pause checks, lane safety (single active GPU lane), and candidate selection — without launching a real agent run. Note that worker preflight is only performed during live dispatch, not dry-run.
     </Tip>
   </Step>
 

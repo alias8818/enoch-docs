@@ -43,7 +43,7 @@ Once evidence is synced, the artifact writer generates publication-style researc
 - **`claim_ledger.json`** — the claim boundaries preserved from the run.
 - **`paper_manifest.json`** (`manifest_path`) — a manifest listing all artifact files, their paths, and provenance metadata.
 
-The artifact writer is configured through the `paper_writer_*` fields in your config. The default provider is `deterministic`, which uses the GLM-5.1 model at a temperature of `0.2` with a maximum of `12000` tokens per generation.
+The artifact writer is configured through the `paper_writer_*` fields in your config. The default provider is `deterministic`, which generates template-based drafts without calling an external LLM. To use the GLM-5.1 model for higher-quality generation, set `paper_writer_provider` to `synthetic.new` — this uses the GLM-5.1 model at a temperature of `0.2` with a maximum of `12000` tokens per generation.
 
 ## Quality gates
 
