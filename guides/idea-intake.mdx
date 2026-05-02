@@ -148,4 +148,4 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/intake/notion | python3 -m json.tool
 ```
 
-The response includes the latest sync observation, skipped-row reason counts, and the current queued project projection derived from the most recent snapshot.
+The response includes the latest sync observation, skipped-row reason counts, and the current queued project projection from the canonical control-plane queue.
