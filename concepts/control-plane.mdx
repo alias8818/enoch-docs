@@ -135,11 +135,24 @@ After a run completes and evidence is synced, generated papers move through the 
 | `human_review_required` | Flagged for mandatory human review |
 | `archived` | Paper archived; no further action |
 
-Papers also have a separate `ReviewStatus` that tracks the operator review workflow from `unreviewed` through `approved_for_finalization` and `finalized` (or `rejected`).
+Papers also have a separate `ReviewStatus` enum that tracks the operator review workflow:
+
+| `ReviewStatus` | Meaning |
+|---|---|
+| `unreviewed` | Paper not yet reviewed |
+| `triage_ready` | Passes readiness checks; ready for triage |
+| `in_review` | Actively under operator review |
+| `changes_requested` | Operator requested changes; author may revise |
+| `blocked` | Blocked pending a specific blocker resolution |
+| `approved_for_finalization` | Review approved; ready for finalization |
+| `finalized` | Paper finalized; terminal state |
+| `rejected` | Paper rejected; terminal state |
+
+The allowed transitions form a state machine: `unreviewed` → `triage_ready` → `in_review` → `approved_for_finalization` → `finalized`, with `blocked`, `changes_requested`, and `rejected` as branches at various points.
 
 ## API surface
 
-All control-plane endpoints are served under the `/control/api/` prefix. The dashboard status endpoint (`GET /control/api/status`) is the primary health and state surface: it returns `flags`, `config`, `counts`, `active_items`, `next_candidate`, `dispatch_safe`, `dispatch_blockers`, `source_freshness`, `warnings`, and `conflicts` in a single response.
+Control-plane endpoints are served under the `/control` prefix. Most data endpoints live under `/control/api/*`, while operator controls (`/control/pause`, `/control/resume`, `/control/dispatch-next`) are mounted directly under `/control`. The dashboard status endpoint (`GET /control/api/status`) is the primary health and state surface: it returns `flags`, `config`, `counts`, `active_items`, `next_candidate`, `dispatch_safe`, `dispatch_blockers`, `source_freshness`, `warnings`, and `conflicts` in a single response.
 
 <AccordionGroup>
   <Accordion title="Key endpoint groups">
