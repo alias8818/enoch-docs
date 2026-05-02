@@ -4,7 +4,7 @@ description: "Full reference for every public Enoch endpoint: health, queue and 
 sidebarTitle: "API Endpoints"
 ---
 
-Every endpoint in Enoch is served by the FastAPI application running on the control VM (default port `8787`) and the worker (also port `8787`). All endpoints except `GET /healthz` require a bearer token. Read the Authentication section below before making your first request.
+Every endpoint in Enoch is served by the FastAPI application running on the control VM (default port `8787`) and the worker (also port `8787`). All endpoints except `GET /healthz`, `GET /dashboard`, and `GET /control/dashboard` require a bearer token. The two dashboard HTML endpoints are unauthenticated for the initial page load; the dashboard itself prompts for a bearer token and stores it in `localStorage` for subsequent API calls. Read the Authentication section below before making your first request.
 
 <AccordionGroup>
 
