@@ -44,16 +44,16 @@ Run this command separately for each token — `omx_inbound_bearer_token`, `comp
   Bearer token the wake gate sends with every completion callback request. Your webhook endpoint should validate this value before processing the event.
 </ParamField>
 
-<ParamField path="state_dir" type="string" required>
-  Absolute or `~`-prefixed path to the local durable state directory. The service stores queue state, run records, and internal databases here. Defaults to `~/.local/state/omx-wake-gate` if not overridden.
+<ParamField path="state_dir" type="string" default="~/.local/state/omx-wake-gate">
+  Absolute or `~`-prefixed path to the local durable state directory. The service stores queue state, run records, and internal databases here.
 </ParamField>
 
-<ParamField path="project_root" type="string" required>
-  Root directory for project workspaces and generated paper artifacts. Each project gets a subdirectory under this path. Defaults to `~/enoch/projects`.
+<ParamField path="project_root" type="string" default="~/enoch/projects">
+  Root directory for project workspaces and generated paper artifacts. Each project gets a subdirectory under this path.
 </ParamField>
 
-<ParamField path="dispatch_script_path" type="string" required>
-  Path to the shell script the control plane executes to launch agent runs. Defaults to `~/enoch/bin/enoch_omx_dispatch.sh`. Ensure the script is executable and accessible by the service user.
+<ParamField path="dispatch_script_path" type="string" default="~/enoch/bin/enoch_omx_dispatch.sh">
+  Path to the shell script the control plane executes to launch agent runs. Ensure the script is executable and accessible by the service user.
 </ParamField>
 
 ## Wake-gate tuning fields
