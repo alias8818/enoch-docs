@@ -33,6 +33,7 @@ This quickstart walks you through a local developer smoke test: you clone the re
     import json, pathlib, secrets
     p=pathlib.Path('.local/config/config.json')
     data=json.loads(p.read_text())
+    data['listen_host']='127.0.0.1'
     data['state_dir']=str(pathlib.Path('.local/state').resolve())
     data['project_root']=str(pathlib.Path('.local/projects').resolve())
     data['dispatch_script_path']=str(pathlib.Path('deploy/enoch_omx_dispatch.sh').resolve())

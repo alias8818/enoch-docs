@@ -43,7 +43,7 @@ The control plane is the single source of truth for the following concerns:
 
 - **Queue state** — every queue item has a `QueueStatus` (`queued`, `dispatching`, `running`, `awaiting_wake`, `wake_received`, `reconciling`, `completed`, `paused`, `canceled`, `dispatch_error`, `blocked`, `needs_review`). The control plane transitions items between these states and prevents races.
 - **Dispatch decisions** — the control plane evaluates whether it is safe to dispatch the next candidate before any work leaves the VM. It exposes a `dispatch_safe` flag and a `dispatch_blockers` list on every dashboard status response.
-- **Pause and maintenance mode** — operators can pause the queue and enter maintenance mode via the API. The `ControlFlags` model (`queue_paused`, `maintenance_mode`, `pause_reason`, `paused_at`, `paused_by`) is persisted and surfaced on the dashboard.
+- **Pause and maintenance mode** — operators can pause the queue and enter maintenance mode via the API. The `ControlFlags` model (`queue_paused`, `maintenance_mode`, `pause_reason`, `paused_at`, `paused_by`, `updated_at`) is persisted and surfaced on the dashboard.
 - **Project state** — each project has a `ProjectRecord` (project ID, name, directory, Notion page URL, origin idea status) and a `QueueItemRecord` that tracks dispatch priority, continue count, retry count, and the last run state.
 - **Run records** — each dispatched run has a `RunRecord` that tracks session ID, `RunState`, dispatch mode (`exec` or `resume`), gate state, and idempotency key.
 - **Paper review** — generated research artifacts move through a `PaperStatus` lifecycle and a `ReviewStatus` workflow managed entirely by the control plane.
@@ -52,13 +52,11 @@ The control plane is the single source of truth for the following concerns:
 
 The control plane evaluates dispatch safety on every status request. A dispatch is considered safe only when all of the following hold:
 
-- `live_dispatch_enabled` is `true` in the control plane config (`GateConfig`)
+- `live_dispatch_enabled` is `true` in the control-plane config (`GateConfig`; static operational flag — when `false`, live dispatch returns a `501` and the blocker reads "live dispatch disabled")
 - `queue_paused` is `false` and `maintenance_mode` is `false`
-- `live_dispatch_enabled` is `true` in the control-plane config (static operational flag; when `false`, dispatch returns a `501` and the blocker reads "live dispatch disabled")
-- No item is currently in `dispatching` or `running` state (single-lane enforcement)
-- Worker preflight checks pass (authenticated health check against the worker wake gate URL)
-- The candidate item is in a dispatchable state
-
+- No item is currently in an active state (`dispatching`, `running`, `awaiting_wake`, `wake_received`, or `reconciling`) — single-lane enforcement
+- Worker preflight checks pass (authenticated health check against the worker wake gate URL, including freshness of `worker_preflight` and `worker_dashboard_api` observations)
+- A dispatchable queue candidate exists
 When any condition fails, the `dispatch_blockers` list in the dashboard status response explains why dispatch is blocked. The control plane holds the single-lane lock — not the dispatch script — so overlapping GPU-heavy runs cannot happen through a race in the calling script.
 
 <AccordionGroup>
@@ -121,7 +119,7 @@ When `queue_paused` is `true`, the `dispatch_next` endpoint returns `action: "pa
 
 ## Single-lane GPU protection
 
-The control plane enforces a single active lane for GPU-heavy work on constrained local hardware. Before dispatching a candidate, it counts items in `dispatching` or `running` state. If `active_count` is greater than zero, dispatch is blocked and the reason appears in `dispatch_blockers`. The lock lives in the control plane database, not in the dispatch script, so it survives script restarts and is visible to the dashboard.
+The control plane enforces a single active lane for GPU-heavy work on constrained local hardware. Before dispatching a candidate, it counts items in `dispatching`, `running`, `awaiting_wake`, `wake_received`, or `reconciling` state. If `active_count` is greater than zero, dispatch is blocked and the reason appears in `dispatch_blockers`. The lock lives in the control plane database, not in the dispatch script, so it survives script restarts and is visible to the dashboard.
 
 ## Paper review lifecycle
 

@@ -22,10 +22,10 @@ In a standard two-machine Enoch deployment the control VM orchestrates queued re
 
 ## Evidence sync fields
 
-Before the control plane rewrites a paper artifact it can sync evidence files from the worker's project workspace over SSH. Enable this when the control VM and worker machine are separate hosts.
+Before the control plane rewrites a paper artifact it can sync evidence files from the worker's project workspace. The primary sync mechanism uses HTTP via the worker wake gate API (requiring `worker_wake_gate_url` and `worker_wake_gate_bearer_token`). If the HTTP sync does not produce sufficient evidence, the control plane falls back to SSH using the fields below. Enable this when the control VM and worker machine are separate hosts.
 
 <ParamField path="paper_evidence_sync_enabled" type="boolean" default="false">
-  When `true`, the control plane syncs evidence from the worker before rewriting paper artifacts. Requires `paper_evidence_sync_ssh_host` and `paper_evidence_sync_remote_root` to be set correctly.
+  When `true`, the control plane syncs evidence from the worker before rewriting paper artifacts. The primary mechanism uses the worker wake gate API over HTTP; SSH fields below are only needed as a fallback.
 </ParamField>
 
 <ParamField path="paper_evidence_sync_ssh_host" type="string" default="worker-user@worker.example">
