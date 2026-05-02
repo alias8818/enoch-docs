@@ -52,7 +52,9 @@ The control plane is the single source of truth for the following concerns:
 
 The control plane evaluates dispatch safety on every status request. A dispatch is considered safe only when all of the following hold:
 
+- `live_dispatch_enabled` is `true` in the control plane config (`GateConfig`)
 - `queue_paused` is `false` and `maintenance_mode` is `false`
+- `live_dispatch_enabled` is `true` in the control-plane config (static operational flag; when `false`, dispatch returns a `501` and the blocker reads "live dispatch disabled")
 - No item is currently in `dispatching` or `running` state (single-lane enforcement)
 - Worker preflight checks pass (authenticated health check against the worker wake gate URL)
 - The candidate item is in a dispatchable state
