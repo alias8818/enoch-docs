@@ -98,7 +98,7 @@ Returns a paginated list of queue rows filtered to one logical queue group.
 
 | `queue` value | Description |
 |---|---|
-| `active` | Items currently dispatching, running, or awaiting a wake callback |
+| `active` | Items in `dispatching`, `running`, `awaiting_wake`, `wake_received`, or `reconciling` status |
 | `queued` | Items waiting to be dispatched |
 | `blocked` | Items in `blocked`, `needs_review`, or `dispatch_error` status |
 | `paused` | Items in `paused` status |

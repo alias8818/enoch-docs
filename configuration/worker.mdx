@@ -36,6 +36,10 @@ Before the control plane rewrites a paper artifact it can sync evidence files fr
   The worker's project root path as seen from the SSH session. This should match the value of `project_root` in the worker's config file.
 </ParamField>
 
+<ParamField path="paper_evidence_sync_timeout_sec" type="number" default="90">
+  Timeout in seconds for the SSH evidence-sync operation. The control plane kills the sync process if it exceeds this duration. Minimum value is `5`.
+</ParamField>
+
 ## Stale-process reaper
 
 Long-running inference or training processes can occasionally detach from their run and continue consuming GPU resources after a job completes. The reaper scans for these processes and terminates them gracefully.
@@ -67,6 +71,7 @@ The following snippet shows the worker-related fields you need to add to the con
   "paper_evidence_sync_enabled": true,
   "paper_evidence_sync_ssh_host": "worker-user@worker.example",
   "paper_evidence_sync_remote_root": "~/enoch/projects",
+  "paper_evidence_sync_timeout_sec": 90,
   "stale_project_process_reaper_enabled": true,
   "stale_project_process_grace_sec": 900,
   "stale_project_process_term_grace_sec": 5.0,
