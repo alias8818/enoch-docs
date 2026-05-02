@@ -57,7 +57,7 @@ Long-running inference or training processes can occasionally detach from their 
 </ParamField>
 
 <ParamField path="stale_project_process_command_markers" type="string[]" default='["timeout ", "llama-cli", "llama-server", "vllm", "sglang"]'>
-  List of command substrings the reaper uses to identify candidate processes. A process must match one of these markers and belong to a stale project to be reaped. Extend this list if your worker runs additional inference servers.
+  List of command substrings the reaper uses to identify candidate processes. A process is reaped when it belongs to a stale project and either matches one of these markers or appears in GPU compute telemetry. Extend this list if your worker runs additional inference servers.
 </ParamField>
 
 ## Minimal two-machine config example
