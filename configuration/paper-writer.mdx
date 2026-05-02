@@ -35,7 +35,7 @@ The recommended provider for production deployments. Enoch sends the paper conte
 </ParamField>
 
 <ParamField path="paper_writer_api_key" type="string">
-  API key for the provider. Required when `paper_writer_provider` is `synthetic.new`. Leave empty for `deterministic` mode. Do not commit this value.
+  API key for the provider. Required when `paper_writer_provider` is `synthetic.new` — if this field is empty, Enoch falls back to the `SYNTHETIC_API_KEY` environment variable. Leave empty for `deterministic` mode. Do not commit this value.
 </ParamField>
 
 <ParamField path="paper_writer_timeout_sec" type="number" default="180">
