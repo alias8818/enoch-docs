@@ -100,7 +100,7 @@ Returns a paginated list of queue rows filtered to one logical queue group.
 |---|---|
 | `active` | Items in `dispatching`, `running`, `awaiting_wake`, `wake_received`, or `reconciling` status |
 | `queued` | Items waiting to be dispatched |
-| `blocked` | Items in `blocked`, `needs_review`, or `dispatch_error` status |
+| `blocked` | Items in `blocked`, `needs_review`, or `dispatch_error` status, or any item with `manual_review_required` set |
 | `paused` | Items in `paused` status |
 | `all` | All rows regardless of status |
 

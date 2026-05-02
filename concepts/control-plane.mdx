@@ -157,7 +157,7 @@ Control-plane endpoints are served under the `/control` prefix. Most data endpoi
 <AccordionGroup>
   <Accordion title="Key endpoint groups">
     - **`GET /control/api/status`** — aggregated dashboard status with dispatch safety
-    - **`GET /control/api/queues/{queue}`** — paginated queue rows filtered by status group (`active`, `queued`, `blocked`, `paused`)
+    - **`GET /control/api/queues/{queue}`** — paginated queue rows filtered by status group (`active`, `queued`, `blocked`, `paused`, `completed`)
     - **`POST /control/dispatch-next`** — evaluate and optionally execute the next dispatch
     - **`POST /control/pause`** / **`POST /control/resume`** — operator pause and resume controls
     - **`GET /control/api/projects/{project_id}`** — project detail, runs, papers, and events

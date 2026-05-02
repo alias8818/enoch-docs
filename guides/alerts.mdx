@@ -4,7 +4,7 @@ description: "Enable Pushover notifications for run hangs and queue stoppages, i
 sidebarTitle: "Alerts"
 ---
 
-Enoch can send push notifications to your phone or desktop when the queue hangs or stops progressing. These alerts use [Pushover](https://pushover.net), a simple push notification service. When a run has been active longer than your configured hang threshold — or the queue has been idle with pending work for longer than the cooldown window — the alert system fires a notification so you can investigate before a run stalls silently for hours.
+Enoch can send push notifications to your phone or desktop when the queue hangs or stops progressing. These alerts use [Pushover](https://pushover.net), a simple push notification service. When an active queue item hasn't been updated for longer than your configured hang threshold — or when the system detects conflicts or stale worker sources — the alert system fires a notification so you can investigate before a run stalls silently for hours. The cooldown setting controls how frequently the same alert can repeat, not what triggers it.
 
 <Steps>
 
