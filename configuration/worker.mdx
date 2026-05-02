@@ -1,0 +1,85 @@
+---
+title: "Worker connection, evidence sync, and reaper config"
+description: "How to connect the Enoch control plane to a worker machine, enable evidence sync, and configure the stale-process reaper for long-running agent runs."
+sidebarTitle: "Worker"
+---
+
+In a standard two-machine Enoch deployment the control VM orchestrates queued research runs and the worker machine executes them. The fields on this page tell the control plane how to reach the worker's wake-gate API, how to pull evidence back from the worker before rewriting paper artifacts, and how to clean up detached processes that outlive their run.
+
+<Note>
+  A single-machine development deployment is also supported. Set `worker_wake_gate_url` to `http://127.0.0.1:8787` and run both the control-plane and worker services on localhost.
+</Note>
+
+## Worker connection fields
+
+<ParamField path="worker_wake_gate_url" type="string" default="http://worker.example:8787">
+  Base URL for the worker machine's wake-gate HTTP API. The control plane uses this URL for preflight checks, status polling, and dispatch. Include the scheme and port; do not include a trailing slash.
+</ParamField>
+
+<ParamField path="worker_wake_gate_bearer_token" type="string">
+  Bearer token for all authenticated calls to the worker API. Set this to the value of `omx_inbound_bearer_token` configured on the worker machine.
+</ParamField>
+
+## Evidence sync fields
+
+Before the control plane rewrites a paper artifact it can sync evidence files from the worker's project workspace over SSH. Enable this when the control VM and worker machine are separate hosts.
+
+<ParamField path="paper_evidence_sync_enabled" type="boolean" default="false">
+  When `true`, the control plane syncs evidence from the worker before rewriting paper artifacts. Requires `paper_evidence_sync_ssh_host` and `paper_evidence_sync_remote_root` to be set correctly.
+</ParamField>
+
+<ParamField path="paper_evidence_sync_ssh_host" type="string" default="worker-user@worker.example">
+  SSH target used for fallback evidence sync, in `user@host` format. The control-plane service user must have key-based SSH access to this host.
+</ParamField>
+
+<ParamField path="paper_evidence_sync_remote_root" type="string" default="~/enoch/projects">
+  The worker's project root path as seen from the SSH session. This should match the value of `project_root` in the worker's config file.
+</ParamField>
+
+## Stale-process reaper
+
+Long-running inference or training processes can occasionally detach from their run and continue consuming GPU resources after a job completes. The reaper scans for these processes and terminates them gracefully.
+
+<ParamField path="stale_project_process_reaper_enabled" type="boolean" default="true">
+  Enables automatic cleanup of detached processes associated with stale projects. Disable this only if you manage process cleanup externally.
+</ParamField>
+
+<ParamField path="stale_project_process_grace_sec" type="number" default="900">
+  Number of seconds a project process must have been running without a matching active run before the reaper considers it stale. Minimum value is `0`.
+</ParamField>
+
+<ParamField path="stale_project_process_term_grace_sec" type="number" default="5.0">
+  Seconds to wait after sending `SIGTERM` before escalating to `SIGKILL`. Range `0.0`–`30.0`.
+</ParamField>
+
+<ParamField path="stale_project_process_command_markers" type="string[]" default='["timeout ", "llama-cli", "llama-server", "vllm", "sglang"]'>
+  List of command substrings the reaper uses to identify candidate processes. A process must match one of these markers and belong to a stale project to be reaped. Extend this list if your worker runs additional inference servers.
+</ParamField>
+
+## Minimal two-machine config example
+
+The following snippet shows the worker-related fields you need to add to the control VM's config for a standard two-machine setup. Combine it with the [required fields](/configuration/overview#required-fields) from the overview page.
+
+```json
+{
+  "worker_wake_gate_url": "http://worker.example:8787",
+  "worker_wake_gate_bearer_token": "your-worker-api-token",
+  "paper_evidence_sync_enabled": true,
+  "paper_evidence_sync_ssh_host": "worker-user@worker.example",
+  "paper_evidence_sync_remote_root": "~/enoch/projects",
+  "stale_project_process_reaper_enabled": true,
+  "stale_project_process_grace_sec": 900,
+  "stale_project_process_term_grace_sec": 5.0,
+  "stale_project_process_command_markers": [
+    "timeout ",
+    "llama-cli",
+    "llama-server",
+    "vllm",
+    "sglang"
+  ]
+}
+```
+
+<Tip>
+  Generate the `worker_wake_gate_bearer_token` value with `python3 -c "import secrets; print(secrets.token_urlsafe(48))"` and set the same value as `omx_inbound_bearer_token` in the worker's config file.
+</Tip>

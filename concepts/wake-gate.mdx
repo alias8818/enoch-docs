@@ -1,0 +1,155 @@
+---
+title: "Wake gate: how Enoch proves a run is truly done now"
+description: "Process-tree tracking and CPU/GPU quiet-window telemetry that verify a worker is genuinely idle before the completion callback fires to the control plane."
+sidebarTitle: "Wake Gate"
+---
+
+When an agent session ends, the worker process tree does not always end with it. Child processes can detach and continue running. GPU workers can still be active even when the queue reports nothing is running. Relying on a session-closed event to declare a run complete leads to overlapping dispatches, corrupted run state, and GPU contention on constrained hardware. The wake gate solves this by requiring positive evidence of system quiet — tracked process exit, sustained CPU idle, sustained GPU idle, and stable VRAM — before it fires the completion callback to the control plane.
+
+## The core problem
+
+Long-running autonomous AI work exhibits failure modes that ordinary completion signals miss:
+
+- An agent session appears idle (the OMX `session-idle` or `session-end` event arrives) but descendant processes are still active.
+- GPU workers started during the run — inference servers, training loops, evaluation harnesses — continue consuming VRAM and compute after the agent session closes.
+- Queues on the control VM say no work is running while the worker machine has live processes.
+
+The wake gate addresses these by treating idle as something to be measured and sustained, not asserted.
+
+## How the wake gate solves it
+
+The wake gate runs as a service on the worker machine and listens for OMX session events. When a session enters an idle or finished state, the gate begins sampling system telemetry at `sample_interval_sec` intervals (default `5` seconds). It collects samples until the configured quiet window is satisfied across all dimensions simultaneously:
+
+1. **Process-tree tracking** — the gate checks that the root PID, all descendants, any GPU-compute PIDs, and any processes with a working directory inside the project root have exited.
+2. **CPU idle threshold** — the rolling average of `cpu_pct` samples must stay below `cpu_idle_threshold_pct`.
+3. **GPU idle avg threshold** — the rolling average of `gpu_pct` samples must stay below `gpu_idle_avg_threshold_pct`.
+4. **GPU idle peak threshold** — the highest single `gpu_pct` sample in the window must stay below `gpu_idle_peak_threshold_pct`.
+5. **VRAM delta threshold** — on dedicated GPU systems, current VRAM usage must stay within `vram_delta_threshold_mib` of the baseline. On UMA systems (such as DGX Spark), the gate checks that `uma_allocatable_mib` exceeds `vram_delta_threshold_mib` instead.
+6. **Quiet window duration** — all conditions above must hold continuously for at least `idle_sustain_sec` seconds.
+
+Only when all six conditions are satisfied does the gate fire the callback.
+
+## Workload profiles
+
+The gate applies different thresholds depending on the type of work the run performed. You select a workload class per run; the gate resolves the matching `GateThresholdProfile`.
+
+<Tip>
+Use `inference_eval` (the default) for runs that load and query models but do not train. It requires a longer quiet window (300 s minimum) and a tighter CPU threshold (20%) because inference servers tend to linger longer after a session closes. Use `training` for runs that run gradient-descent loops; the default 180 s quiet window is usually sufficient once training has stopped.
+</Tip>
+
+The four built-in workload classes are:
+
+| Workload class | Description |
+|---|---|
+| `inference_eval` | Model loading, evaluation, and querying runs |
+| `training` | Gradient-descent or fine-tuning runs |
+| `control_plane` | Control VM work (inherits `inference_eval` thresholds) |
+| `agent_harness` | Agent orchestration harness (inherits `inference_eval` thresholds) |
+
+You can override thresholds per workload class in `workload_profiles` inside your config file:
+
+```json
+"workload_profiles": {
+  "inference_eval": {
+    "idle_sustain_sec": 300,
+    "cpu_idle_threshold_pct": 20.0,
+    "gpu_idle_avg_threshold_pct": 10.0,
+    "gpu_idle_peak_threshold_pct": 20.0,
+    "vram_delta_threshold_mib": 1024
+  },
+  "training": {
+    "idle_sustain_sec": 180,
+    "cpu_idle_threshold_pct": 35.0,
+    "gpu_idle_avg_threshold_pct": 10.0,
+    "gpu_idle_peak_threshold_pct": 20.0,
+    "vram_delta_threshold_mib": 1024
+  }
+}
+```
+
+## Threshold config fields
+
+The following fields control gate behavior. All are set at the top level of `config.example.json` and act as defaults for workload profiles that do not override them.
+
+| Field | Default | Description |
+|---|---|---|
+| `sample_interval_sec` | `5` | How often (in seconds) the gate collects a telemetry sample |
+| `default_workload_class` | `inference_eval` | Workload class used when none is specified for a run |
+| `idle_sustain_sec` | `180` | Minimum seconds all thresholds must hold (used for `training`; `inference_eval` raises this to at least 300) |
+| `cpu_idle_threshold_pct` | `35.0` | Rolling CPU average must stay below this percentage |
+| `gpu_idle_avg_threshold_pct` | `10.0` | Rolling GPU utilization average must stay below this percentage |
+| `gpu_idle_peak_threshold_pct` | `20.0` | Peak GPU utilization in the window must stay below this percentage |
+| `vram_delta_threshold_mib` | `1024` | On dGPU: max VRAM increase over baseline (MiB). On UMA: minimum allocatable memory required (MiB) |
+| `max_wait_after_idle_sec` | `43200` | Gate timeout (seconds) after idle first seen; default is 12 hours |
+| `stale_project_process_reaper_enabled` | `true` | Whether to reap stale project processes automatically |
+| `stale_project_process_grace_sec` | `900` | Seconds a project process must be alive before it is eligible for reaping |
+| `stale_project_process_term_grace_sec` | `5.0` | Seconds between SIGTERM and SIGKILL during reaping |
+
+## Gate states
+
+A `RunRecord` on the wake gate side moves through the following `GateState` values:
+
+| State | Meaning |
+|---|---|
+| `running` | Session is active; gate is not yet evaluating |
+| `pending_idle_gate` | Session signaled idle; gate is starting to collect samples |
+| `waiting_for_process_exit` | Thresholds met but tracked processes are still alive |
+| `waiting_for_quiet_window` | Processes exited; building up a full quiet-window sample set |
+| `question_pending` | Agent paused waiting for user input (`ask-user-question` event received) |
+| `finished_pending_gate` | Session-end event received; gate still evaluating quiet window |
+| `wake_ready` | All conditions satisfied after `session-idle`; callback fired with `wake_ready` event |
+| `finished_ready` | All conditions satisfied after `session-end`; callback fired with `session_finished_ready` |
+| `cancelled` | Run cancelled before gate completion |
+| `error` | Gate encountered an unrecoverable error |
+
+Any time a tracked process becomes alive again while in `waiting_for_quiet_window`, the gate resets to `waiting_for_process_exit` and clears all accumulated quiet samples. The window must be rebuilt from scratch.
+
+## Stale process reaper
+
+The wake gate includes an optional stale process reaper that terminates project processes that have been running longer than `stale_project_process_grace_sec` (default 900 seconds) and match at least one command marker. The built-in markers are:
+
+```json
+["timeout ", "llama-cli", "llama-server", "vllm", "sglang"]
+```
+
+The reaper sends SIGTERM first and waits `stale_project_process_term_grace_sec` (default `5.0` seconds) before sending SIGKILL. You can disable the reaper by setting `stale_project_process_reaper_enabled` to `false`.
+
+<Tabs>
+  <Tab title="Reaper enabled (default)">
+    ```json
+    {
+      "stale_project_process_reaper_enabled": true,
+      "stale_project_process_grace_sec": 900,
+      "stale_project_process_term_grace_sec": 5.0,
+      "stale_project_process_command_markers": [
+        "timeout ",
+        "llama-cli",
+        "llama-server",
+        "vllm",
+        "sglang"
+      ]
+    }
+    ```
+  </Tab>
+  <Tab title="Reaper disabled">
+    ```json
+    {
+      "stale_project_process_reaper_enabled": false
+    }
+    ```
+  </Tab>
+</Tabs>
+
+## Callback
+
+When the gate is satisfied, it fires a POST to `completion_callback_url` with a `GateCallback` payload. The payload includes:
+
+- `event_type`: either `wake_ready` or `session_finished_ready`
+- `run_id`, `session_id`, `project_id`, `project_name`
+- `gate_state`: the final gate state value
+- `process_tracking`: a `ProcessSnapshot` confirming no processes remain
+- `telemetry`: averaged CPU/GPU/VRAM measurements, memory source, workload class, thresholds used
+- `reason`: a human-readable string (`codex_idle_and_system_quiet` or `session_ended_and_system_quiet`)
+- `idempotency_key`: a stable key scoped to the run ID, event type, and idle timestamp
+
+The gate deduplicates callbacks using the `idempotency_key`. If the control plane already acknowledged a callback with the same key, the gate does not fire again.

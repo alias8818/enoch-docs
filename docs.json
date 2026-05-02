@@ -1,0 +1,96 @@
+{
+  "$schema": "https://mintlify.com/docs.json",
+  "theme": "willow",
+  "name": "Enoch Agentic Research System",
+  "description": "Control plane for autonomous AI research — queue ideas, gate dispatch, supervise runs, and generate provenance-tracked research artifacts.",
+  "colors": {
+    "primary": "#848c8e",
+    "light": "#11161e",
+    "dark": "#cfd0d2"
+  },
+  "favicon": "https://media.brand.dev/2b01fe20-c04b-4a1d-a2f9-1d2789c50a7a.jpg",
+  "logo": {
+    "light": "https://media.brand.dev/5ffd6ce4-2434-4b4b-920a-f8cacac8b48b.svg",
+    "dark": "https://media.brand.dev/5ffd6ce4-2434-4b4b-920a-f8cacac8b48b.svg"
+  },
+  "icons": {
+    "library": "lucide"
+  },
+  "styling": {
+    "eyebrows": "breadcrumbs"
+  },
+  "contextual": {
+    "options": ["copy", "view", "assistant"]
+  },
+  "navigation": {
+    "global": {
+      "anchors": [
+        {
+          "anchor": "GitHub",
+          "icon": "github",
+          "href": "https://github.com/alias8818/enoch-agentic-research-system"
+        }
+      ]
+    },
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "deployment"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/control-plane",
+              "concepts/wake-gate",
+              "concepts/evidence-and-artifacts"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/idea-intake",
+              "guides/dispatch-flow",
+              "guides/paper-artifacts",
+              "guides/alerts"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/overview",
+              "configuration/worker",
+              "configuration/paper-writer"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/api-endpoints",
+              "reference/authorship-provenance",
+              "reference/troubleshooting"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "navbar": {
+    "links": [],
+    "primary": {
+      "type": "github",
+      "href": "https://github.com/alias8818/enoch-agentic-research-system"
+    }
+  },
+  "footer": {
+    "socials": {
+      "github": "https://github.com/alias8818/enoch-agentic-research-system"
+    }
+  }
+}

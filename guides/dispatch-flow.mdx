@@ -1,0 +1,144 @@
+---
+title: "How to dispatch a research run safely with Enoch"
+description: "Walk through the eight-step dispatch sequence: check status, run preflight, preview with dry-run, then go live — with curl examples for every step."
+sidebarTitle: "Dispatch Flow"
+---
+
+Every dispatch in Enoch passes through a multi-step safety sequence before an agent run is allowed to start. The control plane guards against double-dispatching onto an active GPU lane, launching while the queue is paused or in maintenance mode, and running without a healthy worker preflight. Working through this sequence — checking status, running a dry dispatch, and only then going live — is the standard operating procedure for every run.
+
+<Warning>
+Always run a dry dispatch first. Never send `dry_run: false` until you have confirmed the dry-run response shows `action: "dry_run_dispatch"` with a valid candidate and no blockers.
+</Warning>
+
+<Steps>
+
+<Step title="Confirm a queue item exists">
+
+Before any dispatch can proceed, the queue must have at least one item in the `queued` status with no blocking conditions. Check the current control-plane state:
+
+```bash
+TOKEN=$(python3 - <<'PY'
+import json
+print(json.load(open('/etc/enoch/config.json'))['omx_inbound_bearer_token'])
+PY
+)
+
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8787/control/api/status | python3 -m json.tool
+```
+
+Look for `dispatch_safe: true` and an empty `dispatch_blockers` list in the response. If `dispatch_safe` is `false`, the response includes a `dispatch_blockers` array explaining which conditions are blocking dispatch — address each one before continuing.
+
+</Step>
+
+<Step title="Verify the queue is not paused">
+
+The control plane starts in a paused state by default. Check `flags.queue_paused` in the status response. If the queue is paused, resume it:
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"resumed_by": "operator", "maintenance_mode": false}' \
+  http://127.0.0.1:8787/control/resume | python3 -m json.tool
+```
+
+</Step>
+
+<Step title="Confirm maintenance mode is not active">
+
+`flags.maintenance_mode` must be `false` before live dispatch is allowed. The resume call above sets `maintenance_mode: false`. If you need to re-enable maintenance mode at any point:
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"reason": "operator maintenance", "paused_by": "operator", "maintenance_mode": true}' \
+  http://127.0.0.1:8787/control/pause | python3 -m json.tool
+```
+
+</Step>
+
+<Step title="Run worker preflight">
+
+The control plane performs a non-mutating preflight check against the worker before any live dispatch. You can run it explicitly to confirm the worker is healthy before proceeding:
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wake_gate_url": "http://worker.example:8787",
+    "bearer_token": "worker-api-token",
+    "require_paused": false,
+    "strict": false
+  }' \
+  http://127.0.0.1:8787/control/api/preflight | python3 -m json.tool
+```
+
+The response includes an `ok` field and a `checks` array. Each check has a `name`, `ok`, and `detail` field. All checks must pass before a live dispatch is accepted. Key checks include `wake_gate_healthz`, `worker_no_live_runs`, and `wake_gate_dashboard_api`.
+
+</Step>
+
+<Step title="Confirm no conflicting active GPU lane exists">
+
+The control plane enforces a single-active-lane rule. If `active_items` in the status response is non-empty, dispatch is blocked. Resolve any stale active rows before proceeding — inspect the run detail and reconcile if the worker process has already exited.
+
+</Step>
+
+<Step title="Run a dry dispatch to preview the candidate">
+
+With all pre-conditions satisfied, run a dry dispatch to verify which candidate the control plane would select and what the dispatch payload would look like:
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"dry_run": true, "requested_by": "operator"}' \
+  http://127.0.0.1:8787/control/dispatch-next | python3 -m json.tool
+```
+
+A successful dry run returns `action: "dry_run_dispatch"` with the selected `candidate`. Review the candidate fields — especially `project_id`, `project_name`, and `machine_target` — before proceeding.
+
+</Step>
+
+<Step title="Dispatch the next run live">
+
+Once the dry run confirms the correct candidate, send the live dispatch:
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"dry_run": false, "requested_by": "operator"}' \
+  http://127.0.0.1:8787/control/dispatch-next | python3 -m json.tool
+```
+
+A successful live dispatch returns `action: "live_dispatch"` with the `run_id`, `project_id`, `project_dir`, and `preflight` result. The worker will receive the dispatch and begin the agent run.
+
+</Step>
+
+<Step title="Wake gate tracks run to completion">
+
+After dispatch, the worker's wake gate takes over process and telemetry tracking. The control plane receives completion signals only after the wake gate is satisfied — meaning the process tree has exited, CPU and GPU usage have returned to idle thresholds, and the quiet-window timer has elapsed. A completion callback fires to the configured `completion_callback_url` only after these conditions are met.
+
+Monitor progress via the status endpoint or the control dashboard at:
+
+```text
+http://<control-vm>:8787/dashboard
+```
+
+</Step>
+
+</Steps>
+
+## Dispatch endpoint reference
+
+| Endpoint | Method | Description |
+|---|---|---|
+| `GET /control/api/status` | GET | Returns dispatch safety state, queue counts, active items, and source freshness. |
+| `POST /control/api/preflight` | POST | Runs a non-mutating worker preflight check and records the result. |
+| `POST /control/dispatch-next` | POST | Dispatches the next queued candidate. Accepts `dry_run: true` for safe previewing. |
+| `POST /control/pause` | POST | Pauses the queue and optionally enables maintenance mode. |
+| `POST /control/resume` | POST | Resumes the queue and optionally clears maintenance mode. |

@@ -1,0 +1,134 @@
+---
+title: "Enoch: Agentic Research Control Plane"
+description: Everything you need to deploy, configure, and operate Enoch — queue research ideas, gate dispatch, supervise AI runs, and package artifacts with provenance.
+mode: custom
+---
+
+<div data-product-guide-index className="flex w-full flex-col gap-8">
+  <div className="flex max-w-[540px] flex-col gap-2 self-center text-center">
+    <h1 className="font-serif text-[30px] font-medium leading-9 tracking-tight text-gray-900 dark:text-gray-50">
+      Enoch Agentic Research System
+    </h1>
+    <p className="text-balance text-sm leading-relaxed tracking-tight text-gray-600 dark:text-gray-400">
+      A control plane for autonomous AI research — queue ideas, gate worker dispatch, supervise local AI runs, and package research artifacts with evidence and provenance.
+    </p>
+  </div>
+
+  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+    <Card
+      title={<span className="product-guide-feature-card-title">Get started</span>}
+      icon="rocket"
+      href="/quickstart"
+      className="product-guide-feature-card"
+      size={64}
+    >
+      <span className="product-guide-feature-card-description">Install Enoch, create a config, and run your first local smoke test in minutes.</span>
+    </Card>
+
+    <a
+      href="/concepts/control-plane"
+      className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+    >
+      <Icon icon="cpu" color="rgb(var(--primary))" size={18} className="shrink-0" />
+      <div className="flex flex-col gap-1">
+        <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Control plane</span>
+        <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+          Understand queue state, dispatch safety, and the API that drives all operations.
+        </span>
+      </div>
+    </a>
+    <a
+      href="/concepts/wake-gate"
+      className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+    >
+      <Icon icon="shield-check" color="rgb(var(--primary))" size={18} className="shrink-0" />
+      <div className="flex flex-col gap-1">
+        <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Wake gate</span>
+        <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+          Process-tree tracking and CPU/GPU quiet-window telemetry that proves a run is truly done.
+        </span>
+      </div>
+    </a>
+  </div>
+
+  <hr className="border-0 border-t border-border" />
+
+  <div className="flex flex-col gap-4">
+    <h2 className="font-serif text-xl font-medium leading-normal text-gray-900 dark:text-gray-50">Common tasks</h2>
+
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <a
+        href="/guides/dispatch-flow"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="play-circle" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Dispatch a research run</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Run preflight checks, validate the queue, and dispatch the next candidate safely.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/guides/paper-artifacts"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="file-text" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Generate paper artifacts</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Sync evidence, generate AI-authored research reports, and run quality gates.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/configuration/overview"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="settings" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Configure Enoch</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Set required fields, worker connection, alerts, and paper-writer provider.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/deployment"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="server" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Deploy to production</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Full two-machine setup: control VM, worker machine, systemd services, and smoke tests.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/guides/alerts"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="bell" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Set up queue alerts</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Enable Pushover notifications for queue hangs and stoppage detection.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/reference/api-endpoints"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="code" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">API reference</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Full reference for every control-plane endpoint, with request and response examples.
+          </span>
+        </div>
+      </a>
+    </div>
+  </div>
+</div>

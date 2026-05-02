@@ -1,0 +1,87 @@
+---
+title: "Get started with Enoch: local smoke test in 5 steps"
+description: "Clone the repository, create a local config, start the API, run the smoke tests, and open the dashboard — no real worker machine required."
+sidebarTitle: "Quickstart"
+---
+
+This quickstart walks you through a local developer smoke test: you clone the repository, generate a minimal config with randomized tokens, start the FastAPI control plane, and verify that the health, status, preflight, and dispatch dry-run endpoints all respond correctly. By the end you will have a running dashboard and a baseline you can trust before moving to a two-machine deployment.
+
+<Note>
+  This quickstart does not require a real worker machine. The config points the worker wake gate URL back at the local API, so all five steps run entirely on a single machine.
+</Note>
+
+<Steps>
+  <Step title="Install dependencies and run tests">
+    Clone the repository, create a virtual environment, install the package in editable mode, and confirm the test suite passes before proceeding.
+
+    ```bash
+    git clone https://github.com/alias8818/enoch-agentic-research-system.git
+    cd enoch-agentic-research-system
+    uv venv --python /usr/bin/python3 .venv
+    uv pip install --python .venv/bin/python -e .
+    uv run pytest -q
+    ```
+  </Step>
+
+  <Step title="Create a local config">
+    Create the state, projects, and config directories, then copy the example config and patch it with local paths and freshly generated tokens. The script prints the token you will need for the dashboard.
+
+    ```bash
+    mkdir -p .local/state .local/projects .local/config
+    cp config.example.json .local/config/config.json
+    python3 - <<'PY'
+    import json, pathlib, secrets
+    p=pathlib.Path('.local/config/config.json')
+    data=json.loads(p.read_text())
+    data['state_dir']=str(pathlib.Path('.local/state').resolve())
+    data['project_root']=str(pathlib.Path('.local/projects').resolve())
+    data['dispatch_script_path']=str(pathlib.Path('deploy/enoch_omx_dispatch.sh').resolve())
+    data['omx_inbound_bearer_token']=secrets.token_urlsafe(32)
+    data['completion_callback_token']=secrets.token_urlsafe(32)
+    data['completion_callback_url']='http://127.0.0.1:8787/omx/event'
+    data['worker_wake_gate_url']='http://127.0.0.1:8787'
+    data['worker_wake_gate_bearer_token']=data['omx_inbound_bearer_token']
+    p.write_text(json.dumps(data, indent=2)+"\n")
+    print('token:', data['omx_inbound_bearer_token'])
+    PY
+    ```
+
+    Copy the printed token — you will paste it into the dashboard login prompt in step 3.
+  </Step>
+
+  <Step title="Run the API">
+    Export the config path and start the uvicorn server. The API and dashboard will be available at `http://127.0.0.1:8787`.
+
+    ```bash
+    export OMX_WAKE_GATE_CONFIG=$PWD/.local/config/config.json
+    uv run uvicorn omx_wake_gate.app:app --host 127.0.0.1 --port 8787
+    ```
+
+    Open the dashboard in your browser:
+
+    ```text
+    http://127.0.0.1:8787/dashboard
+    ```
+
+    Paste the generated token when prompted.
+  </Step>
+
+  <Step title="Run smoke tests">
+    In a second shell, export the same config path and run the smoke test script. This exercises the health, status, preflight, and dispatch dry-run endpoints.
+
+    ```bash
+    export OMX_WAKE_GATE_CONFIG=$PWD/.local/config/config.json
+    scripts/smoke-test-local.sh
+    ```
+
+    Expected result: health, status, preflight, and dispatch dry-run endpoints respond with JSON.
+  </Step>
+
+  <Step title="Move to two-machine testing">
+    After the local smoke tests pass, you are ready to configure a real control VM and a separate worker machine. The deployment guide covers clone and install on both machines, systemd service setup, Pushover alerts, the full dispatch flow, and the paper artifact workflow.
+  </Step>
+</Steps>
+
+<Card title="Deploy to production" icon="rocket" href="/deployment">
+  Follow the full two-machine deployment guide to configure a control VM, a worker machine, systemd services, queue alerts, and the paper artifact pipeline.
+</Card>

@@ -1,0 +1,95 @@
+{
+  "projectType": "saas",
+  "projectName": "Enoch Agentic Research System",
+  "projectDescription": "A control plane for autonomous AI research that queues ideas, gates worker dispatch, supervises local AI runs, preserves evidence, and packages AI-generated research artifacts with provenance.",
+  "theme": "aspen",
+  "primaryColor": "#848c8e",
+  "lightColor": "#11161e",
+  "darkColor": "#cfd0d2",
+  "navigation": {
+    "tabs": [
+      {
+        "tab": "Documentation",
+        "groups": [
+          {
+            "group": "Get Started",
+            "pages": [
+              "introduction",
+              "quickstart",
+              "deployment"
+            ]
+          },
+          {
+            "group": "Core Concepts",
+            "pages": [
+              "concepts/control-plane",
+              "concepts/wake-gate",
+              "concepts/evidence-and-artifacts"
+            ]
+          },
+          {
+            "group": "Guides",
+            "pages": [
+              "guides/idea-intake",
+              "guides/dispatch-flow",
+              "guides/paper-artifacts",
+              "guides/alerts"
+            ]
+          },
+          {
+            "group": "Configuration",
+            "pages": [
+              "configuration/overview",
+              "configuration/worker",
+              "configuration/paper-writer"
+            ]
+          },
+          {
+            "group": "Reference",
+            "pages": [
+              "reference/api-endpoints",
+              "reference/authorship-provenance",
+              "reference/troubleshooting"
+            ]
+          }
+        ]
+      }
+    ]
+  },
+  "keyFeatures": [
+    "Queue state management with idempotent APIs",
+    "Wake-gate execution: process-tree tracking and CPU/GPU quiet-window telemetry",
+    "Worker preflight health checks before dispatching agent runs",
+    "Single-lane GPU safety to prevent overlapping heavy workloads",
+    "Evidence sync from worker to control VM before artifact generation",
+    "AI-generated research artifact writer with claim ledger and provenance",
+    "Quality gates scanning for placeholder citations and missing evidence",
+    "Live operations dashboard with project queue, paper queue, and run board",
+    "Pushover alerts for queue hangs and stoppages",
+    "LangGraph-era control-plane state/graph model"
+  ],
+  "publicApiSurface": [
+    "GET /healthz — service health check",
+    "GET /control/api/status — dispatch safety and queue state",
+    "GET /control/api/queue-health — queue health with worker freshness",
+    "GET /control/api/queues/{queue} — paginated queue rows (active, queued, blocked, paused)",
+    "POST /control/dispatch-next — dispatch next queued candidate",
+    "POST /control/api/preflight — worker preflight check",
+    "GET /control/api/projects/{id} — project detail",
+    "GET /control/api/papers — paper queue list",
+    "GET /control/api/paper-reviews — publication review queue",
+    "POST /control/api/paper-reviews/{id}/rewrite-draft — rewrite paper with AI model",
+    "POST /control/api/paper-reviews/rewrite-batch — batch rewrite paper drafts",
+    "POST /control/api/paper-reviews/{id}/approve-finalization — approve paper for finalization",
+    "GET /control/api/events — audit event log",
+    "GET /control/api/intake/notion — Notion intake sync status",
+    "POST /omx/event — OMX/Codex completion callback",
+    "GET /dashboard — live operations console (browser UI)",
+    "GET /dashboard/api — dashboard snapshot API",
+    "POST /prepare-project — prepare worker project workspace",
+    "POST /dispatch — dispatch agent run to worker",
+    "GET /enoch-core/health — enoch-core mode and DB status",
+    "POST /enoch-core/snapshots/n8n-queue — ingest queue snapshot",
+    "GET /enoch-core/projections/queue — queue projection"
+  ]
+}

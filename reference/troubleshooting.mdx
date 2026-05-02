@@ -1,0 +1,295 @@
+---
+title: "Troubleshoot common Enoch agentic research system issues"
+description: "Diagnose and fix common Enoch problems: dispatch blockers, worker preflight failures, stuck wake gates, stale processes, and paper writer errors."
+sidebarTitle: "Troubleshooting"
+---
+
+This page covers the issues most likely to interrupt Enoch operations, with concrete diagnostic commands and configuration fixes for each. Start with `GET /control/api/status` for any issue you cannot immediately classify — the `dispatch_blockers`, `warnings`, and `conflicts` fields usually identify the root cause.
+
+<AccordionGroup>
+
+<Accordion title="Dispatch fails immediately">
+
+When `POST /control/dispatch-next` returns a `dispatch_blocked` or `paused` action, or a `409` error, check the dispatch safety state first:
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://127.0.0.1:8787/control/api/status?refresh_worker=true" \
+  | python3 -m json.tool
+```
+
+Look at `dispatch_safe`, `dispatch_blockers`, `flags.queue_paused`, and `flags.maintenance_mode`.
+
+**Common blockers and fixes:**
+
+| Blocker | Cause | Fix |
+|---|---|---|
+| `"queue paused"` | `flags.queue_paused` is `true` | Resume the queue via the dashboard or `POST /control/api/resume` |
+| `"maintenance mode"` | `flags.maintenance_mode` is `true` | Disable maintenance mode before live dispatch |
+| `"live dispatch disabled"` | `live_dispatch_enabled` is `false` in config | Set `"live_dispatch_enabled": true` in `/etc/enoch/config.json` and restart |
+| `"active GB10 lane exists"` | A run is already active | Wait for it to complete or reconcile if the worker exited unexpectedly |
+| `"no queued dispatch candidate"` | No items have `queued` status | Add items to the queue or check the Notion intake sync |
+
+**Also verify** that `worker_wake_gate_url` and `worker_wake_gate_bearer_token` are both set in config:
+
+```json
+{
+  "worker_wake_gate_url": "http://worker.example:8787",
+  "worker_wake_gate_bearer_token": "worker-api-token"
+}
+```
+
+</Accordion>
+
+<Accordion title="Worker preflight fails">
+
+Run the preflight check manually to see which specific check is failing:
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wake_gate_url": "http://worker.example:8787",
+    "bearer_token": "worker-api-token",
+    "require_paused": false,
+    "strict": false
+  }' \
+  http://127.0.0.1:8787/control/api/preflight \
+  | python3 -m json.tool
+```
+
+Inspect the `checks` array in the response. Each check has a `name`, `ok`, and `detail` field.
+
+**Diagnosis steps:**
+
+1. **Worker not running** — confirm the worker service is up and listening on port `8787`:
+
+   ```bash
+   curl -fsS http://worker.example:8787/healthz
+   ```
+
+   If that fails, SSH to the worker and check the service:
+
+   ```bash
+   sudo systemctl status enoch-control-plane.service
+   ```
+
+2. **Bearer token mismatch** — verify that `worker_wake_gate_bearer_token` in the control VM config matches `omx_inbound_bearer_token` in the worker config. They must be identical.
+
+3. **Network connectivity** — confirm the control VM can reach the worker on port `8787`. Check firewall rules if the host is not directly reachable.
+
+4. **GPU or memory threshold** — the preflight checks `max_gpu_pct` (default `5.0`) and `min_memory_available_mib` (default `16384`). If the worker is still cooling down from a previous run, wait and retry.
+
+</Accordion>
+
+<Accordion title="Run never completes (wake gate stuck)">
+
+The wake gate waits for a sustained quiet window before emitting a completion callback. If a run has been active for an unusually long time and no callback has arrived, the gate may be waiting for GPU or CPU activity to settle.
+
+**Check the wake gate state on the worker:**
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://worker.example:8787/dashboard/api" \
+  | python3 -m json.tool
+```
+
+Look for the `gate_state` field on the active run. Possible states include `running`, `pending_idle_gate`, `waiting_for_process_exit`, and `waiting_for_quiet_window`.
+
+**Key configuration thresholds to review** in the worker config:
+
+| Config key | Default | Description |
+|---|---|---|
+| `idle_sustain_sec` | `180` | Seconds of continuous quiet required before the gate fires |
+| `gpu_idle_avg_threshold_pct` | — | Average GPU utilisation must stay below this to count as idle |
+| `gpu_idle_peak_threshold_pct` | — | Peak GPU utilisation must stay below this during the quiet window |
+
+**Common causes:**
+
+- A GPU process is still running (e.g. a model that did not exit cleanly). Check active GPU processes on the worker with `nvidia-smi`.
+- `idle_sustain_sec` is set very high. Reduce it in the worker config if your workloads reliably finish before the threshold.
+- The agent process exited but a child process is still alive. The gate waits for the full process tree to go quiet.
+
+</Accordion>
+
+<Accordion title="Stale processes accumulate">
+
+If prior agent runs leave orphaned processes on the worker, enable the stale process reaper:
+
+```json
+{
+  "stale_project_process_reaper_enabled": true
+}
+```
+
+The reaper identifies stale processes by matching against command-line markers. Verify that your process names are included in `stale_project_process_command_markers`. The default set includes common inference server commands:
+
+```json
+{
+  "stale_project_process_command_markers": [
+    "llama-cli",
+    "llama-server",
+    "vllm",
+    "sglang"
+  ]
+}
+```
+
+Add any other long-running commands your agent workloads launch. After updating the config, restart the worker service for the change to take effect.
+
+</Accordion>
+
+<Accordion title="Paper generation fails or uses the fallback template">
+
+When the AI writer cannot be reached or is not configured, the control plane falls back to a deterministic template draft. The fallback draft contains placeholder content and an explicit limitation noting that human review is required.
+
+**Diagnosis steps:**
+
+1. **Check `paper_writer_api_key`** — verify the key is set in config and is valid for your provider:
+
+   ```json
+   {
+     "paper_writer_api_key": "your-provider-key"
+   }
+   ```
+
+2. **Check `paper_writer_base_url`** — confirm the endpoint is reachable from the control VM:
+
+   ```bash
+   curl -fsS https://api.synthetic.new/openai/v1/models \
+     -H "Authorization: Bearer your-provider-key"
+   ```
+
+3. **Fallback behaviour** — if `paper_writer_fallback_enabled` is `true`, the control plane will produce a deterministic template instead of returning an error. This is intentional for environments where the writer is unavailable. The fallback draft will have an empty `claims` array in `claim_ledger.json` and a note stating that MVP deterministic draft content requires human review.
+
+   To disable the fallback and surface errors explicitly, set:
+
+   ```json
+   {
+     "paper_writer_fallback_enabled": false
+   }
+   ```
+
+4. **Recommended provider settings** (from the deployment guide):
+
+   ```json
+   {
+     "paper_writer_provider": "synthetic.new",
+     "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
+     "paper_writer_model": "hf:zai-org/GLM-5.1",
+     "paper_writer_api_key": "your-provider-key",
+     "paper_writer_fallback_enabled": true
+   }
+   ```
+
+</Accordion>
+
+<Accordion title="Evidence sync fails">
+
+The control plane syncs evidence from the worker before rewriting a paper draft. If the sync fails, the rewrite endpoint returns `424` when `paper_evidence_sync_enabled` is `true`.
+
+**Diagnosis steps:**
+
+1. **Confirm sync is enabled:**
+
+   ```json
+   {
+     "paper_evidence_sync_enabled": true
+   }
+   ```
+
+2. **HTTP sync** — the control plane first tries to read evidence files from the worker over HTTP using the worker's read endpoint. Verify that the worker is running and reachable:
+
+   ```bash
+   curl -fsS http://worker.example:8787/healthz
+   ```
+
+3. **SSH fallback** — if HTTP sync fails and high-signal evidence (e.g. `run_notes.md` and `.omx/project_decision.json`) is still absent, the control plane falls back to SSH. Configure the SSH fallback:
+
+   ```json
+   {
+     "paper_evidence_sync_ssh_host": "worker.example",
+     "paper_evidence_sync_remote_root": "/home/user/projects"
+   }
+   ```
+
+   The control plane will stream a bounded tarball of evidence paths over SSH. Confirm that the control VM can connect to the worker without a password:
+
+   ```bash
+   ssh -o BatchMode=yes worker.example echo ok
+   ```
+
+4. **What is synced** — the sync collects `run_notes.md`, `.omx/project_decision.json`, `.omx/metrics.json`, selected `results/` JSON files, and any existing `papers/{run_id}/` artifacts from the worker project directory.
+
+</Accordion>
+
+<Accordion title="Dashboard shows 401 Unauthorized">
+
+The dashboard requires the `omx_inbound_bearer_token` from the control VM config. There are two ways to provide it:
+
+1. **Token input on the dashboard** — open `http://<control-vm>:8787/dashboard`, paste the token into the "Bearer token" field in the header, and click **Save**. The token is stored in `localStorage` for the current browser.
+
+2. **URL query parameter** — pass `?token=<your-token>` in the URL on first load:
+
+   ```text
+   http://<control-vm>:8787/dashboard?token=<your-token>
+   ```
+
+   The dashboard reads the token from the query string on load and saves it to `localStorage`.
+
+To retrieve the token from the config file:
+
+```bash
+python3 -c "import json; print(json.load(open('/etc/enoch/config.json'))['omx_inbound_bearer_token'])"
+```
+
+</Accordion>
+
+<Accordion title="Queue alert not firing">
+
+Enoch uses Pushover for queue hang and stoppage alerts. If alerts are not arriving, work through the following checklist.
+
+**1. Confirm alerts are enabled in config:**
+
+```json
+{
+  "pushover_alerts_enabled": true,
+  "pushover_app_token": "your-pushover-application-token",
+  "pushover_user_key": "your-pushover-user-key",
+  "queue_alert_cooldown_sec": 1800,
+  "queue_alert_hang_after_sec": 3600
+}
+```
+
+**2. Verify the alert timer is installed and running:**
+
+```bash
+systemctl list-timers enoch-queue-alert-check.timer
+```
+
+If the timer is not listed, install it:
+
+```bash
+sudo cp /opt/enoch-agentic-research-system/deploy/enoch-queue-alert-check.service /etc/systemd/system/
+sudo cp /opt/enoch-agentic-research-system/deploy/enoch-queue-alert-check.timer /etc/systemd/system/
+sudo systemctl daemon-reload
+sudo systemctl enable --now enoch-queue-alert-check.timer
+```
+
+**3. Run a manual alert check:**
+
+```bash
+sudo OMX_WAKE_GATE_CONFIG=/etc/enoch/config.json \
+  /opt/enoch-agentic-research-system/deploy/enoch_queue_alert_check.py
+```
+
+Examine the output for `should_alert`, `findings`, and any Pushover delivery errors.
+
+**4. Check cooldown** — if an alert fired recently, the cooldown period (`queue_alert_cooldown_sec`, default `1800` seconds) suppresses subsequent alerts. The `latest_alert_check` block in `GET /control/api/queue-health` shows when the last alert was sent.
+
+</Accordion>
+
+</AccordionGroup>
