@@ -17,6 +17,10 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 
 Review `dispatch_safe` and `dispatch_blockers` before proceeding. The dashboard UI is at `http://<control-vm>:8787/dashboard`.
 
+![Sanitized dashboard status view showing a blocked dispatch state and the core dispatch counters](/images/dashboard-status-blocked.png)
+
+Use the dashboard as a fast visual check, but trust the API response as the source of truth for automation.
+
 ## 2. Check queue health
 
 ```bash
@@ -56,5 +60,12 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 ```
 
 ## What the control plane checks
+
+The queue tabs show the same read model from different operator angles. Empty active and queued views are useful during smoke testing because they prove the dashboard can read canonical queue state without launching work.
+
+![Sanitized active queue tab showing no active rows](/images/dashboard-active-queue.png)
+
+![Sanitized queued queue tab showing no queued rows](/images/dashboard-queued-queue.png)
+
 
 The control plane checks that a queue item exists, pause and maintenance flags allow work, no conflicting active lane exists, worker preflight passes, and the dispatch script can be launched for live dispatch.

@@ -6,15 +6,25 @@ sidebarTitle: "Screenshot Needs"
 
 The docs should not invent product screenshots. Capture the items below from a clean local or staging deployment when you have a safe demo config with no live secrets, private hostnames, private prompts, or unreleased run data visible.
 
-## Required runtime screenshots
+## Captured sanitized screenshots
+
+| Image | Used in | What it shows |
+|---|---|---|
+| `images/dashboard-status-blocked.png` | [Quickstart](/quickstart), [Dispatch flow](/guides/dispatch-flow) | Dashboard status counters, dispatch blocker, source freshness, and active lane table |
+| `images/dashboard-active-queue.png` | [Dispatch flow](/guides/dispatch-flow) | Active queue read model with no active rows |
+| `images/dashboard-queued-queue.png` | [Dispatch flow](/guides/dispatch-flow) | Queued queue read model with no queued rows |
+| `images/dashboard-paper-reviews.png` | [Paper artifacts](/guides/paper-artifacts) | Publication review queue, review states, rank bucket, checklist progress, and rewrite controls |
+| `images/dashboard-papers.png` | [Paper artifacts](/guides/paper-artifacts), [Authorship](/reference/authorship-provenance) | Generated draft, claim ledger, and manifest paths for demo paper rows |
+
+All current captures were taken with Playwright from the internal dashboard and sanitized before being committed. The visible token field is hidden, project/run identifiers are replaced with demo values, and paper/project titles are generalized where they appear in structured tables.
+
+## Remaining runtime screenshots
 
 | Page or guide | Capture needed | Why it matters |
 |---|---|---|
-| [Quickstart](/quickstart) | Dashboard at `http://127.0.0.1:8787/dashboard` after saving a local bearer token | Shows beginners what a successful local smoke-test dashboard looks like |
 | [Dispatch flow](/guides/dispatch-flow) | A dry-run dispatch response with no live launch | Demonstrates safe candidate inspection before enabling live dispatch |
-| [Dispatch flow](/guides/dispatch-flow) | A blocked dispatch/status response | Shows operators how blockers appear before they troubleshoot |
 | [Wake gate](/concepts/wake-gate) | Worker dashboard or run detail showing a quiet-window / `wake_ready`-style state | Makes process and telemetry gating concrete without overexplaining it in prose |
-| [Paper artifacts](/guides/paper-artifacts) | Paper review queue row before and after checklist updates | Shows the human review step that prevents generated drafts from being mistaken for publications |
+| [Paper artifacts](/guides/paper-artifacts) | Paper review queue row after a checklist update or claim action | Shows the before/after human review step, not just the queue overview |
 | [Authorship](/reference/authorship-provenance) | Example artifact folder with `paper.md`, `claim_ledger.json`, `evidence_bundle.json`, and `paper_manifest.json` | Reinforces that generated reports travel with provenance artifacts |
 | Corpus artifact row | Source corpus `papers/index.md` or the Hugging Face dataset page | Shows how generated artifacts are packaged for public inspection |
 
@@ -46,4 +56,4 @@ Use a diagram when it clarifies the flow. Do not add decorative generated images
 
 ## Current local assets
 
-The repository includes sample feature images, but no current MDX page should treat those files as product captures. Keep sample images unused unless they are intentionally replaced by real, redacted screenshots from the list above.
+The repository now uses sanitized internal dashboard captures under `images/`. Do not add decorative placeholder images. Add more screenshots only when they are real, redacted product states from the remaining list above.

@@ -38,7 +38,6 @@ If `paper_evidence_sync_enabled` is `true` in your config and no local evidence 
 
 ## 2. Generate Markdown and LaTeX
 
-
 Once sufficient local evidence is present, the artifact writer runs against the evidence bundle and claim ledger to produce:
 
 - `papers/<run_id>/paper.md` — Markdown draft
@@ -65,8 +64,10 @@ If `paper_writer_fallback_enabled` is `true`, the writer falls back to a determi
 
 ## 3. Scan quality gates
 
-
 After the artifact is written, a review record is created in the paper review queue with a `review_status` of `unreviewed` or `triage_ready`. The quality gate includes a ranked checklist of items the reviewer must pass, fail, or accept-as-risk before the paper can be approved for finalization.
+
+![Sanitized publication review queue showing review states, paper states, rank score, and checklist progress](/images/dashboard-paper-reviews.png)
+
 
 You can view all papers currently in the review queue:
 
@@ -79,15 +80,18 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 
 Use dry-run first. The `enoch-paper-draft-next.timer` can automate this path after you have tested it.
 
-## 3. Review generated drafts
+## 4. Review generated drafts
 
 Paper review APIs support claiming review items, updating checklist items, changing review status, rewriting drafts, approving finalization, and preparing finalization packages. The dashboard exposes the same concepts for operators, but generated prose still needs human review.
 
-## 4. Rewrite with an optional provider
+![Sanitized papers queue showing generated draft paths, claim ledger paths, and manifest paths](/images/dashboard-papers.png)
+
+
+## 5. Rewrite with an optional provider
 
 If configured, `synthetic.new` can rewrite draft content through an OpenAI-compatible endpoint. Keep `paper_writer_fallback_enabled` and deterministic fallback behavior in mind when interpreting output.
 
-## 5. Apply corpus gates
+## 6. Apply corpus gates
 
 The corpus policy rejects placeholder citations, fake citations, peer-review claims, implied human authorship, and missing provenance/evidence unless explicitly stated.
 
