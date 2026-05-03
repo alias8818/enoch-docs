@@ -3,7 +3,7 @@ title: "Configuration overview"
 description: "Required and optional Enoch config fields, with safe defaults and secret-handling guidance."
 ---
 
-# Configuration overview
+Enoch reads its configuration from a single JSON file whose path you set in the `OMX_WAKE_GATE_CONFIG` environment variable. Every field is validated at startup using Pydantic; the service refuses to start if a required field is missing or a value is out of range. This page documents the core configuration fields, shows you how to generate the secure tokens the service needs, and walks through the annotated `config.example.json` used as the repository baseline. Worker, evidence-sync, and paper-writer fields are covered on their respective sub-pages.
 
 Enoch reads JSON configuration from the path in `OMX_WAKE_GATE_CONFIG`. The app validates required fields at startup with Pydantic.
 
@@ -46,4 +46,114 @@ Older private prototypes used `n8n_callback_url`, `n8n_bearer_token`, and `n8n_c
 
 ## Secret handling
 
-Never commit live config files or `.env` files. The release staging notes recorded clean secret scans, but that evidence only remains meaningful if future operators keep credentials out of the repository.
+<ParamField path="sample_interval_sec" type="number" default="5">
+  How often (in seconds) the gate samples CPU and GPU telemetry. Minimum value is `1`.
+</ParamField>
+
+<ParamField path="idle_sustain_sec" type="number" default="180">
+  How long (in seconds) all idle thresholds must remain satisfied before the gate considers the workload complete. Minimum value is `30`.
+</ParamField>
+
+<ParamField path="cpu_idle_threshold_pct" type="number" default="35.0">
+  CPU utilisation percentage below which the gate counts a sample as idle. Range `0.0`–`100.0`.
+</ParamField>
+
+<ParamField path="gpu_idle_avg_threshold_pct" type="number" default="10.0">
+  Average GPU utilisation percentage below which a sample is considered idle. Range `0.0`–`100.0`.
+</ParamField>
+
+<ParamField path="gpu_idle_peak_threshold_pct" type="number" default="20.0">
+  Peak GPU utilisation percentage below which a sample is considered idle. Range `0.0`–`100.0`.
+</ParamField>
+
+<ParamField path="vram_delta_threshold_mib" type="number" default="1024">
+  Maximum VRAM change in MiB between consecutive samples that is still counted as idle. Set to `0` to require no VRAM movement.
+</ParamField>
+
+<ParamField path="max_wait_after_idle_sec" type="number" default="43200">
+  Hard ceiling (in seconds) on how long the gate will wait for a workload to become idle before timing out. Minimum value is `60`.
+</ParamField>
+
+<ParamField path="default_workload_class" type="string" default="inference_eval">
+  Workload class applied when a dispatch request does not specify one. Valid values are `inference_eval`, `training`, `control_plane`, and `agent_harness`. Each class maps to a threshold profile; `inference_eval` applies stricter idle requirements (longer sustain, lower CPU threshold) than `training`.
+</ParamField>
+
+<Tip>
+  You can override per-workload thresholds using the `workload_profiles` map in your config. Define an object keyed by workload class name with the same fields as `GateThresholdProfile` (`idle_sustain_sec`, `cpu_idle_threshold_pct`, `gpu_idle_avg_threshold_pct`, `gpu_idle_peak_threshold_pct`, `vram_delta_threshold_mib`).
+</Tip>
+
+## Annotated example config
+
+The following JSON mirrors the repository `config.example.json` baseline at the time this docs page was audited. It includes optional/default-off sections such as live dispatch, Pushover alerts, evidence sync, and provider-backed paper writing. Copy it, remove fields you do not need, and replace every placeholder value before use.
+
+```json
+{
+  "listen_host": "0.0.0.0",
+  "listen_port": 8787,
+  "state_dir": "~/.local/state/omx-wake-gate",
+  "project_root": "~/enoch/projects",
+  "dispatch_script_path": "~/enoch/bin/enoch_omx_dispatch.sh",
+  "dispatch_timeout_sec": 30,
+  "omx_inbound_bearer_token": "replace-with-local-omx-hook-token",
+  "sample_interval_sec": 5,
+  "default_workload_class": "inference_eval",
+  "idle_sustain_sec": 180,
+  "cpu_idle_threshold_pct": 35.0,
+  "gpu_idle_avg_threshold_pct": 10.0,
+  "gpu_idle_peak_threshold_pct": 20.0,
+  "vram_delta_threshold_mib": 1024,
+  "workload_profiles": {
+    "inference_eval": {
+      "idle_sustain_sec": 300,
+      "cpu_idle_threshold_pct": 20.0,
+      "gpu_idle_avg_threshold_pct": 10.0,
+      "gpu_idle_peak_threshold_pct": 20.0,
+      "vram_delta_threshold_mib": 1024
+    },
+    "training": {
+      "idle_sustain_sec": 180,
+      "cpu_idle_threshold_pct": 35.0,
+      "gpu_idle_avg_threshold_pct": 10.0,
+      "gpu_idle_peak_threshold_pct": 20.0,
+      "vram_delta_threshold_mib": 1024
+    }
+  },
+  "max_wait_after_idle_sec": 43200,
+  "stale_project_process_reaper_enabled": true,
+  "stale_project_process_grace_sec": 900,
+  "stale_project_process_term_grace_sec": 5.0,
+  "stale_project_process_command_markers": [
+    "timeout ",
+    "llama-cli",
+    "llama-server",
+    "vllm",
+    "sglang"
+  ],
+  "completion_callback_url": "https://automation.example.com/webhook/omx-wake-ready",
+  "completion_callback_token": "replace-with-callback-token",
+  "completion_callback_timeout_sec": 120,
+  "log_events": true,
+  "pushover_alerts_enabled": false,
+  "pushover_app_token": "",
+  "pushover_user_key": "",
+  "pushover_api_url": "https://api.pushover.net/1/messages.json",
+  "queue_alert_cooldown_sec": 1800,
+  "queue_alert_hang_after_sec": 3600,
+  "queue_pump_enabled": false,
+  "paper_writer_provider": "deterministic",
+  "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
+  "paper_writer_model": "hf:zai-org/GLM-5.1",
+  "paper_writer_api_key": "",
+  "paper_writer_timeout_sec": 180,
+  "paper_writer_temperature": 0.2,
+  "paper_writer_max_tokens": 12000,
+  "paper_writer_fallback_enabled": true
+}
+```
+
+## Configuration sections
+
+The full configuration covers two additional areas, each documented on its own page:
+
+- **[Worker and evidence sync](/configuration/worker)** — connecting the control plane to a worker machine, enabling evidence sync, and configuring the stale-process reaper.
+- **[Paper writer and AI model settings](/configuration/paper-writer)** — choosing between the `deterministic` template provider and the `synthetic.new` production provider, and tuning generation parameters.

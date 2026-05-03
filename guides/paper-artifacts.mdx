@@ -3,17 +3,71 @@ title: "Paper artifacts"
 description: "Generate, review, and package AI-generated research artifacts with evidence boundaries."
 ---
 
-# Paper artifacts
+After a research run completes on the worker, the control plane on the VM can generate or rewrite structured paper artifacts when paper rows and evidence context are available. This process — optional evidence sync, artifact writing, quality gate scanning, and paper review — is the review stage of the Enoch research loop. The output is a Markdown and LaTeX draft that should be grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
 
-Enoch can draft and review generated research artifacts after a run has evidence. The artifact workflow is useful only when it preserves provenance and limitations.
+<Warning>
+Do not publish generated artifacts until corpus import, index building, quality scans, and human review pass. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
+</Warning>
 
 ## 1. Confirm evidence exists
 
 A complete corpus artifact usually includes `paper.md`, `metadata.json`, `evidence_bundle.json`, `claim_ledger.json`, and `paper_manifest.json`. Do not treat a draft as publishable if evidence or claim-ledger files are missing without an explicit explanation.
 
-## 2. Draft the next eligible paper
+Before the artifact writer runs, the control plane should have access to the evidence the worker produced. If `paper_evidence_sync_enabled` is `true`, evidence sync runs when you trigger a draft rewrite; you can monitor its outcome in the rewrite response.
 
-The control plane exposes a draft-only endpoint:
+When evidence sync is enabled, the control plane attempts an HTTP sync first, reading evidence files directly from the worker's wake gate API. If the worker returns the evidence, it is written into the local artifact root under the project directory. If the HTTP sync cannot retrieve the required high-signal evidence files, the control plane falls back to SSH, streaming a bounded tarball of evidence artifacts from the worker's project directory.
+
+Evidence paths the control plane looks for include:
+
+```text
+run_notes.md
+.omx/project_decision.json
+.omx/metrics.json
+results/<summary files>.json
+papers/<run_id>/evidence_bundle.json
+papers/<run_id>/claim_ledger.json
+papers/<run_id>/paper.md
+papers/<run_id>/paper_manifest.json
+```
+
+The HTTP sync retrieves specific high-signal files from `results/` (e.g. `hot_cold_sim_results.json`, `smoke.json`) rather than the entire directory. The SSH fallback syncs the entire `papers/` directory plus specific result files.
+
+If `paper_evidence_sync_enabled` is `true` in your config and no local evidence is found after sync, the rewrite request returns HTTP 424 with an `evidence_sync` detail object explaining what was tried.
+
+</Step>
+
+<Step title="Artifact writer generates Markdown and LaTeX">
+
+Once sufficient local evidence is present, the artifact writer runs against the evidence bundle and claim ledger to produce:
+
+- `papers/<run_id>/paper.md` — Markdown draft
+- `papers/<run_id>/paper.tex` — LaTeX draft
+- `papers/<run_id>/evidence_bundle.json` — Evidence bundle
+- `papers/<run_id>/claim_ledger.json` — Claim ledger
+- `papers/<run_id>/paper_manifest.json` — Artifact manifest
+
+The writer uses the model and provider configured under `paper_writer_*` settings. To test Synthetic.new with GLM-5.1, use:
+
+```json
+{
+  "paper_writer_provider": "synthetic.new",
+  "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
+  "paper_writer_model": "hf:zai-org/GLM-5.1",
+  "paper_writer_api_key": "your-provider-key",
+  "paper_writer_fallback_enabled": true,
+  "paper_evidence_sync_enabled": true
+}
+```
+
+If `paper_writer_fallback_enabled` is `true`, the writer falls back to a deterministic MVP draft if the configured provider is unavailable or returns an error.
+
+</Step>
+
+<Step title="Quality gate scan">
+
+After the artifact is written, a review record is created in the paper review queue with a `review_status` of `unreviewed` or `triage_ready`. The quality gate includes a ranked checklist of items the reviewer must pass, fail, or accept-as-risk before the paper can be approved for finalization.
+
+You can view all papers currently in the review queue:
 
 ```bash
 curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
