@@ -1,13 +1,13 @@
 ---
 title: "Generate and review AI-generated research artifacts"
-description: "Sync evidence from the worker, run the artifact writer, scan quality gates, and progress papers through the review queue to finalization."
+description: "Sync evidence from the worker, run the artifact writer, scan packaging/provenance checks, and progress papers through the review queue to finalization."
 sidebarTitle: "Paper Artifacts"
 ---
 
-After a research run completes on the worker, the control plane on the VM can generate or rewrite structured paper artifacts when paper rows and evidence context are available. This process — optional evidence sync, artifact writing, quality gate scanning, and paper review — is the review stage of the Enoch research loop. The output is a Markdown and LaTeX draft that should be grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
+After a research run completes on the worker, the control plane on the VM can generate or rewrite structured paper artifacts when paper rows and evidence context are available. This process — optional evidence sync, artifact writing, packaging/provenance scanning, and paper review — is the review stage of the Enoch research loop. The output is a Markdown and LaTeX draft that should be grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
 
 <Warning>
-Do not publish generated artifacts until corpus import, index building, quality scans, and human review pass. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
+Do not publish generated artifacts until corpus import, index building, packaging/provenance scans, and human review pass. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
 </Warning>
 
 ## 1. Confirm evidence exists
@@ -62,9 +62,9 @@ The writer uses the model and provider configured under `paper_writer_*` setting
 If `paper_writer_fallback_enabled` is `true`, the writer falls back to a deterministic MVP draft if the configured provider is unavailable or returns an error.
 
 
-## 3. Scan quality gates
+## 3. Scan packaging/provenance checks
 
-After the artifact is written, a review record is created in the paper review queue with a `review_status` of `unreviewed` or `triage_ready`. The quality gate includes a ranked checklist of items the reviewer must pass, fail, or accept-as-risk before the paper can be approved for finalization.
+After the artifact is written, a review record is created in the paper review queue with a `review_status` of `unreviewed` or `triage_ready`. The packaging/provenance check includes a ranked checklist of items the reviewer must pass, fail, or accept-as-risk before the paper can be approved for finalization. It does not validate peer review, scientific correctness, or independent replication.
 
 ![Sanitized publication review queue showing review states, paper states, rank score, and checklist progress](/images/dashboard-paper-reviews.png)
 
@@ -97,4 +97,4 @@ The corpus policy rejects placeholder citations, fake citations, peer-review cla
 
 ## Current snapshot
 
-The local Hugging Face export reports 159 artifacts. Counts can change as corpus import and quality scans are rerun.
+The local Hugging Face export reports 159 artifacts. Counts can change as corpus import and packaging/provenance scans are rerun.

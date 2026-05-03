@@ -53,7 +53,7 @@ When fallback is enabled, provider failure can fall back to deterministic output
 
 ## Synthetic.new config
 
-Add the following fields to your control VM's config file to test provider-backed paper rewriting with Synthetic.new and GLM-5.1. Confirm corpus quality scans and human review before treating any output as release-ready:
+Add the following fields to your control VM's config file to test provider-backed paper rewriting with Synthetic.new and GLM-5.1. Confirm corpus packaging/provenance scans and human review before treating any output as release-ready:
 
 ```json
 {
@@ -67,5 +67,5 @@ Add the following fields to your control VM's config file to test provider-backe
 ```
 
 <Note>
-  Do not publish generated paper artifacts until corpus quality gates and human review pass. The paper-writer output is a draft, and `RELEASE_STATUS.md` lists corpus import, quality scans, and the full GLM-5.1 rewrite loop as pending in the release snapshot.
+  Do not publish generated paper artifacts until corpus packaging/provenance checks and human review pass. The paper-writer output is a draft, and `RELEASE_STATUS.md` lists corpus import, packaging/provenance scans, and the full GLM-5.1 rewrite loop as pending in the release snapshot.
 </Note>

@@ -139,7 +139,7 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 
 Paper generation is optional and depends on evidence and paper rows. The default `paper_writer_provider` is `deterministic`. The code also supports an OpenAI-compatible `synthetic.new` provider with `paper_writer_base_url`, `paper_writer_model`, and `paper_writer_api_key` settings.
 
-Do not publish generated artifacts until corpus quality gates pass and a human understands the limitations.
+Do not publish generated artifacts until corpus packaging/provenance checks pass and a human understands the limitations.
 
 ## Review the dispatch flow
 
@@ -174,7 +174,7 @@ The control plane can rewrite and package generated research artifacts when pape
 ```
 
 <Warning>
-  Do not publish generated artifacts until corpus import, index building, quality scans, and human review are complete. The quality gates scan for placeholder citations, missing provenance, and missing evidence artifacts; the release snapshot still listed several corpus-publication steps as pending.
+  Do not publish generated artifacts until corpus import, index building, packaging/provenance scans, and human review are complete. The packaging/provenance checks scan for placeholder citations, missing provenance, and missing evidence artifacts; the release snapshot still listed several corpus-publication steps as pending.
 </Warning>
 
 ## What is not included

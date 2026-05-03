@@ -33,12 +33,12 @@ Provider support does not mean generated papers are validated or peer reviewed.
 
 ## Corpus gates
 
-The corpus quality policy requires generated artifacts to avoid fake citations, placeholder markers, implied human authorship, and peer-review claims. It also expects provenance metadata and evidence/claim-ledger availability or an explicit statement that those artifacts are missing.
+The corpus packaging/provenance policy requires generated artifacts to avoid fake citations, placeholder markers, implied human authorship, and peer-review claims. It also expects provenance metadata and evidence/claim-ledger availability or an explicit statement that those artifacts are missing.
 
 ## Current local corpus snapshot
 
 <Warning>
-Do not publish or finalize a paper until quality checks and human review pass. A paper with placeholder citations or missing provenance artifacts misrepresents the evidence behind its claims. The control plane tracks review status and supports finalization-package preparation, but the release snapshot still listed corpus import, index building, quality scans, and the full GLM-5.1 paper rewrite loop as pending before public release.
+Do not publish or finalize a paper until packaging/provenance checks and human review pass. A paper with placeholder citations or missing provenance artifacts misrepresents the evidence behind its claims. The control plane tracks review status and supports finalization-package preparation, but the release snapshot still listed corpus import, index building, packaging/provenance scans, and the full GLM-5.1 paper rewrite loop as pending before public release.
 </Warning>
 
 ## Correct framing
@@ -49,10 +49,10 @@ Papers move through the following `PaperStatus` values as they progress from gen
 |---|---|
 | `eligible` | Run complete; paper row eligible for generation or review |
 | `draft_generating` | Artifact writer is generating the draft |
-| `draft_review` | Draft generated; awaiting operator quality review |
-| `publication_generating` | Publication-quality rewrite in progress |
+| `draft_review` | Draft generated; awaiting operator packaging/provenance review |
+| `publication_generating` | Publication-targeted rewrite in progress |
 | `publication_draft` | Publication draft ready for finalization review |
-| `human_review_required` | Quality gate flagged issues requiring human judgment |
+| `human_review_required` | Packaging/provenance check flagged issues requiring human judgment |
 | `archived` | Paper archived; removed from active review queue |
 
 The review workflow (`ReviewStatus`) tracks the operator's progress through the checklist: `unreviewed` → `triage_ready` → `in_review` → `changes_requested` or `approved_for_finalization` → `finalized`. Papers can also be `rejected` or placed in `blocked` status if a blocker is recorded.
@@ -66,7 +66,7 @@ agent run → run notes + metrics + results
          → evidence_bundle.json + claim_ledger.json (synced to control VM)
          → artifact writer (consumes evidence context)
          → Markdown report + LaTeX + paper_manifest.json
-         → quality gate scan
+         → packaging/provenance scan
          → corpus release
 ```
 
