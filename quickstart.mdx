@@ -63,8 +63,12 @@ Open `http://127.0.0.1:8787/dashboard`.
 
 In a second shell:
 
-    Expected result: health, status, preflight, and dispatch dry-run endpoints respond with JSON. A dry run may return `noop`, `paused`, or `dry_run_dispatch` depending on local queue state; the important smoke-test result is that the API paths are reachable and return structured responses.
-  </Step>
+```bash
+export OMX_WAKE_GATE_CONFIG=$PWD/.local/config/config.json
+scripts/smoke-test-local.sh
+```
+
+Expected result: health, status, preflight, and dispatch dry-run endpoints respond with JSON. A dry run may return `noop`, `paused`, or `dry_run_dispatch` depending on local queue state; the important smoke-test result is that the API paths are reachable and return structured responses.
 
 The script calls `GET /healthz`, `GET /control/api/status`, `POST /control/api/preflight`, and `POST /control/dispatch-next` with `dry_run: true`.
 
