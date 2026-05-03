@@ -3,11 +3,7 @@ title: "What Enoch is"
 description: "A beginner-friendly overview of the Enoch control plane, corpus, and claim boundaries."
 ---
 
-# What Enoch is
-
-Enoch is a reliability layer around autonomous AI research work. Instead of treating a long-running agent session as a trustworthy script, Enoch keeps the operational truth in a separate FastAPI control plane.
-
-The control plane owns queue state, pause and maintenance flags, worker preflight checks, dispatch decisions, run records, paper review state, and dashboard views. A worker wake gate observes processes and CPU/GPU telemetry so the system can wait for real idleness before moving the queue forward.
+Enoch is an agentic research control plane that treats autonomous AI work as a reliability engineering problem, not a scripting problem. It queues research ideas sourced from an upstream LLM scouting process, gates dispatch through authenticated preflight checks, supervises agent runs on local AI hardware using process-tree tracking and CPU/GPU telemetry, captures evidence into structured bundles, and generates publication-style research artifacts with provenance instead of free-floating model output. Key transitions are guarded by idempotent APIs, stale-state reconciliation, and operator-visible status so you can inspect what is running, what is queued, and what the hardware appears to be doing.
 
 ## The problem Enoch solves
 

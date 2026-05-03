@@ -7,7 +7,7 @@ sidebarTitle: "Dispatch Flow"
 Every dispatch in Enoch passes through a multi-step safety sequence before an agent run is allowed to start. The control plane guards against double-dispatching onto an active GPU lane, launching while the queue is paused or in maintenance mode, and running without a healthy worker preflight. Working through this sequence — checking status, running a dry dispatch, and only then going live — is the standard operating procedure for every run.
 
 <Warning>
-Always run a dry dispatch first. Never send `dry_run: false` until you have confirmed the dry-run response shows `action: "dry_run_dispatch"` with a valid candidate and no blockers.
+Run a dry dispatch first. Do not send `dry_run: false` until the dry-run response shows a valid candidate and no blockers, and until you have intentionally enabled live dispatch in config.
 </Warning>
 
 <Steps>
@@ -28,7 +28,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/status | python3 -m json.tool
 ```
 
-Look for `dispatch_safe: true` and an empty `dispatch_blockers` list in the response. If `dispatch_safe` is `false`, the response includes a `dispatch_blockers` array explaining which conditions are blocking dispatch — address each one before continuing. Note that `dispatch_safe` is `false` whenever `dispatch_blockers` is non-empty **or** `conflicts` contains any entry with `severity: "critical"` (router.py:691).
+Look for `dispatch_safe: true` and an empty `dispatch_blockers` list in the response. If `dispatch_safe` is `false`, the response includes a `dispatch_blockers` array explaining which conditions are blocking dispatch — address each one before continuing. Note that `dispatch_safe` is `false` whenever `dispatch_blockers` is non-empty or a critical conflict is present.
 
 </Step>
 
@@ -77,7 +77,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/preflight | python3 -m json.tool
 ```
 
-The response includes an `ok` field, a `target` string, a `summary` string, and a `checks` array. Each check has a `name`, `ok`, `detail`, and `data` field. When `strict` is `false` (the default), only the required checks must pass for `ok` to be `true`; when `strict` is `true`, every check must pass. The live dispatch always runs preflight with `strict: false`. The full set of checks (worker_adapter.py:66-111) includes:
+The response includes an `ok` field, a `target` string, a `summary` string, and a `checks` array. Each check has a `name`, `ok`, `detail`, and `data` field. When `strict` is `false` (the default), only the required checks must pass for `ok` to be `true`; when `strict` is `true`, every check must pass. Live dispatch runs preflight before launching work. Current checks include:
 
 - **`control_queue_paused`** — only when `require_paused: true`; confirms the control-plane queue is paused
 - **`control_maintenance_mode`** — always runs; confirms maintenance mode state
@@ -89,7 +89,7 @@ The response includes an `ok` field, a `target` string, a `summary` string, and 
 - **`worker_queue_snapshot_no_active`** — when `bearer_token` is provided; confirms the worker's own queue has zero active items
 - **`worker_swapless_allowed`** — when `bearer_token` is provided; informational check reporting swap-free memory
 
-The required checks (those that must pass for `ok: true`) are `wake_gate_healthz` plus, when `bearer_token` is provided: `wake_gate_dashboard_api`, `worker_gpu_idle`, `worker_memory_available`, `worker_no_live_runs`, and `worker_queue_snapshot_no_active` (worker_adapter.py:116-118).
+The required checks include `wake_gate_healthz` and, when a bearer token is provided, worker dashboard/API, GPU idle, memory available, no live runs, and queue snapshot checks.
 
 </Step>
 
@@ -138,7 +138,7 @@ After dispatch, the worker's wake gate takes over process and telemetry tracking
 Monitor progress via the status endpoint or the control dashboard at:
 
 ```text
-http://<control-vm>:8787/control/dashboard
+http://<control-vm>:8787/dashboard
 ```
 
 </Step>

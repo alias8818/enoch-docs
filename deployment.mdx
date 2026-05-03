@@ -124,10 +124,10 @@ A production Enoch deployment splits responsibility across two machines: a contr
     curl -fsS http://127.0.0.1:8787/healthz
     ```
 
-    Open the control plane dashboard in your browser. Use `omx_inbound_bearer_token` as the login token:
+    Open the dashboard in your browser. Use `omx_inbound_bearer_token` as the login token:
 
     ```text
-    http://<control-vm>:8787/control/dashboard
+    http://<control-vm>:8787/dashboard
     ```
   </Step>
 
@@ -208,7 +208,7 @@ A production Enoch deployment splits responsibility across two machines: a contr
   </Step>
 
   <Step title="Configure the paper artifact workflow">
-    The control plane can rewrite and package generated research artifacts when paper rows and evidence are present. Add the following settings to `/etc/enoch/config.json` to enable the artifact writer with the recommended Synthetic.new / GLM-5.1 provider:
+    The control plane can rewrite and package generated research artifacts when paper rows and evidence are present. The default writer is deterministic. Add the following settings to `/etc/enoch/config.json` only when you want to use the Synthetic.new OpenAI-compatible provider with GLM-5.1:
 
     ```json
     {
@@ -222,7 +222,7 @@ A production Enoch deployment splits responsibility across two machines: a contr
     ```
 
     <Warning>
-      Do not publish generated artifacts until the corpus quality gates pass. The quality gates scan for placeholder citations, missing provenance, and missing evidence artifacts before allowing anything to enter the corpus.
+      Do not publish generated artifacts until the corpus quality gates pass. The quality gates scan for placeholder citations, missing provenance, and missing evidence artifacts; human review is still required before treating any generated artifact as reliable.
     </Warning>
   </Step>
 </Steps>

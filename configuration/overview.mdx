@@ -28,7 +28,7 @@ All bearer tokens in the config must be long random strings. Generate one with:
 python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-Run this command separately for each token — `omx_inbound_bearer_token`, `completion_callback_token`, and `worker_wake_gate_bearer_token` must all be distinct values.
+Run this command separately for each trust boundary. The control-plane inbound token and completion callback token should be distinct. In a two-machine deployment, `worker_wake_gate_bearer_token` on the control VM must match `omx_inbound_bearer_token` on the worker.
 
 ## Required fields
 
@@ -167,7 +167,6 @@ The following JSON is the full `config.example.json` from the repository. Copy i
   "pushover_api_url": "https://api.pushover.net/1/messages.json",
   "queue_alert_cooldown_sec": 1800,
   "queue_alert_hang_after_sec": 3600,
-  "queue_pump_enabled": false,
   "paper_writer_provider": "deterministic",
   "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
   "paper_writer_model": "hf:zai-org/GLM-5.1",
@@ -175,7 +174,11 @@ The following JSON is the full `config.example.json` from the repository. Copy i
   "paper_writer_timeout_sec": 180,
   "paper_writer_temperature": 0.2,
   "paper_writer_max_tokens": 12000,
-  "paper_writer_fallback_enabled": true
+  "paper_writer_fallback_enabled": true,
+  "paper_evidence_sync_enabled": false,
+  "paper_evidence_sync_ssh_host": "worker-user@worker.example",
+  "paper_evidence_sync_remote_root": "~/enoch/projects",
+  "paper_evidence_sync_timeout_sec": 90
 }
 ```
 

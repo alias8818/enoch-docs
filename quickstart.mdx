@@ -3,9 +3,11 @@ title: "Quickstart"
 description: "Run the Enoch FastAPI app locally and exercise the built-in smoke-test script."
 ---
 
-# Quickstart
+This quickstart walks you through a local developer smoke test: clone the repository, generate a minimal config with randomized tokens, start the FastAPI service, and verify that the health, status, preflight, and dispatch dry-run endpoints respond. By the end you will have a running dashboard and a baseline for docs/API exploration before moving to a real two-machine deployment.
 
-This quickstart gets a developer clone to a running local API and dashboard. It does not require a separate worker machine because the example points the worker wake-gate URL back at the local service.
+<Note>
+  This quickstart does not require a separate worker machine. It points the worker wake gate URL back at the local API so preflight and dry-run checks can execute on one machine. It does not prove that live dispatch is production-ready; live dispatch is disabled by default and requires worker setup.
+</Note>
 
 ## Prerequisites
 
@@ -61,11 +63,8 @@ Open `http://127.0.0.1:8787/dashboard`.
 
 In a second shell:
 
-```bash
-cd enoch-agentic-research-system
-export OMX_WAKE_GATE_CONFIG=$PWD/.local/config/config.json
-scripts/smoke-test-local.sh
-```
+    Expected result: health, status, preflight, and dispatch dry-run endpoints respond with JSON. A dry run may return `noop`, `paused`, or `dry_run_dispatch` depending on local queue state; the important smoke-test result is that the API paths are reachable and return structured responses.
+  </Step>
 
 The script calls `GET /healthz`, `GET /control/api/status`, `POST /control/api/preflight`, and `POST /control/dispatch-next` with `dry_run: true`.
 

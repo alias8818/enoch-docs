@@ -1,36 +1,44 @@
 ---
 title: "Screenshot and image needs for Enoch docs"
-description: "A source-grounded checklist of screenshots that require a real Enoch runtime, plus which placeholder images should not be treated as product captures."
+description: "Runtime screenshots and diagrams that should be captured from a clean Enoch demo instead of invented in documentation."
 sidebarTitle: "Screenshot Needs"
 ---
 
-The current docs should not invent product screenshots. Real screenshots require a running Enoch deployment with non-secret sample data, because the dashboard, queue, worker wake gate, and paper review views are runtime surfaces. Until those captures exist, use text diagrams and command examples instead of placeholder product images.
+The docs should not invent product screenshots. Capture the items below from a clean local or staging deployment when you have a safe demo config with no live secrets, private hostnames, private prompts, or unreleased run data visible.
 
-<Warning>
-Never capture bearer tokens, private project names, private run logs, LAN-only hostnames, personal notes, or unpublished research artifacts in public docs screenshots. Use a disposable local config and sample queue rows.
-</Warning>
+## Required runtime screenshots
 
-## Required runtime captures
-
-| Need | Where it would help | Capture requirements |
+| Page or guide | Capture needed | Why it matters |
 |---|---|---|
-| Control dashboard overview | `introduction`, `deployment`, `reference/api-endpoints` | `GET /control/dashboard` loaded with sample queue state, token hidden, no private URLs. |
-| Dispatch safety status | `guides/dispatch-flow`, `concepts/control-plane` | Dashboard or JSON output showing `dispatch_safe`, `dispatch_blockers`, `active_items`, and `next_candidate` for a non-sensitive demo item. |
-| Worker wake gate state | `concepts/wake-gate`, `reference/troubleshooting` | Worker dashboard with a demo run moving through waiting/quiet-window states; no process command lines containing secrets. |
-| Paper review queue | `guides/paper-artifacts`, `reference/authorship-provenance` | Review queue with AI-generated artifact caveat visible and sample checklist states. |
-| Evidence artifact folder | `concepts/evidence-and-artifacts` | File tree or editor capture showing `paper.md`, `paper.tex`, `evidence_bundle.json`, `claim_ledger.json`, and `paper_manifest.json` for a demo run. |
-| Local quickstart success | `quickstart` | Terminal output from `scripts/smoke-test-local.sh` with randomized local token redacted. |
+| [Quickstart](/quickstart) | Dashboard at `http://127.0.0.1:8787/dashboard` after saving a local bearer token | Shows beginners what a successful local smoke-test dashboard looks like |
+| [Dispatch flow](/guides/dispatch-flow) | A dry-run dispatch response with no live launch | Demonstrates safe candidate inspection before enabling live dispatch |
+| [Dispatch flow](/guides/dispatch-flow) | A blocked dispatch/status response | Shows operators how blockers appear before they troubleshoot |
+| [Wake gate](/concepts/wake-gate) | Worker dashboard or run detail showing a quiet-window / `wake_ready`-style state | Makes process and telemetry gating concrete without overexplaining it in prose |
+| [Paper artifacts](/guides/paper-artifacts) | Paper review queue row before and after checklist updates | Shows the human review step that prevents generated drafts from being mistaken for publications |
+| [Authorship](/reference/authorship-provenance) | Example artifact folder with `paper.md`, `claim_ledger.json`, `evidence_bundle.json`, and `paper_manifest.json` | Reinforces that generated reports travel with provenance artifacts |
 
-## Placeholder assets
+## Redaction checklist
 
-The repository currently includes `images/sample-feature-light.png` and `images/sample-feature-dark.png`. They are not referenced by any MDX page and should remain unused unless they are replaced with real, reviewed captures from a safe demo deployment.
+Before adding any screenshot:
 
-## Capture checklist
+- Hide bearer tokens, API keys, Notion IDs, private hostnames, private IPs, local usernames, and browser profile data.
+- Use demo project names rather than private research prompts or personal notes.
+- Prefer cropped UI areas over full-desktop screenshots.
+- Keep AI-generated paper text visibly labeled as generated and not peer-reviewed.
+- Store image files under `images/` with descriptive names such as `dashboard-local-smoke-test.png`.
 
-Before adding an image to these docs:
+## Diagram needs
 
-1. Reproduce the view from the public repository and documented config only.
-2. Redact tokens, hostnames, private project names, and local paths that identify private infrastructure.
-3. Add alt text that states what the screenshot proves.
-4. Link the page text to the source-grounded workflow instead of using the screenshot as the only instruction.
-5. Run `node scripts/validate-docs.mjs` and `mint broken-links` when the Mintlify CLI is available.
+A simple architecture diagram would help the introduction and control-plane pages. It should show only sourced system boundaries:
+
+```text
+LLM scout / Notion intake
+  -> Enoch control plane
+  -> worker wake gate
+  -> Codex/OMX run workspace
+  -> evidence + claim ledger
+  -> generated artifact + human review
+  -> corpus export
+```
+
+Use a diagram when it clarifies the flow. Do not add decorative generated images that imply screens or capabilities the repo does not ship.

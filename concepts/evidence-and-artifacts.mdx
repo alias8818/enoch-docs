@@ -43,7 +43,7 @@ Once evidence is synced, the artifact writer generates publication-style researc
 - **`claim_ledger.json`** — the claim boundaries preserved from the run.
 - **`paper_manifest.json`** (`manifest_path`) — a manifest listing all artifact files, their paths, and provenance metadata.
 
-The artifact writer is configured through the `paper_writer_*` fields in your config. The default provider is `deterministic`, which generates template-based drafts without calling an external LLM. To use the GLM-5.1 model for higher-quality generation, set `paper_writer_provider` to `synthetic.new` — this uses the GLM-5.1 model at a temperature of `0.2` with a maximum of `12000` tokens per generation.
+The artifact writer is configured through the `paper_writer_*` fields in your config. The default provider is `deterministic`, which generates template-based drafts without calling an external LLM. If you have access to the Synthetic.new OpenAI-compatible endpoint, you can set `paper_writer_provider` to `synthetic.new` and use the configured `paper_writer_model` value, which defaults to `hf:zai-org/GLM-5.1`. The model, temperature, and token limit are deployment settings, not guarantees of quality.
 
 ## Quality gates
 
@@ -54,7 +54,7 @@ Generated artifacts do not automatically enter the corpus. Before a paper can mo
 - **Missing evidence artifacts** — a report that references an `evidence_bundle.json` or `claim_ledger.json` that was not synced or does not exist on the control VM.
 
 <Warning>
-Do not publish or finalize a paper until all quality gate checks pass. A paper with placeholder citations or missing provenance artifacts misrepresents the evidence behind its claims. The control plane tracks quality gate results in the paper review record and requires `approved_for_finalization` status before the finalization package is prepared.
+Do not publish or finalize a paper until the quality gate checks pass and a human reviewer accepts the remaining risk. A paper with placeholder citations or missing provenance artifacts misrepresents the evidence behind its claims. The control plane tracks quality gate results in the paper review record and requires `approved_for_finalization` status before the finalization package is prepared.
 </Warning>
 
 ## Paper status lifecycle

@@ -14,7 +14,7 @@ The default provider. When selected, Enoch fills a built-in template with metada
 
 ### `synthetic.new`
 
-The recommended provider for production deployments. Enoch sends the paper context to the Synthetic.new API endpoint using the OpenAI-compatible chat-completion interface, using GLM-5.1 (`hf:zai-org/GLM-5.1`) as the default model. The response replaces the draft paper body. If the provider request fails and `paper_writer_fallback_enabled` is `true`, Enoch falls back silently to the `deterministic` template rather than failing the paper-write step.
+An optional provider for deployments with access to the Synthetic.new OpenAI-compatible endpoint. Enoch sends the paper context to that API using the configured model, which defaults to GLM-5.1 (`hf:zai-org/GLM-5.1`). The response replaces the draft paper body. If the provider request fails and `paper_writer_fallback_enabled` is `true`, Enoch falls back to the `deterministic` template rather than failing the paper-write step.
 
 <Warning>
   Your `paper_writer_api_key` must never be committed to version control. Store it outside your repository — for example in an environment-specific config file excluded by `.gitignore`, a secrets manager, or a systemd `EnvironmentFile`.
@@ -54,9 +54,9 @@ The recommended provider for production deployments. Enoch sends the paper conte
   When `true` and `paper_writer_provider` is `synthetic.new`, a failed provider request causes Enoch to fall back to the `deterministic` template instead of raising an error. Set to `false` if you want provider failures to surface explicitly.
 </ParamField>
 
-## Recommended Synthetic.new config
+## Synthetic.new config example
 
-Add the following fields to your control VM's config file to enable production paper writing with Synthetic.new and GLM-5.1:
+Add the following fields to your control VM's config file only when you have Synthetic.new-compatible provider access and want model-authored paper rewrites:
 
 ```json
 {

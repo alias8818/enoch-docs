@@ -308,7 +308,7 @@ Returns `404` if no matching item exists.
 
 ### `POST /control/api/paper-reviews/{paper_id}/rewrite-draft`
 
-Rewrites the paper draft artifacts for the given paper using the configured AI writer (e.g. GLM-5.1 via Synthetic.new). If `paper_evidence_sync_enabled` is `true`, the control plane syncs evidence from the worker before rewriting.
+Rewrites the paper draft artifacts for the given paper using the configured writer. If `paper_evidence_sync_enabled` is `true`, the control plane syncs evidence from the worker before rewriting.
 
 ```bash
 curl -fsS \

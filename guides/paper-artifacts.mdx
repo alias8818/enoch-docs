@@ -4,7 +4,7 @@ description: "Sync evidence from the worker, run the artifact writer, scan quali
 sidebarTitle: "Paper Artifacts"
 ---
 
-After a research run completes on the worker, the control plane on the VM can generate a structured paper artifact from the evidence the run produced. This process — evidence sync, artifact writing, quality gate scanning, and paper review — is the final stage of the Enoch research loop. The output is a Markdown and LaTeX draft grounded in run notes, metrics, and claim ledgers collected during the experiment.
+After a research run completes on the worker, the control plane can generate a structured paper artifact from the evidence the run produced. This process can include evidence sync, artifact writing, quality gate scanning, and paper review. The output is a Markdown and LaTeX draft grounded in available run notes, metrics, and claim ledgers; it is still a generated artifact that requires review.
 
 <Warning>
 Do not publish generated artifacts until the corpus quality gates pass. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
@@ -14,7 +14,7 @@ Do not publish generated artifacts until the corpus quality gates pass. Every ar
 
 <Step title="Evidence sync from the worker">
 
-Before the artifact writer runs, the control plane must have access to the evidence the worker produced. Evidence sync runs automatically when you trigger a draft rewrite, but you can also monitor its outcome in the rewrite response.
+Before the artifact writer can make useful claims, the control plane must have access to the evidence the worker produced. Evidence sync can run when you trigger a draft rewrite if `paper_evidence_sync_enabled` is `true`; monitor its outcome in the rewrite response.
 
 The control plane attempts an HTTP sync first, reading evidence files directly from the worker's wake gate API. If the worker returns the evidence, it is written into the local artifact root under the project directory. If the HTTP sync cannot retrieve the required high-signal evidence files, the control plane falls back to SSH, streaming a bounded tarball of evidence artifacts from the worker's project directory.
 
@@ -47,7 +47,7 @@ Once sufficient local evidence is present, the artifact writer runs against the 
 - `papers/<run_id>/claim_ledger.json` — Claim ledger
 - `papers/<run_id>/paper_manifest.json` — Artifact manifest
 
-The writer uses the model and provider configured under `paper_writer_*` settings. The recommended configuration for Synthetic.new with GLM-5.1 is:
+The writer uses the model and provider configured under `paper_writer_*` settings. The default provider is deterministic; use a Synthetic.new/GLM-5.1-style configuration only when you have that provider access and want model-authored rewrites:
 
 ```json
 {

@@ -28,7 +28,7 @@ Look at `dispatch_safe`, `dispatch_blockers`, `flags.queue_paused`, and `flags.m
 | `"queue paused"` | `flags.queue_paused` is `true` | Resume the queue via the dashboard or `POST /control/resume` |
 | `"maintenance mode"` | `flags.maintenance_mode` is `true` | Disable maintenance mode before live dispatch |
 | `"live dispatch disabled"` | `live_dispatch_enabled` is `false` in config | Set `"live_dispatch_enabled": true` in `/etc/enoch/config.json` and restart |
-| `"active GB10 lane exists"` | A run is already active | Wait for it to complete or reconcile if the worker exited unexpectedly |
+| `"active lane exists"` or similar active-run blocker | A run is already active | Wait for it to complete or reconcile if the worker exited unexpectedly |
 | `"no queued dispatch candidate"` | No items have `queued` status | Add items to the queue or check the Notion intake sync |
 
 **Also verify** that `worker_wake_gate_url` and `worker_wake_gate_bearer_token` are both set in config:
@@ -174,7 +174,7 @@ When the AI writer cannot be reached or is not configured, the control plane fal
    }
    ```
 
-4. **Recommended provider settings** (from the deployment guide):
+4. **Optional Synthetic.new-style provider settings** (from the deployment guide):
 
    ```json
    {
