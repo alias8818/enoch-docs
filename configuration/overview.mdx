@@ -1,190 +1,49 @@
 ---
-title: "Enoch control plane JSON configuration reference guide"
-description: "A complete guide to the Enoch JSON config file: required fields, wake-gate tuning, and how to generate secure tokens for your deployment."
-sidebarTitle: "Overview"
+title: "Configuration overview"
+description: "Required and optional Enoch config fields, with safe defaults and secret-handling guidance."
 ---
 
-Enoch reads its configuration from a single JSON file whose path you set in the `OMX_WAKE_GATE_CONFIG` environment variable. Every field is validated at startup using Pydantic; the service refuses to start if a required field is missing or a value is out of range. This page documents the core configuration fields, shows you how to generate the secure tokens the service needs, and walks through the complete annotated example from `config.example.json`. Worker, evidence-sync, and paper-writer fields are covered on their respective sub-pages.
+# Configuration overview
 
-<Warning>
-  Never commit your live config file to version control. It contains bearer tokens and callback credentials that grant full control over your deployment. Use a secrets manager or environment-specific file that is excluded from your repository.
-</Warning>
+Enoch reads JSON configuration from the path in `OMX_WAKE_GATE_CONFIG`. The app validates required fields at startup with Pydantic.
 
-## Loading the config file
-
-Set `OMX_WAKE_GATE_CONFIG` before starting the service:
-
-```bash
-export OMX_WAKE_GATE_CONFIG=/etc/enoch/config.json
-```
-
-The systemd unit provided in `deploy/` sets this variable automatically. For local development you can export it in your shell or prefix the start command directly.
-
-## Generating secure tokens
-
-All bearer tokens in the config must be long random strings. Generate one with:
-
-```bash
-python3 -c "import secrets; print(secrets.token_urlsafe(48))"
-```
-
-Run this command separately for each trust boundary. The control-plane inbound token and completion callback token should be distinct. In a two-machine deployment, `worker_wake_gate_bearer_token` on the control VM must match `omx_inbound_bearer_token` on the worker.
+Start from `config.example.json`, then replace every placeholder before running a live deployment.
 
 ## Required fields
 
-These fields have no usable defaults and must be set before the service will start.
+- `omx_inbound_bearer_token` — bearer token for dashboard/control API calls and incoming OMX event posts.
+- `completion_callback_url` — URL called when a wake-gated run completes.
+- `completion_callback_token` — bearer token sent to the completion callback endpoint.
 
-<ParamField path="omx_inbound_bearer_token" type="string" required>
-  Authenticates all dashboard and control API calls as well as incoming OMX event posts. Pass this value as a `Bearer` token in the `Authorization` header when calling the control-plane API or the dashboard.
-</ParamField>
+The config model also requires sensible paths for state, projects, and dispatch: `state_dir`, `project_root`, and `dispatch_script_path`.
 
-<ParamField path="completion_callback_url" type="string" required>
-  URL that the wake gate calls when a gated run completes. Point this at your automation webhook or downstream service.
-</ParamField>
+## Core runtime fields
 
-<ParamField path="completion_callback_token" type="string" required>
-  Bearer token the wake gate sends with every completion callback request. Your webhook endpoint should validate this value before processing the event.
-</ParamField>
+- `listen_host`, `listen_port`
+- `dispatch_timeout_sec`
+- `log_events`
+- `live_dispatch_enabled`
+- `worker_wake_gate_url`
+- `worker_wake_gate_bearer_token`
 
-## Core paths
+Use dry-run dispatch until you have intentionally enabled and tested live dispatch.
 
-These fields have sensible defaults for local development but you should set them explicitly in production.
+## Wake-gate thresholds
 
-<ParamField path="state_dir" type="string" default="~/.local/state/omx-wake-gate">
-  Absolute or `~`-prefixed path to the local durable state directory. The service stores queue state, run records, and internal databases here.
-</ParamField>
+Configure sampling, sustain windows, CPU/GPU thresholds, VRAM delta limits, workload profiles, and maximum wait after idle through the `sample_interval_sec`, `idle_sustain_sec`, `cpu_idle_threshold_pct`, `gpu_idle_*`, `vram_delta_threshold_mib`, `workload_profiles`, and `max_wait_after_idle_sec` fields.
 
-<ParamField path="project_root" type="string" default="~/enoch/projects">
-  Root directory for project workspaces and generated paper artifacts. Each project gets a subdirectory under this path.
-</ParamField>
+Supported workload classes are `inference_eval`, `training`, `control_plane`, and `agent_harness`.
 
-<ParamField path="dispatch_script_path" type="string" default="~/enoch/bin/enoch_omx_dispatch.sh">
-  Path to the shell script the control plane executes to launch agent runs. Ensure the script is executable and accessible by the service user.
-</ParamField>
+## Optional integrations
 
-## Wake-gate tuning fields
+- Pushover queue alerts: `pushover_alerts_enabled`, `pushover_app_token`, `pushover_user_key`, `pushover_api_url`, `queue_alert_*`.
+- Paper writer: `paper_writer_provider`, `paper_writer_base_url`, `paper_writer_model`, `paper_writer_api_key`, `paper_writer_*` tuning, and fallback.
+- Evidence sync: `paper_evidence_sync_enabled`, `paper_evidence_sync_ssh_host`, `paper_evidence_sync_remote_root`, `paper_evidence_sync_timeout_sec`.
 
-These fields control how the wake gate decides that a workload has become idle and it is safe to fire the completion callback. All are optional and have sensible defaults.
+## Deprecated aliases
 
-<ParamField path="listen_host" type="string" default="0.0.0.0">
-  Network interface the HTTP server binds to.
-</ParamField>
+Older private prototypes used `n8n_callback_url`, `n8n_bearer_token`, and `n8n_callback_timeout_sec`. New configs should use `completion_callback_*` fields.
 
-<ParamField path="listen_port" type="number" default="8787">
-  TCP port the HTTP server listens on.
-</ParamField>
+## Secret handling
 
-<ParamField path="sample_interval_sec" type="number" default="5">
-  How often (in seconds) the gate samples CPU and GPU telemetry. Minimum value is `1`.
-</ParamField>
-
-<ParamField path="idle_sustain_sec" type="number" default="180">
-  How long (in seconds) all idle thresholds must remain satisfied before the gate considers the workload complete. Minimum value is `30`.
-</ParamField>
-
-<ParamField path="cpu_idle_threshold_pct" type="number" default="35.0">
-  CPU utilisation percentage below which the gate counts a sample as idle. Range `0.0`–`100.0`.
-</ParamField>
-
-<ParamField path="gpu_idle_avg_threshold_pct" type="number" default="10.0">
-  Average GPU utilisation percentage below which a sample is considered idle. Range `0.0`–`100.0`.
-</ParamField>
-
-<ParamField path="gpu_idle_peak_threshold_pct" type="number" default="20.0">
-  Peak GPU utilisation percentage below which a sample is considered idle. Range `0.0`–`100.0`.
-</ParamField>
-
-<ParamField path="vram_delta_threshold_mib" type="number" default="1024">
-  Maximum VRAM change in MiB between consecutive samples that is still counted as idle. Set to `0` to require no VRAM movement.
-</ParamField>
-
-<ParamField path="max_wait_after_idle_sec" type="number" default="43200">
-  Hard ceiling (in seconds) on how long the gate will wait for a workload to become idle before timing out. Minimum value is `60`.
-</ParamField>
-
-<ParamField path="default_workload_class" type="string" default="inference_eval">
-  Workload class applied when a dispatch request does not specify one. Valid values are `inference_eval`, `training`, `control_plane`, and `agent_harness`. Each class maps to a threshold profile; `inference_eval` applies stricter idle requirements (longer sustain, lower CPU threshold) than `training`.
-</ParamField>
-
-<Tip>
-  You can override per-workload thresholds using the `workload_profiles` map in your config. Define an object keyed by workload class name with the same fields as `GateThresholdProfile` (`idle_sustain_sec`, `cpu_idle_threshold_pct`, `gpu_idle_avg_threshold_pct`, `gpu_idle_peak_threshold_pct`, `vram_delta_threshold_mib`).
-</Tip>
-
-## Complete annotated example
-
-The following JSON is the full `config.example.json` from the repository. Copy it, remove the fields you do not need, and replace every placeholder value before use.
-
-```json
-{
-  "listen_host": "0.0.0.0",
-  "listen_port": 8787,
-  "state_dir": "~/.local/state/omx-wake-gate",
-  "project_root": "~/enoch/projects",
-  "dispatch_script_path": "~/enoch/bin/enoch_omx_dispatch.sh",
-  "dispatch_timeout_sec": 30,
-  "omx_inbound_bearer_token": "replace-with-local-omx-hook-token",
-  "sample_interval_sec": 5,
-  "default_workload_class": "inference_eval",
-  "idle_sustain_sec": 180,
-  "cpu_idle_threshold_pct": 35.0,
-  "gpu_idle_avg_threshold_pct": 10.0,
-  "gpu_idle_peak_threshold_pct": 20.0,
-  "vram_delta_threshold_mib": 1024,
-  "workload_profiles": {
-    "inference_eval": {
-      "idle_sustain_sec": 300,
-      "cpu_idle_threshold_pct": 20.0,
-      "gpu_idle_avg_threshold_pct": 10.0,
-      "gpu_idle_peak_threshold_pct": 20.0,
-      "vram_delta_threshold_mib": 1024
-    },
-    "training": {
-      "idle_sustain_sec": 180,
-      "cpu_idle_threshold_pct": 35.0,
-      "gpu_idle_avg_threshold_pct": 10.0,
-      "gpu_idle_peak_threshold_pct": 20.0,
-      "vram_delta_threshold_mib": 1024
-    }
-  },
-  "max_wait_after_idle_sec": 43200,
-  "stale_project_process_reaper_enabled": true,
-  "stale_project_process_grace_sec": 900,
-  "stale_project_process_term_grace_sec": 5.0,
-  "stale_project_process_command_markers": [
-    "timeout ",
-    "llama-cli",
-    "llama-server",
-    "vllm",
-    "sglang"
-  ],
-  "completion_callback_url": "https://automation.example.com/webhook/omx-wake-ready",
-  "completion_callback_token": "replace-with-callback-token",
-  "completion_callback_timeout_sec": 120,
-  "log_events": true,
-  "pushover_alerts_enabled": false,
-  "pushover_app_token": "",
-  "pushover_user_key": "",
-  "pushover_api_url": "https://api.pushover.net/1/messages.json",
-  "queue_alert_cooldown_sec": 1800,
-  "queue_alert_hang_after_sec": 3600,
-  "paper_writer_provider": "deterministic",
-  "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
-  "paper_writer_model": "hf:zai-org/GLM-5.1",
-  "paper_writer_api_key": "",
-  "paper_writer_timeout_sec": 180,
-  "paper_writer_temperature": 0.2,
-  "paper_writer_max_tokens": 12000,
-  "paper_writer_fallback_enabled": true,
-  "paper_evidence_sync_enabled": false,
-  "paper_evidence_sync_ssh_host": "worker-user@worker.example",
-  "paper_evidence_sync_remote_root": "~/enoch/projects",
-  "paper_evidence_sync_timeout_sec": 90
-}
-```
-
-## Configuration sections
-
-The full configuration covers two additional areas, each documented on its own page:
-
-- **[Worker and evidence sync](/configuration/worker)** — connecting the control plane to a worker machine, enabling evidence sync, and configuring the stale-process reaper.
-- **[Paper writer and AI model settings](/configuration/paper-writer)** — choosing between the `deterministic` template provider and the `synthetic.new` production provider, and tuning generation parameters.
+Never commit live config files or `.env` files. The release staging notes recorded clean secret scans, but that evidence only remains meaningful if future operators keep credentials out of the repository.

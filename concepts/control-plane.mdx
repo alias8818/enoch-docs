@@ -1,173 +1,36 @@
 ---
-title: "What is the Enoch control plane? A FastAPI runtime"
-description: "A FastAPI service that owns queue state, dispatch decisions, pause controls, project state, and paper review for every autonomous research run."
-sidebarTitle: "Control Plane"
+title: "Control plane"
+description: "How the FastAPI control plane owns runtime state, dispatch safety, paper review, and dashboard truth."
 ---
 
-The Enoch control plane is the runtime authority for autonomous research work. It sits between the upstream intake surface (Notion scoring and idea cards) and the worker machine running local AI jobs. Everything that touches safety, scheduling, or state — queue transitions, dispatch decisions, pause and maintenance mode, single-lane GPU protection, project records, and paper review — goes through the control plane. It is built as a FastAPI service on a LangGraph-era state and graph model, and it exposes dashboard and operator APIs under `/control`, with dashboard-focused reads under `/control/api/*` and action endpoints such as `/control/dispatch-next`, `/control/pause`, and `/control/resume`.
+# Control plane
 
-## Architecture overview
+The Enoch control plane is the runtime authority for queued research work. It is implemented as a FastAPI app with explicit state models for projects, queue items, runs, paper records, paper reviews, events, and pause flags.
 
-```text
-LLM research scout
-        |
-        v
-Structured idea cards + Notion weight matrix
-        |
-        v (queue candidate handed off here)
-VM control plane  ← FastAPI + LangGraph-era state/graph model
-        |
-        | dispatch safety checks / preflight / pause gate
-        v
-worker wake gate
-        |
-        | Codex/OMX agent execution + process/telemetry tracking
-        v
-Project workspace (run notes, metrics, results, claim ledgers)
-        |
-        | evidence sync
-        v
-Publication artifact pipeline (paper writer + quality gates)
-        |
-        v
-Dashboard, corpus export, release artifacts
-```
+## What it owns
 
-<Note>
-Notion and the upstream LLM scout are the **intake and prioritization surface** — they decide which ideas are worth exploring. Runtime authority begins when a scored candidate becomes a queue item in the Enoch control plane. From that point forward, safety and scheduling truth come from control-plane state, not from Notion or the scout.
-</Note>
-
-## What the control plane owns
-
-The control plane is the single source of truth for the following concerns:
-
-- **Queue state** — every queue item has a `QueueStatus` (`queued`, `dispatching`, `running`, `awaiting_wake`, `wake_received`, `reconciling`, `completed`, `paused`, `canceled`, `dispatch_error`, `blocked`, `needs_review`). The control plane transitions items between these states and prevents races.
-- **Dispatch decisions** — the control plane evaluates whether it is safe to dispatch the next candidate before any work leaves the VM. It exposes a `dispatch_safe` flag and a `dispatch_blockers` list on every dashboard status response.
-- **Pause and maintenance mode** — operators can pause the queue and enter maintenance mode via the API. The `ControlFlags` model (`queue_paused`, `maintenance_mode`, `pause_reason`, `paused_at`, `paused_by`, `updated_at`) is persisted and surfaced on the dashboard.
-- **Project state** — each project has a `ProjectRecord` (project ID, name, directory, Notion page URL, origin idea status) and a `QueueItemRecord` that tracks dispatch priority, continue count, retry count, and the last run state.
-- **Run records** — each dispatched run has a `RunRecord` that tracks session ID, `RunState`, dispatch mode (`exec` or `resume`), gate state, and idempotency key.
-- **Paper review** — generated research artifacts move through a `PaperStatus` lifecycle and a `ReviewStatus` workflow managed entirely by the control plane.
+- **Queue state** — queue items move through statuses such as `queued`, `dispatching`, `running`, `awaiting_wake`, `wake_received`, `reconciling`, `completed`, `paused`, `canceled`, `dispatch_error`, `blocked`, and `needs_review`.
+- **Dispatch decisions** — `/control/dispatch-next` checks whether a candidate can be launched and supports dry-run requests.
+- **Pause and maintenance controls** — `/control/pause`, `/control/resume`, and related state expose operator intent.
+- **Worker preflight** — `/control/api/preflight` and `/control/worker/preflight` call a worker wake-gate API before live dispatch.
+- **Project and run records** — APIs expose project detail, run detail, queue views, and dashboard summaries.
+- **Paper review state** — paper records and review records support drafting, checklist updates, status transitions, finalization packaging, and artifact reads.
+- **Events and projections** — the control plane stores operational events and can expose Notion-oriented projections.
 
 ## Dispatch safety
 
-The control plane evaluates dispatch safety on every status request. A dispatch is considered safe only when all of the following hold:
+A dispatch is safe only when the control plane has a dispatchable queue item, pause and maintenance flags allow work, no active lane is already running, and worker preflight passes. The control plane is the lock holder; callers should not bypass it with ad hoc scripts.
 
-- `live_dispatch_enabled` is `true` in the control-plane config (`GateConfig`; static operational flag — when `false`, live dispatch returns a `501` and the blocker reads "live dispatch disabled")
-- `queue_paused` is `false` and `maintenance_mode` is `false`
-- No item is currently in an active state (`dispatching`, `running`, `awaiting_wake`, `wake_received`, or `reconciling`) — single-lane enforcement
-- Worker preflight checks pass (authenticated health check against the worker wake gate URL, including freshness of `worker_preflight` and `worker_dashboard_api` observations)
-- A dispatchable queue candidate exists
-When any condition fails, the `dispatch_blockers` list in the dashboard status response explains why dispatch is blocked. The control plane holds the single-lane lock — not the dispatch script — so overlapping GPU-heavy runs cannot happen through a race in the calling script.
+Dry-run dispatch is the first test for a new deployment because it exercises the guard path without launching a real agent job.
 
-<AccordionGroup>
-  <Accordion title="Queue status values">
-    | Status | Meaning |
-    |---|---|
-    | `queued` | Candidate waiting to be dispatched |
-    | `dispatching` | Dispatch in progress |
-    | `running` | Worker is actively executing the run |
-    | `awaiting_wake` | Run dispatched; waiting for wake gate callback |
-    | `wake_received` | Wake gate fired; control plane received callback |
-    | `reconciling` | Post-wake reconciliation in progress |
-    | `completed` | Run finished and reconciled |
-    | `paused` | Item paused by operator or maintenance mode |
-    | `canceled` | Item explicitly canceled |
-    | `dispatch_error` | Dispatch failed; error recorded |
-    | `blocked` | Item blocked pending review |
-    | `needs_review` | Item flagged for operator review |
-  </Accordion>
+## Dashboard truth
 
-  <Accordion title="Run state values">
-    | State | Meaning |
-    |---|---|
-    | `prepared` | Project prepared; not yet dispatched |
-    | `dispatching` | Dispatch script invoked |
-    | `running` | Agent session active on worker |
-    | `awaiting_wake` | Session ended; waiting for wake gate |
-    | `question_pending` | Agent paused waiting for user input |
-    | `wake_ready` | Gate satisfied; system quiet, no processes alive |
-    | `session_finished_ready` | Session ended cleanly and gate satisfied |
-    | `gate_timeout` | Gate timed out waiting for quiet window |
-    | `gate_error` | Gate encountered an unrecoverable error |
-    | `reconciled` | Control plane reconciled post-wake |
-    | `dispatch_error` | Error during dispatch |
-  </Accordion>
-</AccordionGroup>
+The dashboard is useful because it reads control-plane state instead of trusting a model session to self-report. It surfaces queue health, blockers, flags, records, events, paper review items, and configuration status.
 
-## Pause and maintenance mode
+## Relationship to intake tools
 
-You pause the queue by sending a `POST` request to the pause endpoint with a `PauseRequest` body:
+Notion and LLM-assisted scouting help decide what ideas are worth queueing. They are not the runtime authority. Once work enters Enoch, the control plane decides what is queued, what is active, what is blocked, and what evidence is available.
 
-```json
-{
-  "reason": "operator maintenance",
-  "paused_by": "operator",
-  "maintenance_mode": true
-}
-```
+## Important boundaries
 
-To resume, send a `ResumeRequest`:
-
-```json
-{
-  "resumed_by": "operator",
-  "maintenance_mode": false
-}
-```
-
-When `queue_paused` is `true`, the `dispatch_next` endpoint returns `action: "paused"` and no work is dispatched. When `maintenance_mode` is also `true`, the dashboard surfaces both flags as active blockers.
-
-## Single-lane GPU protection
-
-The control plane enforces a single active lane for GPU-heavy work on constrained local hardware. Before dispatching a candidate, it counts items in `dispatching`, `running`, `awaiting_wake`, `wake_received`, or `reconciling` state. If `active_count` is greater than zero, dispatch is blocked and the reason appears in `dispatch_blockers`. The lock lives in the control plane database, not in the dispatch script, so it survives script restarts and is visible to the dashboard.
-
-## Paper review lifecycle
-
-After a run completes and evidence is synced, generated papers move through the following statuses:
-
-| `PaperStatus` | Meaning |
-|---|---|
-| `eligible` | Run complete; paper eligible for generation |
-| `draft_generating` | Draft generation in progress |
-| `draft_review` | Draft ready for operator review |
-| `publication_generating` | Publication-quality generation in progress |
-| `publication_draft` | Publication draft ready |
-| `human_review_required` | Flagged for mandatory human review |
-| `archived` | Paper archived; no further action |
-
-Papers also have a separate `ReviewStatus` enum that tracks the operator review workflow:
-
-| `ReviewStatus` | Meaning |
-|---|---|
-| `unreviewed` | Paper not yet reviewed |
-| `triage_ready` | Passes readiness checks; ready for triage |
-| `in_review` | Actively under operator review |
-| `changes_requested` | Operator requested changes; author may revise |
-| `blocked` | Blocked pending a specific blocker resolution |
-| `approved_for_finalization` | Review approved; ready for finalization |
-| `finalized` | Paper finalized; terminal state |
-| `rejected` | Paper rejected; terminal state |
-
-The allowed transitions form a state machine: `unreviewed` → `triage_ready` → `in_review` → `approved_for_finalization` → `finalized`. The re-enterable branches are `changes_requested` (from `in_review`; returns to `in_review`), `blocked` (from `unreviewed`, `triage_ready`, `in_review`, or `changes_requested`; returns to `triage_ready` or `in_review`), and `rejected` (from any non-terminal state; terminal). `approved_for_finalization` can also return to `in_review`. `finalized` and `rejected` are terminal — no outgoing transitions.
-
-## API surface
-
-Control-plane endpoints are served under the `/control` prefix. Most data endpoints live under `/control/api/*`, while operator controls (`/control/pause`, `/control/resume`, `/control/dispatch-next`) are mounted directly under `/control`. The dashboard status endpoint (`GET /control/api/status`) is the primary health and state surface: it returns `flags`, `config`, `counts`, `active_items`, `next_candidate`, `dispatch_safe`, `dispatch_blockers`, `source_freshness`, `observations`, `warnings`, `conflicts`, and `recent_events` in a single response.
-
-<AccordionGroup>
-  <Accordion title="Key endpoint groups">
-    - **`GET /control/api/status`** — aggregated dashboard status with dispatch safety
-    - **`GET /control/api/queues/{queue}`** — paginated queue rows filtered by status group (`all`, `active`, `queued`, `blocked`, `paused`, `completed`)
-    - **`POST /control/dispatch-next`** — evaluate and optionally execute the next dispatch
-    - **`POST /control/pause`** / **`POST /control/resume`** — operator pause and resume controls
-    - **`GET /control/api/projects/{project_id}`** — project detail, runs, papers, and events
-    - **`GET /control/api/papers`** — paper queue listing
-    - **`GET /control/api/paper-reviews`** — publication review queue with checklist and rank scores
-    - **`GET /control/api/intake/notion`** — Notion intake sync status
-    - **`GET /control/api/events`** — append-only event log for all state mutations
-  </Accordion>
-</AccordionGroup>
-
-## How the control plane differs from the worker
-
-The control plane runs on the control VM and never executes agent code directly. It holds state, makes scheduling decisions, and calls the worker. The worker machine runs the wake gate service and the Codex/OMX agent execution layer. The worker reports back to the control plane through the wake gate callback when a run is complete. This separation keeps queue state canonical in the control-plane database even when the worker is unreachable. Dispatch decisions are made by the control plane, while the worker reports health, telemetry, and wake-gate completion evidence back to it.
+The control plane cannot prove a generated research claim is true. It can preserve the operational state and artifacts needed for review. Human review and replication remain required before treating a generated artifact as reliable science.

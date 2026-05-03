@@ -1,74 +1,39 @@
 ---
-title: "Paper writer provider and AI model config settings"
-description: "Configure the AI provider Enoch uses to rewrite research artifacts: choose between the deterministic template and the Synthetic.new production provider."
-sidebarTitle: "Paper Writer"
+title: "Paper writer settings"
+description: "Configure deterministic and optional OpenAI-compatible paper rewriting without overclaiming generated output."
 ---
 
-When a research run completes, the Enoch control plane can rewrite and package the generated paper artifacts. You control which provider performs that rewrite through the `paper_writer_provider` field. The `deterministic` mode produces a fixed MVP template with no external dependencies, while `synthetic.new` connects to a hosted OpenAI-compatible API — specifically the GLM-5.1 model — for high-quality production output.
+# Paper writer settings
+
+The paper writer creates generated research-artifact drafts from collected evidence context. It does not make a paper peer reviewed, human authored, or scientifically validated.
 
 ## Providers
 
 ### `deterministic`
 
-The default provider. When selected, Enoch fills a built-in template with metadata from the run record and evidence files. No API key or network access is required. Use this mode for local development, integration testing, or any deployment where an external model is not available.
+The default provider. It produces template-based output without calling an external LLM. Use it for local testing and predictable behavior.
 
 ### `synthetic.new`
 
-An optional provider for deployments with access to the Synthetic.new OpenAI-compatible endpoint. Enoch sends the paper context to that API using the configured model, which defaults to GLM-5.1 (`hf:zai-org/GLM-5.1`). The response replaces the draft paper body. If the provider request fails and `paper_writer_fallback_enabled` is `true`, Enoch falls back to the `deterministic` template rather than failing the paper-write step.
+An optional OpenAI-compatible provider path. The example config uses `https://api.synthetic.new/openai/v1` and `hf:zai-org/GLM-5.1`. Aliases in the code include `synthetic`, `synthetic_glm`, and `template` for compatibility. Keep docs and new configs explicit.
 
-<Warning>
-  Your `paper_writer_api_key` must never be committed to version control. Store it outside your repository — for example in an environment-specific config file excluded by `.gitignore`, a secrets manager, or a systemd `EnvironmentFile`.
-</Warning>
+## Fields
 
-## Configuration fields
+- `paper_writer_provider`
+- `paper_writer_base_url`
+- `paper_writer_model`
+- `paper_writer_api_key`
+- `paper_writer_timeout_sec`
+- `paper_writer_temperature`
+- `paper_writer_max_tokens`
+- `paper_writer_fallback_enabled`
 
-<ParamField path="paper_writer_provider" type="string" default="deterministic">
-  Selects the paper-writing backend. Accepted values are `deterministic`, `template` (alias for `deterministic`), `synthetic.new`, `synthetic` (alias for `synthetic.new`), and `synthetic_glm` (alias for `synthetic.new`). Any other value is rejected when a paper write is attempted, not at config load time.
-</ParamField>
+If `paper_writer_api_key` is empty, provider code can look for `SYNTHETIC_API_KEY`. Do not commit API keys.
 
-<ParamField path="paper_writer_base_url" type="string" default="https://api.synthetic.new/openai/v1">
-  OpenAI-compatible base URL for the provider API. Only used when `paper_writer_provider` is `synthetic.new`. Do not include a trailing slash.
-</ParamField>
+## Fallback behavior
 
-<ParamField path="paper_writer_model" type="string" default="hf:zai-org/GLM-5.1">
-  Model identifier passed in the `model` field of the chat-completion request. The recommended value for Synthetic.new is `hf:zai-org/GLM-5.1`.
-</ParamField>
+When fallback is enabled, provider failure can fall back to deterministic output. That is operationally useful, but reviewers should still inspect the draft and its evidence before finalization.
 
-<ParamField path="paper_writer_api_key" type="string">
-  API key for the provider. Required when `paper_writer_provider` is `synthetic.new` — if this field is empty, Enoch falls back to the `SYNTHETIC_API_KEY` environment variable. Leave empty for `deterministic` mode. Do not commit this value.
-</ParamField>
+## Publication rule
 
-<ParamField path="paper_writer_timeout_sec" type="number" default="180">
-  Maximum seconds to wait for a response from the provider before treating the request as failed. Minimum value is `10`. Increase this for very long papers or slow network links.
-</ParamField>
-
-<ParamField path="paper_writer_temperature" type="number" default="0.2">
-  Sampling temperature passed to the model. Range `0.0`–`2.0`. Lower values produce more deterministic output; the default `0.2` is appropriate for structured research writing.
-</ParamField>
-
-<ParamField path="paper_writer_max_tokens" type="number" default="12000">
-  Maximum number of output tokens the model may generate per paper-write request. Minimum value is `512`. Increase this if your papers are truncated.
-</ParamField>
-
-<ParamField path="paper_writer_fallback_enabled" type="boolean" default="true">
-  When `true` and `paper_writer_provider` is `synthetic.new`, a failed provider request causes Enoch to fall back to the `deterministic` template instead of raising an error. Set to `false` if you want provider failures to surface explicitly.
-</ParamField>
-
-## Synthetic.new config example
-
-Add the following fields to your control VM's config file only when you have Synthetic.new-compatible provider access and want model-authored paper rewrites:
-
-```json
-{
-  "paper_writer_provider": "synthetic.new",
-  "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
-  "paper_writer_model": "hf:zai-org/GLM-5.1",
-  "paper_writer_api_key": "your-provider-key",
-  "paper_writer_fallback_enabled": true,
-  "paper_evidence_sync_enabled": true
-}
-```
-
-<Note>
-  Do not publish generated paper artifacts until the corpus quality gates pass. The paper-writer output is a draft that may require human review before distribution.
-</Note>
+Generated drafts should not enter the public corpus until provenance and quality gates pass and a human has accepted the limitations.
