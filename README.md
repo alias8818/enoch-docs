@@ -44,14 +44,6 @@ If you are evaluating whether Enoch is worth deploying, read in this order:
 - **Launch site:** <https://alias8818.github.io/enoch-agentic-research-system/>
 - **Profile / project index:** <https://alias8818.github.io/>
 
-## Hosted URL and custom domain
-
-The current hosted Mintlify docs URL is <https://solo-09d10f60.mintlify.app/>. It is the best link for readers. The GitHub repo remains the source for editing and review.
-
-The `solo-...mintlify.app` hostname is functional but not ideal for launch polish. When you are ready to use a nicer domain, configure a custom domain in the Mintlify dashboard and add the required DNS record at your domain provider.
-
-Do not commit Mintlify API keys or dashboard tokens to this repository.
-
 ## Preview and validate locally
 
 Use an LTS Node.js version supported by the Mintlify CLI. Then preview the docs locally from this repository:
