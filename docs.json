@@ -2,16 +2,16 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "willow",
   "name": "Enoch Agentic Research System",
-  "description": "Control plane for autonomous AI research \u2014 queue ideas, gate dispatch, supervise runs, and generate provenance-tracked research artifacts.",
+  "description": "Source-grounded docs for Enoch: local smoke tests, deployment, wake-gated dispatch, evidence artifacts, and release-safe provenance language.",
   "colors": {
     "primary": "#848c8e",
     "light": "#11161e",
     "dark": "#cfd0d2"
   },
-  "favicon": "https://media.brand.dev/2b01fe20-c04b-4a1d-a2f9-1d2789c50a7a.jpg",
+  "favicon": "favicon.ico",
   "logo": {
-    "light": "https://media.brand.dev/5ffd6ce4-2434-4b4b-920a-f8cacac8b48b.svg",
-    "dark": "https://media.brand.dev/5ffd6ce4-2434-4b4b-920a-f8cacac8b48b.svg"
+    "light": "/logo/light.svg",
+    "dark": "/logo/dark.svg"
   },
   "icons": {
     "library": "lucide"
@@ -79,7 +79,7 @@
               "reference/api-endpoints",
               "reference/authorship-provenance",
               "reference/troubleshooting",
-              "reference/screenshot-needs"
+              "reference/screenshots-needed"
             ]
           }
         ]

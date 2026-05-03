@@ -1,0 +1,26 @@
+---
+title: "Screenshot and image needs for Enoch docs"
+description: "A source-grounded list of screenshots that should be captured from a real Enoch runtime before replacing placeholder or illustrative assets."
+sidebarTitle: "Screenshot Needs"
+---
+
+This documentation intentionally avoids invented product screenshots. The source repositories describe a FastAPI dashboard, control-plane dashboard, queue views, paper review pages, and artifact previews, but screenshots must come from a real local or staging Enoch runtime so they do not misrepresent data, private hosts, or unreleased corpus contents.
+
+## Capture these screenshots from a real runtime
+
+| Screenshot | Where to capture | Why it helps | Redaction requirements |
+|---|---|---|---|
+| Control status dashboard | `GET /control/dashboard` after logging in with a local bearer token | Shows dispatch safety, blockers, queue counts, worker freshness, warnings, and conflicts in the operator UI | Redact bearer tokens, private hostnames, Notion URLs, project names that are not public, and any private run notes |
+| Wake-gate dashboard | `GET /dashboard` on the worker wake-gate service | Shows telemetry, active sessions, process state, and recent wake-gate events | Redact machine names, local paths, process command arguments, and private project IDs |
+| Dispatch dry-run response | `POST /control/dispatch-next` with `dry_run: true` | Helps beginners understand the safe preview step before live dispatch | Redact project prompts, Notion page URLs, and private queue metadata |
+| Worker preflight result | `POST /control/api/preflight` | Shows each check (`wake_gate_healthz`, dashboard API, GPU idle, memory, live runs, queue snapshot) and how failures are explained | Redact worker URLs, tokens, and private hardware identifiers |
+| Paper review detail page | `GET /control/dashboard#review:<paper_id>` or the corresponding dashboard route | Shows checklist progress, provenance paths, artifact preview controls, and rank reasons | Use a public corpus artifact only; redact private file paths if needed |
+| Corpus artifact row | Source corpus `papers/index.md` or the Hugging Face dataset page | Shows how generated artifacts are packaged for public inspection | Use only already-public artifacts and preserve the AI-generated / not peer-reviewed caveat |
+
+## When not to add an image
+
+Do not add a screenshot when the image would only repeat a command shown in the docs, reveal private runtime state, or imply that generated research artifacts are peer-reviewed. Prefer text, tables, and code examples until a real redacted runtime view is available.
+
+## Current local assets
+
+The repository still contains `images/sample-feature-light.png` and `images/sample-feature-dark.png`, but no current MDX page references those sample images. Keep them unused unless they are intentionally replaced by real, redacted screenshots from the list above.
