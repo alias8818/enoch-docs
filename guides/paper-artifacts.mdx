@@ -1,6 +1,7 @@
 ---
-title: "Paper artifacts"
-description: "Generate, review, and package AI-generated research artifacts with evidence boundaries."
+title: "Generate and review AI-generated research artifacts"
+description: "Sync evidence from the worker, run the artifact writer, scan quality gates, and progress papers through the review queue to finalization."
+sidebarTitle: "Paper Artifacts"
 ---
 
 After a research run completes on the worker, the control plane on the VM can generate or rewrite structured paper artifacts when paper rows and evidence context are available. This process — optional evidence sync, artifact writing, quality gate scanning, and paper review — is the review stage of the Enoch research loop. The output is a Markdown and LaTeX draft that should be grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
