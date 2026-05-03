@@ -7,3 +7,5 @@ drafts/
 *.draft.mdx
 
 AGENTS.md
+
+.omx/

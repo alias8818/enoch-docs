@@ -95,9 +95,9 @@ OMX_WAKE_GATE_CONFIG=$HOME/.config/enoch-worker/config.json \
   uv run uvicorn omx_wake_gate.app:app --host 0.0.0.0 --port 8787
 ```
 
-    ```bash
-    curl -fsS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8787/control/health
-    ```
+```bash
+curl -fsS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8787/control/health
+```
 
 ## Optional timers
 
@@ -141,44 +141,41 @@ Paper generation is optional and depends on evidence and paper rows. The default
 
 Do not publish generated artifacts until corpus quality gates pass and a human understands the limitations.
 
-## What the repository does not include
+## Review the dispatch flow
 
-  <Step title="Review the dispatch flow">
-    Every live dispatch request passes through the following checks in order. Understanding this sequence helps you diagnose failures at each stage:
+Every live dispatch request passes through the following checks in order. Understanding this sequence helps you diagnose failures at each stage:
 
-    1. No conflicting active GPU lane exists (single active lane enforced).
-    2. A queue item exists.
-    3. Live dispatch is enabled (`live_dispatch_enabled` must be `true` in config).
-    4. The control plane is not paused and maintenance mode is not active (checked together).
-    5. Worker preflight is healthy.
-    6. The dispatch script launches the agent run.
-    7. The wake gate tracks process and telemetry truth.
-    8. The completion callback or status update is emitted only after the gate is satisfied.
+1. No conflicting active GPU lane exists (single active lane enforced).
+2. A queue item exists.
+3. Live dispatch is enabled (`live_dispatch_enabled` must be `true` in config).
+4. The control plane is not paused and maintenance mode is not active (checked together).
+5. Worker preflight is healthy.
+6. The dispatch script launches the agent run.
+7. The wake gate tracks process and telemetry truth.
+8. The completion callback or status update is emitted only after the gate is satisfied.
 
-    <Tip>
-      Always use dry-run dispatch first when testing a new deployment. It exercises the core dispatch guards — pause checks, lane safety (single active GPU lane), and candidate selection — without launching a real agent run. Note that worker preflight is only performed during live dispatch, not dry-run.
-    </Tip>
-  </Step>
+<Tip>
+  Always use dry-run dispatch first when testing a new deployment. It exercises the core dispatch guards — pause checks, lane safety (single active GPU lane), and candidate selection — without launching a real agent run. Note that worker preflight is only performed during live dispatch, not dry-run.
+</Tip>
 
-  <Step title="Configure the paper artifact workflow">
-    The control plane can rewrite and package generated research artifacts when paper rows and evidence are present. This path depends on provider credentials and, in the release snapshot, the full GLM-5.1 rewrite loop was still listed as pending before public release. Add the following settings to `/etc/enoch/config.json` only when you are ready to test the provider-backed writer:
+## Configure the paper artifact workflow
 
-    ```json
-    {
-      "paper_writer_provider": "synthetic.new",
-      "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
-      "paper_writer_model": "hf:zai-org/GLM-5.1",
-      "paper_writer_api_key": "your-provider-key",
-      "paper_writer_fallback_enabled": true,
-      "paper_evidence_sync_enabled": true
-    }
-    ```
+The control plane can rewrite and package generated research artifacts when paper rows and evidence are present. This path depends on provider credentials and, in the release snapshot, the full GLM-5.1 rewrite loop was still listed as pending before public release. Add the following settings to `/etc/enoch/config.json` only when you are ready to test the provider-backed writer:
 
-    <Warning>
-      Do not publish generated artifacts until corpus import, index building, quality scans, and human review are complete. The quality gates scan for placeholder citations, missing provenance, and missing evidence artifacts; the release snapshot still listed several corpus-publication steps as pending.
-    </Warning>
-  </Step>
-</Steps>
+```json
+{
+  "paper_writer_provider": "synthetic.new",
+  "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
+  "paper_writer_model": "hf:zai-org/GLM-5.1",
+  "paper_writer_api_key": "your-provider-key",
+  "paper_writer_fallback_enabled": true,
+  "paper_evidence_sync_enabled": true
+}
+```
+
+<Warning>
+  Do not publish generated artifacts until corpus import, index building, quality scans, and human review are complete. The quality gates scan for placeholder citations, missing provenance, and missing evidence artifacts; the release snapshot still listed several corpus-publication steps as pending.
+</Warning>
 
 ## What is not included
 

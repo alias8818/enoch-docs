@@ -35,9 +35,9 @@ The HTTP sync retrieves specific high-signal files from `results/` (e.g. `hot_co
 
 If `paper_evidence_sync_enabled` is `true` in your config and no local evidence is found after sync, the rewrite request returns HTTP 424 with an `evidence_sync` detail object explaining what was tried.
 
-</Step>
 
-<Step title="Artifact writer generates Markdown and LaTeX">
+## 2. Generate Markdown and LaTeX
+
 
 Once sufficient local evidence is present, the artifact writer runs against the evidence bundle and claim ledger to produce:
 
@@ -62,9 +62,9 @@ The writer uses the model and provider configured under `paper_writer_*` setting
 
 If `paper_writer_fallback_enabled` is `true`, the writer falls back to a deterministic MVP draft if the configured provider is unavailable or returns an error.
 
-</Step>
 
-<Step title="Quality gate scan">
+## 3. Scan quality gates
+
 
 After the artifact is written, a review record is created in the paper review queue with a `review_status` of `unreviewed` or `triage_ready`. The quality gate includes a ranked checklist of items the reviewer must pass, fail, or accept-as-risk before the paper can be approved for finalization.
 
