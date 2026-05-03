@@ -1,29 +1,52 @@
 ---
 title: "Enoch docs"
-description: "Source-grounded docs for the Enoch agentic research control plane, generated-artifact corpus, and release boundaries."
+description: "The Enoch documentation website: learn the control plane, run a smoke test, deploy safely, and review generated-artifact provenance."
 ---
 
 # Enoch docs
 
+This is the **Enoch documentation website**. Use it to learn what Enoch is, run a local smoke test, deploy the control plane and worker, configure required tokens safely,
+and review generated research artifacts without losing provenance boundaries.
+
 Enoch is an agentic research control plane. It queues research ideas, checks whether a worker is safe to use, supervises long-running local AI jobs, preserves evidence, and packages AI-generated research artifacts with explicit provenance.
 
-These docs are written for new operators, contributors, and reviewers. They are intentionally conservative: when a behavior is not evidenced in the code repository, corpus repository, Hugging Face export, or release notes, the docs either omit it or call it a limitation.
+These docs are written for new operators, contributors, and reviewers. They are intentionally conservative. When a behavior is not evidenced in the code repository,
+corpus repository, Hugging Face export, or release notes, the docs either omit it or call it a limitation.
 
-The source for this docs site lives in [`alias8818/enoch-docs`](https://github.com/alias8818/enoch-docs).
+The source for this docs website lives in [`alias8818/enoch-docs`](https://github.com/alias8818/enoch-docs). The application code lives in
+[`alias8818/enoch-agentic-research-system`](https://github.com/alias8818/enoch-agentic-research-system). Generated artifacts live in
+[`alias8818/enoch-ai-research-corpus`](https://github.com/alias8818/enoch-ai-research-corpus).
+
+## What you are looking at
+
+<CardGroup cols={2}>
+  <Card title="Documentation website" icon="book-open" href="https://github.com/alias8818/enoch-docs">
+    This repo is the Mintlify docs source. It explains the system, deployment path, API surface, and provenance rules.
+  </Card>
+  <Card title="System repository" icon="code" href="https://github.com/alias8818/enoch-agentic-research-system">
+    The FastAPI control plane, dashboard, deployment scripts, tests, and launch-site source live here.
+  </Card>
+  <Card title="Research corpus" icon="database" href="https://github.com/alias8818/enoch-ai-research-corpus">
+    Generated research artifacts, evidence bundles, claim ledgers, manifests, and quality reports live here.
+  </Card>
+  <Card title="Launch site" icon="globe" href="https://alias8818.github.io/enoch-agentic-research-system/">
+    A short public project overview with architecture diagrams and highlighted generated artifacts.
+  </Card>
+</CardGroup>
 
 ## Start here
 
 <CardGroup cols={2}>
-  <Card title="Understand the system" icon="map" href="/introduction">
+  <Card title="1. Understand the system" icon="map" href="/introduction">
     Learn what Enoch does, what it does not claim, and how the control plane fits with the corpus.
   </Card>
-  <Card title="Run a local smoke test" icon="terminal" href="/quickstart">
-    Clone the code repo, create a local config, start the FastAPI app, and exercise the smoke-test script.
+  <Card title="2. Run a local smoke test" icon="terminal" href="/quickstart">
+    Clone the code repo, create a local config, start the FastAPI app, and verify the dashboard/API path.
   </Card>
-  <Card title="Deploy carefully" icon="server" href="/deployment">
+  <Card title="3. Deploy carefully" icon="server" href="/deployment">
     Follow the two-machine reference deployment for a control VM and worker wake-gate node.
   </Card>
-  <Card title="Review provenance" icon="file-check" href="/reference/authorship-provenance">
+  <Card title="4. Review provenance" icon="file-check" href="/reference/authorship-provenance">
     Use the correct authorship and citation framing for generated research artifacts.
   </Card>
 </CardGroup>
@@ -54,5 +77,6 @@ The source for this docs site lives in [`alias8818/enoch-docs`](https://github.c
 ## Release-safe framing
 
 <Warning>
-  Enoch-generated reports are AI-generated research artifacts for inspection, replication, and critique. They are not peer-reviewed or human-authored papers. Keep claims tied to run notes, evidence bundles, claim ledgers, and quality reports before sharing artifacts externally.
+  Enoch-generated reports are AI-generated research artifacts for inspection, replication, and critique. They are not peer-reviewed or human-authored papers.
+  Keep claims tied to run notes, evidence bundles, claim ledgers, and quality reports before sharing artifacts externally.
 </Warning>
