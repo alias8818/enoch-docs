@@ -1,164 +1,41 @@
 ---
-title: "Generate and review AI-generated research artifacts"
-description: "Sync evidence from the worker, run the artifact writer, scan quality gates, and progress papers through the review queue to finalization."
-sidebarTitle: "Paper Artifacts"
+title: "Paper artifacts"
+description: "Generate, review, and package AI-generated research artifacts with evidence boundaries."
 ---
 
-After a research run completes on the worker, the control plane on the VM can generate or rewrite structured paper artifacts when paper rows and evidence context are available. This process — optional evidence sync, artifact writing, quality gate scanning, and paper review — is the review stage of the Enoch research loop. The output is a Markdown and LaTeX draft that should be grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
+# Paper artifacts
 
-<Warning>
-Do not publish generated artifacts until corpus import, index building, quality scans, and human review pass. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
-</Warning>
+Enoch can draft and review generated research artifacts after a run has evidence. The artifact workflow is useful only when it preserves provenance and limitations.
 
-<Steps>
+## 1. Confirm evidence exists
 
-<Step title="Evidence sync from the worker">
+A complete corpus artifact usually includes `paper.md`, `metadata.json`, `evidence_bundle.json`, `claim_ledger.json`, and `paper_manifest.json`. Do not treat a draft as publishable if evidence or claim-ledger files are missing without an explicit explanation.
 
-Before the artifact writer runs, the control plane should have access to the evidence the worker produced. If `paper_evidence_sync_enabled` is `true`, evidence sync runs when you trigger a draft rewrite; you can monitor its outcome in the rewrite response.
+## 2. Draft the next eligible paper
 
-When evidence sync is enabled, the control plane attempts an HTTP sync first, reading evidence files directly from the worker's wake gate API. If the worker returns the evidence, it is written into the local artifact root under the project directory. If the HTTP sync cannot retrieve the required high-signal evidence files, the control plane falls back to SSH, streaming a bounded tarball of evidence artifacts from the worker's project directory.
-
-Evidence paths the control plane looks for include:
-
-```text
-run_notes.md
-.omx/project_decision.json
-.omx/metrics.json
-results/<summary files>.json
-papers/<run_id>/evidence_bundle.json
-papers/<run_id>/claim_ledger.json
-papers/<run_id>/paper.md
-papers/<run_id>/paper_manifest.json
-```
-
-The HTTP sync retrieves specific high-signal files from `results/` (e.g. `hot_cold_sim_results.json`, `smoke.json`) rather than the entire directory. The SSH fallback syncs the entire `papers/` directory plus specific result files.
-
-If `paper_evidence_sync_enabled` is `true` in your config and no local evidence is found after sync, the rewrite request returns HTTP 424 with an `evidence_sync` detail object explaining what was tried.
-
-</Step>
-
-<Step title="Artifact writer generates Markdown and LaTeX">
-
-Once sufficient local evidence is present, the artifact writer runs against the evidence bundle and claim ledger to produce:
-
-- `papers/<run_id>/paper.md` — Markdown draft
-- `papers/<run_id>/paper.tex` — LaTeX draft
-- `papers/<run_id>/evidence_bundle.json` — Evidence bundle
-- `papers/<run_id>/claim_ledger.json` — Claim ledger
-- `papers/<run_id>/paper_manifest.json` — Artifact manifest
-
-The writer uses the model and provider configured under `paper_writer_*` settings. To test Synthetic.new with GLM-5.1, use:
-
-```json
-{
-  "paper_writer_provider": "synthetic.new",
-  "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
-  "paper_writer_model": "hf:zai-org/GLM-5.1",
-  "paper_writer_api_key": "your-provider-key",
-  "paper_writer_fallback_enabled": true,
-  "paper_evidence_sync_enabled": true
-}
-```
-
-If `paper_writer_fallback_enabled` is `true`, the writer falls back to a deterministic MVP draft if the configured provider is unavailable or returns an error.
-
-</Step>
-
-<Step title="Quality gate scan">
-
-After the artifact is written, a review record is created in the paper review queue with a `review_status` of `unreviewed` or `triage_ready`. The quality gate includes a ranked checklist of items the reviewer must pass, fail, or accept-as-risk before the paper can be approved for finalization.
-
-You can view all papers currently in the review queue:
+The control plane exposes a draft-only endpoint:
 
 ```bash
-curl -fsS \
-  -H "Authorization: Bearer ***" \
-  http://127.0.0.1:8787/control/api/paper-reviews | python3 -m json.tool
+curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"requested_by":"operator","dry_run":true}' \
+  "$ENOCH_BASE_URL/control/papers/draft-next" | python3 -m json.tool
 ```
 
-The response includes paginated rows sorted by `rank_score` descending, along with per-status counts and checklist progress for each item.
+Use dry-run first. The `enoch-paper-draft-next.timer` can automate this path after you have tested it.
 
-</Step>
+## 3. Review generated drafts
 
-<Step title="Paper review queue">
+Paper review APIs support claiming review items, updating checklist items, changing review status, rewriting drafts, approving finalization, and preparing finalization packages. The dashboard exposes the same concepts for operators, but generated prose still needs human review.
 
-Papers move through a defined review lifecycle. You interact with the review queue using the endpoints below.
+## 4. Rewrite with an optional provider
 
-**List papers in the review queue:**
+If configured, `synthetic.new` can rewrite draft content through an OpenAI-compatible endpoint. Keep `paper_writer_fallback_enabled` and deterministic fallback behavior in mind when interpreting output.
 
-```bash
-curl -fsS \
-  -H "Authorization: Bearer ***" \
-  "http://127.0.0.1:8787/control/api/paper-reviews?paper_status=publication_draft" \
-  | python3 -m json.tool
-```
+## 5. Apply corpus gates
 
-**Rewrite a single paper draft:**
+The corpus policy rejects placeholder citations, fake citations, peer-review claims, implied human authorship, and missing provenance/evidence unless explicitly stated.
 
-```bash
-curl -fsS \
-  -H "Authorization: Bearer ***" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "idempotency_key": "rewrite-draft:my-paper-id:2026-05-02T00:00:00Z",
-    "requested_by": "operator",
-    "force": true
-  }' \
-  http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/rewrite-draft \
-  | python3 -m json.tool
-```
+## Current snapshot
 
-**Rewrite a batch of papers (default 10, max 200):**
-
-The batch rewrite endpoint processes up to 200 papers in one request (default 10). The default filters target `publication_draft` papers that have not yet been rewritten.
-
-```bash
-curl -fsS \
-  -H "Authorization: Bearer ***" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "idempotency_key": "bulk-rewrite:2026-05-02T00:00:00Z",
-    "requested_by": "operator",
-    "paper_status": "publication_draft",
-    "review_status": "",
-    "search": "",
-    "limit": 10,
-    "force": true,
-    "dry_run": false,
-    "skip_rewritten": true
-  }' \
-  http://127.0.0.1:8787/control/api/paper-reviews/rewrite-batch \
-  | python3 -m json.tool
-```
-
-The response includes `rewritten`, `failed`, `matched`, and `processed` counts plus a per-paper `rows` array with provider, model, and error details.
-
-**Approve a paper for finalization:**
-
-Once the checklist passes and the review is complete, approve the paper:
-
-```bash
-curl -fsS \
-  -H "Authorization: Bearer ***" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "idempotency_key": "approve:my-paper-id:2026-05-02T00:00:00Z",
-    "requested_by": "operator",
-    "note": "Reviewed and approved for finalization."
-  }' \
-  http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/approve-finalization \
-  | python3 -m json.tool
-```
-
-</Step>
-
-</Steps>
-
-## Paper review API reference
-
-| Endpoint | Method | Description |
-|---|---|---|
-| `GET /control/api/paper-reviews` | GET | Lists all papers in the review queue, paginated and sorted by rank score. |
-| `POST /control/api/paper-reviews/{paper_id}/rewrite-draft` | POST | Syncs evidence and rewrites the draft artifact for a single paper. |
-| `POST /control/api/paper-reviews/rewrite-batch` | POST | Rewrites up to 200 papers in a single request (default 10). |
-| `POST /control/api/paper-reviews/{paper_id}/approve-finalization` | POST | Approves a paper review for finalization. |
+The local Hugging Face export reports 159 artifacts. Counts can change as corpus import and quality scans are rerun.

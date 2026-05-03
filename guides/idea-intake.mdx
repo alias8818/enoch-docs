@@ -1,155 +1,49 @@
 ---
-title: "How to queue a research idea through Enoch intake"
-description: "Walk through the six-stage intake pipeline: signal scouting, idea framing, Notion scoring, and handoff to the Enoch control plane for execution."
-sidebarTitle: "Idea Intake"
+title: "Idea intake"
+description: "How Enoch separates upstream idea scouting and Notion scoring from runtime execution authority."
 ---
 
-Enoch does not start from hand-picked prompts alone. Before any experiment reaches the control plane, it passes through an upstream agentic intake process that discovers candidate ideas from external signals, frames them as structured records, scores them against explicit criteria, and finally converts the highest-priority candidates into queue items ready for dispatch. Understanding this pipeline helps you use the system intentionally — you know where ideas come from, how they are evaluated, and what data must be present before a run can start.
+# Idea intake
 
-The six stages below describe the full intake flow from raw signals to a queue item in the Enoch control plane.
+Enoch does not require ideas to originate in the control plane. The source docs describe an upstream LLM-assisted scouting process that reviewed technical signals, framed candidate experiments, and used Notion as an intake and prioritization surface.
 
-<Steps>
-
-<Step title="Stage 1 — External signal scouting">
-
-An upstream LLM-based research scout reviews technical signals to propose candidate experiments. Sources include:
-
-- AI/ML news and public research papers
-- Systems and inference discussions
-- LLM tooling and serving trends
-- Local hardware and runtime opportunities
-- Gaps testable on available infrastructure
-
-The scout's goal is not finished research. It produces candidate experiments that are concrete enough to run, small enough for local hardware, relevant to AI systems (serving, RAG, evaluation, routing, memory, or reliability), and likely to yield a useful positive, negative, or mixed result.
-
-</Step>
-
-<Step title="Stage 2 — Candidate idea framing">
-
-Each candidate is converted into a structured idea record so the idea pool is machine-actionable rather than unstructured prose. A good record captures:
-
-- Working title
-- Core hypothesis
-- Expected mechanism
-- Benchmark or evaluation sketch
-- Required hardware and software
-- Novelty estimate
-- Implementation difficulty
-- Expected evidence type
-- Failure and kill criteria
-- Why the result might matter
-
-</Step>
-
-<Step title="Stage 3 — Weight matrix scoring in Notion">
-
-Candidate ideas are scored with a weight matrix in Notion. The goal is to turn subjective research instinct into a repeatable prioritization signal.
-
-| Dimension | Purpose |
-|---|---|
-| Novelty | Is this meaningfully different from obvious baseline work? |
-| Feasibility | Can it run on available hardware and time budget? |
-| Evidence potential | Can the experiment produce measurable support or refutation? |
-| Systems relevance | Does it touch serving, reliability, memory, routing, evaluation, or agent infrastructure? |
-| Implementation complexity | Is the build small enough to complete autonomously? |
-| Risk / uncertainty | Is the outcome uncertain enough to be worth testing? |
-| Reuse value | Will artifacts, harnesses, or results help future work? |
-| Publication / artifact potential | Could the result become a useful technical report? |
-
-The scores are not claimed to be objectively true. They make priority explicit, auditable, and adjustable.
-
-</Step>
-
-<Step title="Stage 4 — Notion as intake database">
-
-Notion acts as the intake and triage database for the idea pool. It provides:
-
-- Human-readable idea cards
-- Weighted prioritization fields
-- Status tracking
-- Links back to source inspiration
-- Queue handoff metadata
-- A place to review or adjust candidates before execution
-
-<Note>
-Notion was the intake and reference surface. It was not the core execution engine. The durable execution story lives in the Enoch control plane and wake-gate system.
-</Note>
-
-</Step>
-
-<Step title="Stage 5 — Queue handoff">
-
-Once an idea is selected, it becomes a queue candidate for the control plane. The handoff record must include enough structure for the system to create a run workspace:
-
-- Project ID
-- Project name
-- Hypothesis or prompt
-- Relevant constraints
-- Target machine or workload class
-- Expected output artifact
-- Status and priority metadata
-
-This is the boundary where idea management becomes operational execution.
-
-</Step>
-
-<Step title="Stage 6 — Control-plane execution">
-
-After intake, Enoch handles all execution concerns:
-
-- Pause and maintenance controls
-- Dispatch safety
-- Worker preflight
-- Single-active-lane protection
-- Process-tree tracking
-- CPU and GPU quiet-window checks
-- Stale queue reconciliation
-- Run notes and metrics capture
-- Evidence synchronization
-- Paper and corpus artifact generation
-
-The architectural boundary is:
+## Intake stages
 
 ```text
-Notion/intake decides what may be worth running.
-Enoch control plane decides what is safe and true during execution.
+External technical signals
+  -> candidate idea card
+  -> weighted scoring / prioritization
+  -> Notion review surface
+  -> queue handoff
+  -> Enoch control-plane execution
 ```
 
-</Step>
+## What an idea card should contain
 
-</Steps>
+- working title
+- hypothesis or question
+- expected mechanism
+- evaluation sketch
+- hardware/software constraints
+- expected evidence type
+- failure or kill criteria
+- why the experiment might matter
 
-## Programmatic queue snapshot ingestion
+## What Notion is for
 
-If you are integrating an upstream workflow tool, you can push queue and paper rows directly into the Enoch Core snapshot store using the snapshot ingestion endpoint. This is the canonical path for keeping Enoch Core's queue projection in sync with an external source.
+Notion can hold idea cards, scores, status, links, and handoff metadata. It is useful for prioritization and review. Notion is not the execution engine. The Enoch control plane owns runtime state once a queue item exists.
+
+## Notion sync
+
+The code repo includes `enoch-notion-sync` systemd units and a Notion sync helper. Configure Notion credentials through environment files, not committed config.
 
 ```bash
-curl -fsS \
-  -H "Authorization: Bearer ***" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "idempotency_key": "snapshot-2026-05-02T120000Z",
-    "source": "snapshot-intake",
-    "mode": "shadow",
-    "queue_rows": [],
-    "paper_rows": [],
-    "captured_at": "2026-05-02T12:00:00+00:00"
-  }' \
-  http://127.0.0.1:8787/enoch-core/snapshots/n8n-queue | python3 -m json.tool
+NOTION_TOKEN=replace-with-token
+# NOTION_DATABASE_ID=replace-with-database-id
+# NOTION_DATA_SOURCE_ID=replace-with-data-source-id
+NOTION_SYNC_MAX_UPDATES=25
 ```
 
-<Note>
-The endpoint path `n8n-queue` and the `source` field default `"n8n"` are legacy naming artifacts. The endpoint accepts any string for `source` and is not specific to n8n.
-</Note>
+## What not to overclaim
 
-The `mode` field accepts four values defined by the `EnochCoreMode` type: `off`, `shadow`, `compare`, and `enforce`. In practice, the snapshot ingestion endpoint always records locally with no external side effects regardless of mode — the `would_apply` field in the response is always `false`.
-
-To view the current Notion intake sync status and queued-project projection on the control plane:
-
-```bash
-curl -fsS \
-  -H "Authorization: Bearer ***" \
-  http://127.0.0.1:8787/control/api/intake/notion | python3 -m json.tool
-```
-
-The response includes the latest sync observation, skipped-row reason counts, and the current queued project projection from the canonical control-plane queue.
+The scout does not prove novelty, a weight matrix is prioritization rather than objective truth, generated papers are still AI-generated artifacts, and runtime safety comes from the control plane and worker checks.

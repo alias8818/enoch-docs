@@ -1,109 +1,42 @@
 ---
-title: "Configure Pushover alerts for Enoch queue hangs"
-description: "Enable Pushover notifications for run hangs and queue stoppages, install the systemd alert timer, and test your configuration with a manual check."
-sidebarTitle: "Alerts"
+title: "Queue alerts"
+description: "Configure optional Pushover queue hang/stoppage checks safely."
 ---
 
-Enoch can send push notifications to your phone or desktop when the queue hangs or stops progressing. These alerts use [Pushover](https://pushover.net), a simple push notification service. When an active queue item hasn't been updated for longer than your configured hang threshold — or when the system detects conflicts or stale worker sources — the alert system fires a notification so you can investigate before a run stalls silently for hours. The cooldown setting controls how frequently the same alert can repeat, not what triggers it.
+# Queue alerts
 
-<Steps>
+Enoch includes an optional queue alert checker in `deploy/enoch_queue_alert_check.py` plus systemd units and timers. It can send Pushover notifications when queue health suggests a hang or stoppage.
 
-<Step title="Create a Pushover application">
-
-Log in to [pushover.net](https://pushover.net) and create a new application to obtain an application token. Your user key is shown on your Pushover dashboard. You need both values for the config.
-
-</Step>
-
-<Step title="Add Pushover settings to config.json">
-
-Open `/etc/enoch/config.json` and add the following fields:
+## Enable config fields
 
 ```json
 {
   "pushover_alerts_enabled": true,
-  "pushover_app_token": "your-pushover-application-token",
-  "pushover_user_key": "your-pushover-user-key",
+  "pushover_app_token": "replace-with-app-token",
+  "pushover_user_key": "replace-with-user-key",
   "queue_alert_cooldown_sec": 1800,
   "queue_alert_hang_after_sec": 3600
 }
 ```
 
-| Field | Description |
-|---|---|
-| `pushover_alerts_enabled` | Set to `true` to enable Pushover notifications. |
-| `pushover_app_token` | Your Pushover application token. |
-| `pushover_user_key` | Your Pushover user or group key. |
-| `queue_alert_cooldown_sec` | Minimum seconds between repeated alerts. Default is `1800` (30 minutes). |
-| `queue_alert_hang_after_sec` | Seconds an active run may be in progress before triggering a hang alert. Default is `3600` (1 hour). |
+Do not commit Pushover credentials.
 
-Restart the control-plane service after editing the config:
+## Install the timer
+
+When installed through `scripts/install-control-plane.sh`, the timer unit is available as `enoch-queue-alert-check.timer`.
 
 ```bash
-sudo systemctl restart enoch-control-plane.service
-```
-
-</Step>
-
-<Step title="Install the systemd alert timer">
-
-The alert check runs on a timer that periodically evaluates queue health and fires Pushover notifications when thresholds are crossed.
-
-```bash
-sudo cp /opt/enoch-agentic-research-system/deploy/enoch-queue-alert-check.service /etc/systemd/system/
-sudo cp /opt/enoch-agentic-research-system/deploy/enoch-queue-alert-check.timer /etc/systemd/system/
-sudo systemctl daemon-reload
 sudo systemctl enable --now enoch-queue-alert-check.timer
-```
-
-Confirm the timer is scheduled:
-
-```bash
 systemctl list-timers enoch-queue-alert-check.timer
 ```
 
-The timer unit (`enoch-queue-alert-check.timer`) triggers the service unit (`enoch-queue-alert-check.service`), which runs the alert check script against the current config.
-
-</Step>
-
-<Step title="Trigger a manual alert check">
-
-You can run the alert check at any time without waiting for the timer:
+Run a one-shot check:
 
 ```bash
 sudo OMX_WAKE_GATE_CONFIG=/etc/enoch/config.json \
   /opt/enoch-agentic-research-system/deploy/enoch_queue_alert_check.py
 ```
 
-This is useful for testing your Pushover credentials, verifying the alert thresholds are configured correctly, and checking whether any current queue state would trigger an alert.
+## Dispatch pump note
 
-</Step>
-
-<Step title="View the latest alert check via the API">
-
-The queue health endpoint includes the latest alert check result alongside the current queue state and active run detail:
-
-```bash
-curl -fsS \
-  -H "Authorization: Bearer ***" \
-  http://127.0.0.1:8787/control/api/queue-health | python3 -m json.tool
-```
-
-The response includes:
-
-- `ok` — request succeeded (always `true`)
-- `source` — `"control_api_queue_health"`
-- `authority` — `"aggregated queue health read model"`
-- `generated_at` — UTC timestamp
-- `status` — the full `DashboardStatusResponse` including dispatch safety, flags, config, counts, warnings, and conflicts
-- `active_run_detail` — an object with keys `queue_item`, `run`, `project`, and `events` for the first active queue item (or `null` values if none)
-- `latest_alert_check` — the result of the most recent alert evaluation, including `should_alert`, `findings`, `sent`, `suppressed_by_cooldown`, and `fingerprint`
-- `recent_alert_events` — the last 20 alert events from the audit log
-- `recent_worker_callbacks` — the last 20 worker callback events
-
-<Tip>
-The queue health endpoint always evaluates alerts in dry-run mode, so viewing it never triggers a Pushover notification. Use the manual script or wait for the timer to fire actual notifications.
-</Tip>
-
-</Step>
-
-</Steps>
+The queue alert checker can also participate in queue pumping when configured. Treat that as live automation: test status, preflight, and dry-run dispatch first.
