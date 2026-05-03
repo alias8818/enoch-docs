@@ -3,7 +3,7 @@ title: "API endpoints"
 description: "A source-derived map of the main Enoch API surfaces."
 ---
 
-# API endpoints
+Every endpoint in Enoch is served by the FastAPI application running on the control VM (default port `8787`) and the worker (also port `8787`). All endpoints except root `GET /healthz`, `GET /dashboard`, and `GET /control/dashboard` require a bearer token. The control-plane health endpoint is `GET /control/health` and does require authentication. The two dashboard HTML endpoints are unauthenticated for the initial page load; the dashboard itself prompts for a bearer token and stores it in `localStorage` for subsequent API calls. Read the Authentication section below before making your first request.
 
 This page maps the main endpoint groups present in the local source snapshot. It is not a generated OpenAPI reference; verify request and response models against the code before building clients.
 
@@ -15,86 +15,676 @@ Unauthenticated routes include `GET /healthz`, `GET /dashboard`, and `GET /favic
 Authorization: Bearer <omx_inbound_bearer_token>
 ```
 
-## Root app endpoints
+Pass the token in every request:
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/healthz` | App health check. |
-| `GET` | `/dashboard` | Main dashboard HTML. |
-| `GET` | `/dashboard/api` | Dashboard JSON summary. |
-| `GET` | `/dashboard/api/run/{run_id}` | Run detail for dashboard views. |
-| `POST` | `/dashboard/queue-snapshot` | Import/update dashboard queue snapshot data. |
-| `POST` | `/dashboard/paper-snapshot` | Import/update dashboard paper snapshot data. |
-| `GET` | `/project-status/{project_id}` | Project status. |
-| `POST` | `/prepare-project` | Prepare a project workspace. |
-| `POST` | `/dispatch` | Lower-level dispatch endpoint. Prefer `/control/dispatch-next` for control-plane dispatch. |
-| `POST` | `/omx/event` | Incoming completion/event callback path. |
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8787/control/api/status
+```
 
-## Control-plane endpoints
+The dashboard also accepts the token as a `?token=` URL query parameter on first load, after which it is stored in `localStorage`.
 
-The control router is mounted under `/control`.
+</Accordion>
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/control/health` | Control router health. |
-| `GET` | `/control/state` | Control state and flags. |
-| `GET` | `/control/api/status` | Dashboard status with flags, blockers, and config state. |
-| `GET` | `/control/api/queue-health` | Queue health summary. |
-| `GET` | `/control/api/queues/{queue}` | Queue view. |
-| `GET` | `/control/api/projects/{project_id}` | Project detail. |
-| `GET` | `/control/api/runs/{run_id}` | Run detail. |
-| `POST` | `/control/api/preflight` | Worker preflight check. |
-| `POST` | `/control/worker/preflight` | Worker preflight check alias. |
-| `POST` | `/control/dispatch-next` | Guarded dispatch, including dry-run. |
-| `POST` | `/control/pause` | Pause queue or enter maintenance depending on payload. |
-| `POST` | `/control/resume` | Resume queue or exit maintenance depending on payload. |
-| `POST` | `/control/queue/mark-paused` | Mark a queue item paused. |
-| `GET` | `/control/export/snapshot` | Export control-plane snapshot. |
+<Accordion title="Health & Status">
 
-## Paper and review endpoints
+### `GET /healthz`
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/control/api/papers` | Paper list. |
-| `GET` | `/control/api/papers/{paper_id}` | Paper detail. |
-| `GET` | `/control/api/papers/{paper_id}/artifact/{field}` | Read a paper artifact field. |
-| `GET` | `/control/api/paper-reviews` | Paper review queue. |
-| `GET` | `/control/api/paper-reviews/next` | Next review item. |
-| `GET` | `/control/api/paper-reviews/{paper_id}` | Review detail. |
-| `POST` | `/control/api/paper-reviews/{paper_id}/claim` | Claim a review item. |
-| `POST` | `/control/api/paper-reviews/{paper_id}/checklist/{item_id}` | Update checklist item. |
-| `POST` | `/control/api/paper-reviews/{paper_id}/status` | Change review status. |
-| `POST` | `/control/api/paper-reviews/{paper_id}/approve-finalization` | Approve finalization. |
-| `POST` | `/control/api/paper-reviews/{paper_id}/rewrite-draft` | Rewrite draft. |
-| `POST` | `/control/api/paper-reviews/{paper_id}/prepare-finalization-package` | Prepare finalization package. |
-| `POST` | `/control/api/paper-reviews/rewrite-batch` | Rewrite a batch. |
-| `POST` | `/control/api/paper-reviews/backfill` | Backfill review records. |
-| `POST` | `/control/papers/draft-next` | Draft the next eligible paper. |
+No authentication required. Returns a minimal app-level liveness check. Use authenticated `GET /control/health` when you need the control-plane database path and control-plane service timestamp.
 
-## Intake, projection, and events
+```bash
+curl -fsS http://127.0.0.1:8787/healthz
+```
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/control/api/events` | Event list. |
-| `GET` | `/control/api/intake/notion` | Notion intake status/data. |
-| `POST` | `/control/intake/notion-ideas` | Ingest Notion ideas. |
-| `POST` | `/control/api/intake/notion-observation` | Record Notion observation. |
-| `GET` | `/control/projections/notion/queue` | Queue projection. |
-| `GET` | `/control/projections/notion/papers` | Paper projection. |
-| `GET` | `/control/projections/notion/execution-updates` | Execution update projection. |
+Response:
 
-## Enoch Core endpoints
+```json
+{"ok": true, "service": "omx_wake_gate", "timestamp": "2025-05-01T12:00:00+00:00"}
+```
 
-The Enoch Core router is mounted under `/enoch-core`.
+### `GET /control/health`
 
-| Method | Path | Purpose |
-| --- | --- | --- |
-| `GET` | `/enoch-core/health` | Core health. |
-| `POST` | `/enoch-core/snapshots/n8n-queue` | Ingest a queue snapshot from older integration naming. |
-| `GET` | `/enoch-core/projections/queue` | Queue projection. |
-| `GET` | `/enoch-core/candidates/paper-draft` | Candidate paper draft. |
-| `GET` | `/enoch-core/candidates/paper-polish` | Candidate paper polish. |
+Requires bearer authentication. Returns control-plane health and the configured SQLite database path.
 
-## Client guidance
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8787/control/health
+```
 
-Use `/control/api/status`, `/control/api/preflight`, and `/control/dispatch-next` for normal dispatch automation. Treat root `/dispatch` as lower-level compatibility surface unless the source code for your version says otherwise.
+---
+
+### `GET /control/api/status`
+
+Returns the full dispatch safety and queue state aggregated from the control-plane database. Add `?refresh_worker=true` to trigger a fresh worker preflight before responding.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://127.0.0.1:8787/control/api/status?refresh_worker=true" \
+  | python3 -m json.tool
+```
+
+Key response fields:
+
+| Field | Description |
+|---|---|
+| `dispatch_safe` | `true` when no blockers exist and no critical conflicts are present |
+| `dispatch_blockers` | List of human-readable blocker strings |
+| `flags.queue_paused` | `true` when the queue is paused |
+| `flags.maintenance_mode` | `true` when maintenance mode is active |
+| `counts` | Per-status item counts plus `papers` and `queue_total` |
+| `active_items` | Queue rows currently in an active dispatch/run state |
+| `source_freshness` | Staleness of each evidence source |
+| `warnings` / `conflicts` | Structured findings with severity, source, and suggested actions |
+
+---
+
+### `GET /control/api/queue-health`
+
+Returns queue health with worker freshness details, active run detail, latest alert check results, and recent worker callbacks. Add `?refresh_worker=true` to refresh the worker preflight observation first.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://127.0.0.1:8787/control/api/queue-health?refresh_worker=true" \
+  | python3 -m json.tool
+```
+
+</Accordion>
+
+<Accordion title="Queue Operations">
+
+### `GET /control/api/queues/{queue}`
+
+Returns a paginated list of queue rows filtered to one logical queue group.
+
+| `queue` value | Description |
+|---|---|
+| `active` | Items in `dispatching`, `running`, `awaiting_wake`, `wake_received`, or `reconciling` status |
+| `queued` | Items waiting to be dispatched |
+| `blocked` | Items in `blocked`, `needs_review`, or `dispatch_error` status, or any item with `manual_review_required` set |
+| `paused` | Items in `paused` status |
+| `completed` | Items in `completed` or `canceled` status |
+| `all` | All rows regardless of status |
+
+Query parameters:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `page` | `1` | Page number (≥ 1) |
+| `page_size` | `50` | Rows per page (1–500) |
+| `search` | `""` | Full-text filter across all string fields |
+| `status` | `""` | Exact `QueueStatus` value filter |
+| `sort` | `dispatch_priority` | Sort column; prefix with `-` for descending (e.g. `-updated_at`) |
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://127.0.0.1:8787/control/api/queues/queued?page_size=20&search=my-project"
+```
+
+---
+
+### `POST /control/dispatch-next`
+
+Selects and dispatches the next eligible candidate from the queue. Always use `dry_run: true` first to verify the candidate before committing a live dispatch.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"dry_run": true, "requested_by": "operator"}' \
+  http://127.0.0.1:8787/control/dispatch-next \
+  | python3 -m json.tool
+```
+
+Request body (`DispatchNextRequest`):
+
+```json
+{
+  "dry_run": true,
+  "requested_by": "operator",
+  "force_preflight": true
+}
+```
+
+Response `action` values: `"paused"`, `"noop"`, `"dry_run_dispatch"`, `"live_dispatch"`, `"dispatch_blocked"`.
+
+---
+
+### `POST /control/api/preflight`
+
+Runs an explicit worker preflight check without committing a dispatch. Use this to verify worker connectivity, bearer token validity, and GPU/memory headroom before live dispatch.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "wake_gate_url": "http://worker.example:8787",
+    "bearer_token": "worker-api-token",
+    "require_paused": false,
+    "strict": false
+  }' \
+  http://127.0.0.1:8787/control/api/preflight \
+  | python3 -m json.tool
+```
+
+Request body (`WorkerPreflightRequest`):
+
+```json
+{
+  "wake_gate_url": "http://worker.example:8787",
+  "bearer_token": "",
+  "require_paused": true,
+  "strict": false,
+  "max_gpu_pct": 5.0,
+  "min_memory_available_mib": 16384
+}
+```
+
+Response (`WorkerPreflightResponse`):
+
+```json
+{
+  "ok": true,
+  "target": "http://worker.example:8787",
+  "summary": "...",
+  "checks": [
+    {"name": "wake_gate_healthz", "ok": true, "detail": "...", "data": {}},
+    {"name": "worker_no_live_runs", "ok": true, "detail": "...", "data": {}}
+  ]
+}
+```
+
+</Accordion>
+
+<Accordion title="Project Operations">
+
+### `GET /control/api/projects/{project_id}`
+
+Returns project detail aggregating the project record, current queue item, all run records, associated papers, recent events, and cached worker observations.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8787/control/api/projects/my-project-id \
+  | python3 -m json.tool
+```
+
+Returns `404` if neither a project record nor a queue item is found for `{project_id}`.
+
+</Accordion>
+
+<Accordion title="Paper Operations">
+
+### `GET /control/api/papers`
+
+Returns the full paper queue as a paginated list.
+
+Query parameters:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `page` | `1` | Page number |
+| `page_size` | `50` | Rows per page (1–500) |
+| `search` | `""` | Full-text filter |
+| `status` | `""` | Exact `paper_status` filter |
+| `sort` | `-updated_at` | Sort column; prefix with `-` for descending (e.g. `paper_status`) |
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://127.0.0.1:8787/control/api/papers?page_size=100"
+```
+
+---
+
+### `GET /control/api/paper-reviews`
+
+Returns the publication review queue sorted by `rank_score` descending by default.
+
+Query parameters:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `page` | `1` | Page number |
+| `page_size` | `50` | Rows per page (1–500) |
+| `search` | `""` | Full-text filter |
+| `review_status` | `""` | One of `triage_ready`, `unreviewed`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, `rejected` |
+| `paper_status` | `""` | One of `eligible`, `draft_generating`, `draft_review`, `publication_generating`, `publication_draft`, `human_review_required`, `archived` |
+| `include_rank_reasons` | `true` | Include per-item rank reason arrays |
+| `sort` | `-rank_score` | Sort column; prefix with `-` for descending (e.g. `rank_score`) |
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://127.0.0.1:8787/control/api/paper-reviews?paper_status=publication_draft&include_rank_reasons=true"
+```
+
+---
+
+### `GET /control/api/paper-reviews/next`
+
+Returns the highest-ranked paper review detail item matching the given filters. Defaults to `paper_status=publication_draft`, excluding finalized and rejected items.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://127.0.0.1:8787/control/api/paper-reviews/next?paper_status=publication_draft"
+```
+
+Returns `404` if no matching item exists.
+
+---
+
+### `POST /control/api/paper-reviews/{paper_id}/rewrite-draft`
+
+Rewrites the paper draft artifacts for the given paper using the configured AI writer (e.g. GLM-5.1 via Synthetic.new). If `paper_evidence_sync_enabled` is `true`, the control plane syncs evidence from the worker before rewriting.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "rewrite-my-paper-001",
+    "requested_by": "operator",
+    "force": true
+  }' \
+  http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/rewrite-draft
+```
+
+Request body (`PaperReviewRewriteDraftRequest`):
+
+```json
+{
+  "idempotency_key": "paper-review-rewrite:<timestamp>",
+  "requested_by": "operator",
+  "force": true
+}
+```
+
+---
+
+### `POST /control/api/paper-reviews/rewrite-batch`
+
+Rewrites up to `limit` papers in a single synchronous batch call. The request stays open until all papers are processed; a 10-paper batch may take several minutes.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "bulk-rewrite-001",
+    "requested_by": "operator",
+    "paper_status": "publication_draft",
+    "limit": 10,
+    "force": true,
+    "dry_run": false,
+    "skip_rewritten": true
+  }' \
+  http://127.0.0.1:8787/control/api/paper-reviews/rewrite-batch
+```
+
+Request body (`PaperReviewBulkRewriteRequest`):
+
+```json
+{
+  "idempotency_key": "paper-review-bulk-rewrite:<timestamp>",
+  "requested_by": "ai-publication-pipeline",
+  "paper_status": "publication_draft",
+  "review_status": "",
+  "search": "",
+  "limit": 10,
+  "force": true,
+  "dry_run": false,
+  "skip_rewritten": true
+}
+```
+
+<Note>
+`limit` is capped at 200 by the model, but the dashboard uses a default of 10. Set `dry_run: true` to preview which papers would be selected without triggering any rewrites.
+</Note>
+
+---
+
+### `POST /control/api/paper-reviews/{paper_id}/prepare-finalization-package`
+
+Assembles the finalization package for an approved paper review. Use `dry_run: true` to preview the package manifest without writing the package. Use only after the review checklist and approval gates have passed.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "package-my-paper-001",
+    "requested_by": "operator",
+    "target_label": "public-release",
+    "dry_run": true
+  }' \
+  http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/prepare-finalization-package
+```
+
+---
+
+### `POST /control/api/paper-reviews/{paper_id}/approve-finalization`
+
+Marks a paper as approved for finalization. Requires `idempotency_key` and `requested_by`.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "approve-my-paper-001",
+    "requested_by": "operator",
+    "note": ""
+  }' \
+  http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/approve-finalization
+```
+
+---
+
+### `POST /control/api/paper-reviews/{paper_id}/status`
+
+Updates the `review_status` for a paper review item.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "status-my-paper-001",
+    "requested_by": "operator",
+    "review_status": "in_review",
+    "note": "",
+    "blocker": ""
+  }' \
+  http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/status
+```
+
+Valid `review_status` values: `unreviewed`, `triage_ready`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, `rejected`.
+
+---
+
+### `POST /control/api/paper-reviews/{paper_id}/checklist/{item_id}`
+
+Updates the status of a single checklist item for a paper review.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "checklist-my-paper-item1-001",
+    "requested_by": "operator",
+    "status": "pass",
+    "note": ""
+  }' \
+  http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/checklist/item1
+```
+
+Valid `status` values: `pending`, `pass`, `fail`, `accepted_risk`, `not_applicable`.
+
+</Accordion>
+
+<Accordion title="Events & Audit">
+
+### `GET /control/api/events`
+
+Returns the append-only audit event log. Supports filtering by `entity_type`, `entity_id`, `event_type`, and full-text `search`.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://127.0.0.1:8787/control/api/events?page_size=200"
+```
+
+Query parameters:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `page` | `1` | Page number |
+| `page_size` | `100` | Rows per page (1–500) |
+| `entity_type` | `""` | Filter by entity type (e.g. `paper_review`) |
+| `entity_id` | `""` | Filter by entity ID |
+| `event_type` | `""` | Filter by event type (e.g. `paper_review.draft_rewritten`) |
+| `search` | `""` | Full-text filter |
+
+---
+
+### `GET /control/api/intake/notion`
+
+Returns the latest Notion intake sync observation, the current queued-project projection, skipped-row reason counts, and recent intake events.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8787/control/api/intake/notion
+```
+
+</Accordion>
+
+<Accordion title="Wake Gate (Worker)">
+
+These endpoints are served by the worker process and are called by the agent runtime and by the control plane during live dispatch.
+
+### `POST /omx/event`
+
+Receives OMX/Codex lifecycle events from the agent runtime. The wake gate uses these events to track process state and determine when a quiet window has been reached.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event": "session-end",
+    "run_id": "my-project-20250501T120000Z",
+    "session_id": "sess-abc123",
+    "project_id": "my-project",
+    "project_name": "My Project"
+  }' \
+  http://worker.example:8787/omx/event
+```
+
+Request body (`OmxEvent`) key fields:
+
+```json
+{
+  "event": "session-end",
+  "run_id": "...",
+  "session_id": "...",
+  "project_id": null,
+  "project_name": null,
+  "question": null,
+  "root_pid": null,
+  "process_group_id": null,
+  "timestamp": "2025-05-01T12:00:00+00:00",
+  "tmux_session": null,
+  "message": null
+}
+```
+
+Valid `event` values: `session-start`, `session-idle`, `session-stop`, `session-end`, `ask-user-question`.
+
+---
+
+### `POST /prepare-project`
+
+Prepares the project workspace on the worker before dispatch. Called automatically by the control plane's live dispatch path.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "run_id": "my-project-20250501T120000Z",
+    "project_id": "my-project",
+    "project_name": "My Project",
+    "project_dir": "my-project",
+    "prompt_file": "my-project/prompts/initial.md",
+    "prompt_text": "# Enoch Research Action...",
+    "overwrite": true
+  }' \
+  http://worker.example:8787/prepare-project
+```
+
+---
+
+### `POST /dispatch`
+
+Dispatches an agent run to the worker. Called automatically by the control plane's live dispatch path after a successful prepare.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "run_id": "my-project-20250501T120000Z",
+    "project_id": "my-project",
+    "project_dir": "my-project",
+    "prompt_file": "my-project/prompts/initial.md",
+    "mode": "exec",
+    "model": "gpt-5.5",
+    "reasoning_effort": "medium",
+    "sandbox": "danger-full-access"
+  }' \
+  http://worker.example:8787/dispatch
+```
+
+Valid `mode` values: `exec`, `resume`. Valid `reasoning_effort` values: `low`, `medium`, `high`, `xhigh`.
+
+</Accordion>
+
+<Accordion title="Dashboard">
+
+### `GET /dashboard`
+
+Returns the browser-based Enoch Control Status Dashboard as an HTML page. No authentication is required to load the page; the dashboard prompts for a bearer token and stores it in `localStorage`.
+
+```bash
+open http://127.0.0.1:8787/dashboard
+```
+
+---
+
+### `GET /dashboard/api`
+
+Returns the full dashboard snapshot as JSON. Used by the worker dashboard for polling.
+
+Query parameters:
+
+| Parameter | Default | Description |
+|---|---|---|
+| `limit` | — | Maximum run rows to include |
+| `event_limit` | — | Maximum event rows to include |
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://worker.example:8787/dashboard/api?limit=50&event_limit=100"
+```
+
+</Accordion>
+
+<Accordion title="Enoch Core">
+
+Enoch Core endpoints are prefixed `/enoch-core` and all require authentication.
+
+### `GET /enoch-core/health`
+
+Returns the current Enoch Core mode and database path.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8787/enoch-core/health
+```
+
+Response (`HealthResponse`):
+
+```json
+{
+  "ok": true,
+  "service": "enoch_core",
+  "mode": "shadow",
+  "db_path": "/var/lib/enoch-control-plane/state/enoch_core.sqlite3",
+  "timestamp": "2025-05-01T12:00:00+00:00"
+}
+```
+
+Valid `mode` values: `off`, `shadow`, `compare`, `enforce`.
+
+---
+
+### `POST /enoch-core/snapshots/n8n-queue`
+
+<Warning>This endpoint retains its legacy `n8n-queue` name for backward compatibility, but n8n is no longer used. Any source can post queue snapshots.</Warning>
+
+Ingests a queue snapshot from any compatible source. The `idempotency_key` is required; the same key with the same payload is accepted idempotently, but the same key with a different payload returns `409`.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "snapshot-2025-05-01T120000Z",
+    "source": "n8n",
+    "mode": "shadow",
+    "queue_rows": [],
+    "paper_rows": [],
+    "captured_at": "2025-05-01T12:00:00+00:00"
+  }' \
+  http://127.0.0.1:8787/enoch-core/snapshots/n8n-queue
+```
+
+Response (`SnapshotIngestResponse`):
+
+```json
+{
+  "ok": true,
+  "mode": "shadow",
+  "inserted": true,
+  "event_id": 42,
+  "snapshot_id": 7,
+  "queue_rows": 0,
+  "paper_rows": 0,
+  "would_apply": false,
+  "message": "snapshot recorded locally only; no external side effects performed"
+}
+```
+
+---
+
+### `GET /enoch-core/projections/queue`
+
+Returns the queue projection computed from the latest ingested snapshot.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  http://127.0.0.1:8787/enoch-core/projections/queue
+```
+
+Response (`QueueProjection`) key fields:
+
+```json
+{
+  "ok": true,
+  "mode": "shadow",
+  "projection_version": "enoch-core.queue.v1",
+  "total_queue_rows": 0,
+  "total_paper_rows": 0,
+  "status_counts": {},
+  "active_rows": [],
+  "draft_candidate_count": 0,
+  "polish_candidate_count": 0,
+  "warnings": []
+}
+```
+
+</Accordion>
+
+</AccordionGroup>
