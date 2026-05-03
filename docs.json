@@ -1,8 +1,8 @@
 {
   "$schema": "https://mintlify.com/docs.json",
   "theme": "willow",
-  "name": "Enoch Agentic Research System",
-  "description": "Source-grounded docs for Enoch: local smoke tests, deployment, wake-gated dispatch, evidence artifacts, and release-safe provenance language.",
+  "name": "Enoch Docs",
+  "description": "Source-grounded documentation for the Enoch agentic research control plane and AI-generated research artifact corpus.",
   "colors": {
     "primary": "#848c8e",
     "light": "#11161e",

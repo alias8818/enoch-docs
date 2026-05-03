@@ -1,146 +1,49 @@
 ---
-title: "Enoch: Agentic Research Control Plane"
-description: Everything you need to deploy, configure, and operate Enoch — queue research ideas, gate dispatch, supervise AI runs, and package artifacts with provenance.
-mode: custom
+title: "Enoch docs"
+description: "Source-grounded docs for the Enoch agentic research control plane, generated-artifact corpus, and release boundaries."
 ---
 
-<div data-product-guide-index className="flex w-full flex-col gap-8">
-  <div className="flex max-w-[540px] flex-col gap-2 self-center text-center">
-    <h1 className="font-serif text-[30px] font-medium leading-9 tracking-tight text-gray-900 dark:text-gray-50">
-      Enoch Agentic Research System
-    </h1>
-    <p className="text-balance text-sm leading-relaxed tracking-tight text-gray-600 dark:text-gray-400">
-      A control plane for autonomous AI research — queue ideas, gate worker dispatch, supervise local AI runs, and package research artifacts with evidence and provenance.
-    </p>
-  </div>
+# Enoch docs
 
-  <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-    <Card
-      title={<span className="product-guide-feature-card-title">Get started</span>}
-      icon="rocket"
-      href="/quickstart"
-      className="product-guide-feature-card"
-      size={64}
-    >
-      <span className="product-guide-feature-card-description">Install Enoch, create a config, and run your first local smoke test in minutes.</span>
-    </Card>
+Enoch is an agentic research control plane. It queues research ideas, checks whether a worker is safe to use, supervises long-running local AI jobs, preserves evidence, and packages AI-generated research artifacts with explicit provenance.
 
-    <a
-      href="/concepts/control-plane"
-      className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
-    >
-      <Icon icon="cpu" color="rgb(var(--primary))" size={18} className="shrink-0" />
-      <div className="flex flex-col gap-1">
-        <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Control plane</span>
-        <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-          Understand queue state, dispatch safety, and the API that drives all operations.
-        </span>
-      </div>
-    </a>
-    <a
-      href="/concepts/wake-gate"
-      className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
-    >
-      <Icon icon="shield-check" color="rgb(var(--primary))" size={18} className="shrink-0" />
-      <div className="flex flex-col gap-1">
-        <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Wake gate</span>
-        <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-          Process-tree tracking and CPU/GPU quiet-window telemetry that proves a run is truly done.
-        </span>
-      </div>
-    </a>
-  </div>
+These docs are written for new operators, contributors, and reviewers. They are intentionally conservative: when a behavior is not evidenced in the code repository, corpus repository, Hugging Face export, or release notes, the docs either omit it or call it a limitation.
 
-  <hr className="border-0 border-t border-border" />
+## Start here
 
-  <div className="flex flex-col gap-4">
-    <h2 className="font-serif text-xl font-medium leading-normal text-gray-900 dark:text-gray-50">Common tasks</h2>
+<CardGroup cols={2}>
+  <Card title="Understand the system" icon="map" href="/introduction">
+    Learn what Enoch does, what it does not claim, and how the control plane fits with the corpus.
+  </Card>
+  <Card title="Run a local smoke test" icon="terminal" href="/quickstart">
+    Clone the code repo, create a local config, start the FastAPI app, and exercise the smoke-test script.
+  </Card>
+  <Card title="Deploy carefully" icon="server" href="/deployment">
+    Follow the two-machine reference deployment for a control VM and worker wake-gate node.
+  </Card>
+  <Card title="Review provenance" icon="file-check" href="/reference/authorship-provenance">
+    Use the correct authorship and citation framing for generated research artifacts.
+  </Card>
+</CardGroup>
 
-    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
-      <a
-        href="/guides/dispatch-flow"
-        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
-      >
-        <Icon icon="play-circle" color="rgb(var(--primary))" size={18} className="shrink-0" />
-        <div className="flex flex-col gap-1">
-          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Dispatch a research run</span>
-          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            Run preflight checks, validate the queue, and dispatch the next candidate safely.
-          </span>
-        </div>
-      </a>
-      <a
-        href="/guides/paper-artifacts"
-        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
-      >
-        <Icon icon="file-text" color="rgb(var(--primary))" size={18} className="shrink-0" />
-        <div className="flex flex-col gap-1">
-          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Generate paper artifacts</span>
-          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            Sync evidence, generate AI-authored draft artifacts, and run quality gates before release.
-          </span>
-        </div>
-      </a>
-      <a
-        href="/configuration/overview"
-        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
-      >
-        <Icon icon="settings" color="rgb(var(--primary))" size={18} className="shrink-0" />
-        <div className="flex flex-col gap-1">
-          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Configure Enoch</span>
-          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            Set required fields, worker connection, alerts, and paper-writer provider.
-          </span>
-        </div>
-      </a>
-      <a
-        href="/deployment"
-        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
-      >
-        <Icon icon="server" color="rgb(var(--primary))" size={18} className="shrink-0" />
-        <div className="flex flex-col gap-1">
-          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Deploy to production</span>
-          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            Full two-machine setup: control VM, worker machine, systemd services, and smoke tests.
-          </span>
-        </div>
-      </a>
-      <a
-        href="/guides/alerts"
-        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
-      >
-        <Icon icon="bell" color="rgb(var(--primary))" size={18} className="shrink-0" />
-        <div className="flex flex-col gap-1">
-          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Set up queue alerts</span>
-          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            Enable Pushover notifications for queue hangs and stoppage detection.
-          </span>
-        </div>
-      </a>
-      <a
-        href="/reference/api-endpoints"
-        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
-      >
-        <Icon icon="code" color="rgb(var(--primary))" size={18} className="shrink-0" />
-        <div className="flex flex-col gap-1">
-          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">API reference</span>
-          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-            Source-grounded endpoint reference for the documented FastAPI surface.
-          </span>
-        </div>
-      </a>
-    </div>
-  </div>
-  <hr className="border-0 border-t border-border" />
+## What is in the release snapshot
 
-  <div className="flex flex-col gap-2 rounded-none border bg-gray-50 p-4 dark:bg-gray-950">
-    <h2 className="font-serif text-xl font-medium leading-normal text-gray-900 dark:text-gray-50">Release-safe framing</h2>
-    <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-      Enoch-generated reports are AI-generated research artifacts for inspection, replication, and critique. They are not peer-reviewed or human-authored papers. Keep claims tied to run notes, evidence bundles, claim ledgers, and quality reports before sharing artifacts externally.
-    </p>
-    <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
-      Need product images? Use <a href="/reference/screenshots-needed">the screenshot needs list</a> and capture real redacted runtime views instead of inventing screenshots.
-    </p>
-  </div>
+The local project snapshot used for this docs pass contains:
 
-</div>
+- `enoch-agentic-research-system`: the FastAPI control-plane and wake-gate code, deployment helpers, tests, and source docs.
+- `enoch-ai-research-corpus`: a corpus repository of AI-generated research artifacts with `paper.md`, `metadata.json`, `evidence_bundle.json`, `claim_ledger.json`, and `paper_manifest.json` files.
+- `hf-enoch-ai-research-corpus`: a Hugging Face dataset export with `data/artifacts.jsonl` and `dataset_summary.json` reporting 159 artifacts.
+- `RELEASE_STATUS.md`: a dated staging note that records secret-scan evidence and remaining release gates from April 28, 2026.
+
+## Core docs
+
+- [Introduction](/introduction) — system purpose and boundaries.
+- [Quickstart](/quickstart) — local developer smoke test.
+- [Deployment](/deployment) — control VM, worker, systemd, alerts, Notion sync, and paper drafting timers.
+- [Control plane](/concepts/control-plane) — runtime authority, queue state, and dispatch safety.
+- [Wake gate](/concepts/wake-gate) — process and telemetry gating.
+- [Evidence and artifacts](/concepts/evidence-and-artifacts) — evidence sync, paper writer, corpus gates, and provenance.
+
+## Important caveat
+
+The generated reports are AI-generated research artifacts, not peer-reviewed scientific claims and not human-authored papers. Use them for inspection, critique, replication planning, and workflow research; do not cite them as validated science without independent review.

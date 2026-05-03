@@ -1,26 +1,26 @@
 ---
-title: "Screenshot and image needs for Enoch docs"
-description: "A source-grounded list of screenshots that should be captured from a real Enoch runtime before replacing placeholder or illustrative assets."
-sidebarTitle: "Screenshot Needs"
+title: "Screenshot needs"
+description: "Runtime screenshots and visuals that would improve the docs but require a real demo instance or user-provided assets."
 ---
 
-This documentation intentionally avoids invented product screenshots. The source repositories describe a FastAPI dashboard, control-plane dashboard, queue views, paper review pages, and artifact previews, but screenshots must come from a real local or staging Enoch runtime so they do not misrepresent data, private hosts, or unreleased corpus contents.
+# Screenshot needs
 
-## Capture these screenshots from a real runtime
+This docs pass did not fabricate screenshots. The most useful images require a clean demo deployment or user-provided runtime views.
 
-| Screenshot | Where to capture | Why it helps | Redaction requirements |
-|---|---|---|---|
-| Control status dashboard | `GET /control/dashboard` after logging in with a local bearer token | Shows dispatch safety, blockers, queue counts, worker freshness, warnings, and conflicts in the operator UI | Redact bearer tokens, private hostnames, Notion URLs, project names that are not public, and any private run notes |
-| Wake-gate dashboard | `GET /dashboard` on the worker wake-gate service | Shows telemetry, active sessions, process state, and recent wake-gate events | Redact machine names, local paths, process command arguments, and private project IDs |
-| Dispatch dry-run response | `POST /control/dispatch-next` with `dry_run: true` | Helps beginners understand the safe preview step before live dispatch | Redact project prompts, Notion page URLs, and private queue metadata |
-| Worker preflight result | `POST /control/api/preflight` | Shows each check (`wake_gate_healthz`, dashboard API, GPU idle, memory, live runs, queue snapshot) and how failures are explained | Redact worker URLs, tokens, and private hardware identifiers |
-| Paper review detail page | `GET /control/dashboard#review:<paper_id>` or the corresponding dashboard route | Shows checklist progress, provenance paths, artifact preview controls, and rank reasons | Use a public corpus artifact only; redact private file paths if needed |
-| Corpus artifact row | Source corpus `papers/index.md` or the Hugging Face dataset page | Shows how generated artifacts are packaged for public inspection | Use only already-public artifacts and preserve the AI-generated / not peer-reviewed caveat |
+## Needed screenshots
 
-## When not to add an image
+1. **Main dashboard overview** — `/dashboard` with non-secret sample queue, status, and paper data.
+2. **Control status data** — `/control/api/status` rendered in a terminal or dashboard view with tokens redacted.
+3. **Worker preflight result** — successful `/control/api/preflight` response with secrets redacted.
+4. **Dry-run dispatch response** — `/control/dispatch-next` with `dry_run: true` and no private hostnames.
+5. **Paper review detail** — a generated artifact review item showing checklist, evidence links, and status, with private paths redacted.
+6. **Corpus artifact folder** — public GitHub view of one artifact containing `paper.md`, `metadata.json`, `evidence_bundle.json`, `claim_ledger.json`, and `paper_manifest.json`.
+7. **Hugging Face dataset preview** — `data/artifacts.jsonl` fields and dataset card caveat.
 
-Do not add a screenshot when the image would only repeat a command shown in the docs, reveal private runtime state, or imply that generated research artifacts are peer-reviewed. Prefer text, tables, and code examples until a real redacted runtime view is available.
+## Redaction rules
 
-## Current local assets
+Before adding screenshots, remove or blur bearer tokens, API keys, Notion IDs, private hostnames, LAN IPs, user names, home paths, unpublished logs, provider credentials, and production queue state.
 
-The repository still contains `images/sample-feature-light.png` and `images/sample-feature-dark.png`, but no current MDX page references those sample images. Keep them unused unless they are intentionally replaced by real, redacted screenshots from the list above.
+## Optional diagrams
+
+Static diagrams can be source-generated without a live system: idea intake to queue handoff, control VM and worker wake-gate deployment, evidence bundle to generated artifact to corpus export, and authorship/provenance responsibility split.

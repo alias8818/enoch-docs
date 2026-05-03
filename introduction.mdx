@@ -1,81 +1,58 @@
 ---
-title: "Enoch: Agentic Research Control Plane and Components"
-description: "Enoch is a control plane for autonomous AI research that queues ideas, gates dispatch, supervises runs, and packages artifacts with provenance."
-sidebarTitle: "Introduction"
+title: "What Enoch is"
+description: "A beginner-friendly overview of the Enoch control plane, corpus, and claim boundaries."
 ---
 
-Enoch is an agentic research control plane that treats autonomous AI work as a reliability engineering problem, not a scripting problem. It queues research ideas sourced from an upstream LLM scouting process, gates dispatch through authenticated preflight checks, supervises agent runs on local AI hardware using process-tree tracking and CPU/GPU telemetry, captures evidence into structured bundles, and generates publication-style research artifacts with provenance instead of free-floating model output. Every transition in this pipeline is guarded by idempotent APIs, stale-state reconciliation, and operator-visible status — so you always know what is running, what is queued, and what the hardware is actually doing.
+# What Enoch is
+
+Enoch is a reliability layer around autonomous AI research work. Instead of treating a long-running agent session as a trustworthy script, Enoch keeps the operational truth in a separate FastAPI control plane.
+
+The control plane owns queue state, pause and maintenance flags, worker preflight checks, dispatch decisions, run records, paper review state, and dashboard views. A worker wake gate observes processes and CPU/GPU telemetry so the system can wait for real idleness before moving the queue forward.
 
 ## The problem Enoch solves
 
-Long-running autonomous AI work fails in ways ordinary scripts do not:
+Autonomous research runs fail in mundane but important ways:
 
-- Child processes continue after an agent session appears idle.
-- GPU workers can still be active when queue state says no work is running.
-- Queues become stale or disagree across sources.
-- Evidence scatters across machines and run folders.
-- Generated reports overstate results when claim boundaries are not preserved.
+- an agent session can finish while child processes keep running;
+- a GPU worker can still be busy when a queue item looks idle;
+- queue state can become stale across dashboards, Notion, and runtime files;
+- evidence can be scattered across worker folders;
+- generated reports can overstate unsupported claims if provenance is lost.
 
-Enoch treats these as control-plane problems, not model problems. It uses process tracking, CPU/GPU quiet-window telemetry, idempotent APIs, stale-state reconciliation, a live dashboard, evidence bundles, and claim ledgers to make autonomous work observable and auditable.
+Enoch addresses those problems with explicit state, authenticated APIs, worker preflight, process tracking, telemetry thresholds, evidence bundles, claim ledgers, and quality gates.
 
 ## Architecture flow
 
-The intended pipeline from research idea to reviewable corpus artifact follows this sequence:
-
 ```text
-LLM research scout
-  -> structured idea cards
-  -> Notion scoring / weight matrix
-  -> queue candidate
-  -> VM control plane
+LLM-assisted idea scouting
+  -> structured idea card
+  -> Notion scoring / prioritization
+  -> Enoch queue candidate
+  -> FastAPI control plane
   -> worker preflight and dispatch safety checks
-  -> GB10 worker wake gate
+  -> worker wake gate
   -> agent run with process + telemetry supervision
   -> evidence sync
-  -> AI-generated research artifact
-  -> corpus quality gates
+  -> generated research artifact
+  -> corpus quality and provenance gates
 ```
 
-Runtime authority begins when a scored candidate becomes a queue item in the Enoch control plane. From that point forward, safety and truth come from control-plane state, worker preflight, wake-gate telemetry, process tracking, and evidence artifacts — not from optimistic signals from the agent session itself.
+Notion and the upstream scouting workflow are intake surfaces. Runtime authority begins when an idea becomes an Enoch queue item.
 
-## Key components
+## Main components
 
-<CardGroup cols={2}>
-  <Card title="Control plane API" icon="server">
-    Manages queue state, project state, paper review state, pause and maintenance controls, and dispatch decisions. Built with FastAPI and a LangGraph-era graph/state model.
-  </Card>
-  <Card title="Wake gate" icon="shield-check">
-    Proves a run is actually done, not just agent-session-closed. Tracks process trees and sustains CPU/GPU quiet-window telemetry over a configurable window before marking work complete.
-  </Card>
-  <Card title="Worker preflight" icon="stethoscope">
-    Runs authenticated health checks against the worker machine before dispatching new work. Dispatch fails early and visibly rather than silently producing a bad run.
-  </Card>
-  <Card title="Single-lane safety" icon="lock">
-    Prevents overlapping GPU-heavy work on constrained local hardware. The control plane holds the exclusive dispatch lock — not the dispatch script — so the guarantee is centrally enforced.
-  </Card>
-  <Card title="Evidence sync" icon="arrow-down-to-bracket">
-    Copies run notes, metrics, result summaries, evidence bundles, and claim ledgers from worker project folders into the control plane before artifact generation begins.
-  </Card>
-  <Card title="Artifact writer" icon="file-pen">
-    Generates publication-style Markdown reports from evidence context while preserving uncertainty and provenance. Does not free-float against raw model output.
-  </Card>
-  <Card title="Quality gates" icon="circle-check">
-    Scans generated reports for placeholder citations, missing provenance, and missing evidence artifacts before corpus release. Do not publish generated artifacts until the gates pass and a human operator has reviewed the result.
-  </Card>
-</CardGroup>
+- **Control plane API** — queue/project/run/paper state, pause controls, dashboard data, dispatch decisions, and paper review APIs.
+- **Wake gate** — process-tree and CPU/GPU quiet-window checks for long-running local jobs.
+- **Worker preflight** — authenticated checks against the worker API before live dispatch.
+- **Single active lane** — the control plane blocks overlapping active queue work.
+- **Evidence sync** — copies evidence from worker project folders before artifact generation when enabled.
+- **Artifact writer** — creates draft research artifacts from evidence context using a deterministic template or an optional OpenAI-compatible provider.
+- **Corpus packaging** — stores generated artifacts with provenance and quality metadata.
 
-## What makes Enoch different
+## What Enoch is not
 
-Most prompt-automation setups rely on the agent session to report its own completion status. Enoch treats that signal as untrustworthy by design. The wake gate requires sustained telemetry evidence — CPU idle below threshold, GPU idle below threshold, no active child processes from the tracked run — held over a configurable quiet window before a run is considered done. This means your queue cannot advance on a lie.
+Enoch is not a peer-review system, a guarantee of scientific novelty, a replacement for expert review, or a collection of old workflow-tool exports. The corpus is useful because it preserves generated work and evidence boundaries, not because every generated claim is true.
 
-The same discipline applies at every boundary: the control plane holds queue locks rather than leaving them to dispatch scripts; evidence sync runs before the artifact writer has access to any context; quality gates block publication rather than warning after the fact. Enoch is reliability engineering around agentic AI work, not just a scheduler on top of it.
+## Recommended next step
 
-<Note>
-  Research artifacts produced by Enoch runs are AI-generated and built from run notes, evidence bundles, claim ledgers, and run metrics. They are not human-authored or peer-reviewed. See the authorship and provenance documentation for recommended citation language.
-</Note>
-
-## Release boundaries
-
-The current release materials show a staged public-release package, not a claim that every generated artifact is final. The root `RELEASE_STATUS.md` says secret scans and code tests were clean, while corpus import, index building, quality scans, public license selection, and full GLM-5.1 paper rewrite work still needed completion at the time of the release snapshot. Treat these docs as operator and contributor guidance for the Enoch software and review pipeline, not as a guarantee that all corpus artifacts are publication-ready.
-
-The public corpus framing is conservative: generated reports are artifacts for inspection, replication, and critique. Human review is required before relying on any generated research claim.
+If you are new, read [the quickstart](/quickstart) first. If you are reviewing generated papers, read [authorship and provenance](/reference/authorship-provenance) before judging or citing any artifact.
