@@ -91,10 +91,13 @@ for (const page of mdxSet) {
   if (page === 'index') continue;
   if (!navPages.includes(page)) warnings.push(`${page}.mdx: exists but is not present in docs.json navigation`);
 }
-for (const image of walk(path.join(root, 'images')).filter((file) => imageExt.has(path.extname(file).toLowerCase()))) {
+const imageRoot = path.join(root, 'images');
+if (fs.existsSync(imageRoot)) {
+for (const image of walk(imageRoot).filter((file) => imageExt.has(path.extname(file).toLowerCase()))) {
   const rel = path.relative(root, image);
   const used = mdxFiles.some((file) => fs.readFileSync(file, 'utf8').includes(rel) || fs.readFileSync(file, 'utf8').includes(`/${rel}`));
   if (!used) warnings.push(`${rel}: image exists but is not referenced by any MDX page`);
+}
 }
 
 if (warnings.length) {
