@@ -72,7 +72,7 @@ for (const file of mdxFiles) {
   }
   checkFenceBalance(text, rel);
   checkLinks(text, rel, file);
-  if (/sample-feature-(dark|light)\.png/.test(text)) warnings.push(`${rel}: references placeholder sample feature image`);
+  if (/(?:src=|href=|\]\()"?\/?images\/sample-feature-(?:dark|light)\.png/.test(text)) warnings.push(`${rel}: references placeholder sample feature image`);
 }
 
 const docs = JSON.parse(fs.readFileSync(path.join(root, 'docs.json'), 'utf8'));
