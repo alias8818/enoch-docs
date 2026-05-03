@@ -1,10 +1,11 @@
 ---
-title: "Paper writer provider and AI model config settings"
-description: "Configure the provider Enoch can use to rewrite research artifacts, from the deterministic review template to an optional Synthetic.new/GLM-5.1 writer."
-sidebarTitle: "Paper Writer"
+title: "Paper writer settings"
+description: "Configure deterministic and optional OpenAI-compatible paper rewriting without overclaiming generated output."
 ---
 
-When a research run has a paper row and evidence context, the Enoch control plane can rewrite and package generated paper artifacts. You control which provider performs that rewrite through the `paper_writer_provider` field. The `deterministic` mode produces a fixed review-required template with no external dependencies, while `synthetic.new` connects to a hosted OpenAI-compatible API using the configured model. The release snapshot still listed the full GLM-5.1 rewrite loop as pending before public release, so treat provider-backed rewriting as an operator-tested path, not a publication guarantee.
+# Paper writer settings
+
+The paper writer creates generated research-artifact drafts from collected evidence context. It does not make a paper peer reviewed, human authored, or scientifically validated.
 
 ## Providers
 
@@ -14,7 +15,7 @@ The default provider. It produces template-based output without calling an exter
 
 ### `synthetic.new`
 
-Optional provider-backed rewriting path. Enoch sends paper context to the Synthetic.new API endpoint using the OpenAI-compatible chat-completion interface, using GLM-5.1 (`hf:zai-org/GLM-5.1`) as the default model in `config.example.json`. The response replaces the draft paper body. If the provider request fails and `paper_writer_fallback_enabled` is `true`, Enoch falls back to the `deterministic` template rather than failing the paper-write step.
+An optional OpenAI-compatible provider path. The example config uses `https://api.synthetic.new/openai/v1` and `hf:zai-org/GLM-5.1`. Aliases in the code include `synthetic`, `synthetic_glm`, and `template` for compatibility. Keep docs and new configs explicit.
 
 ## Fields
 
@@ -35,37 +36,4 @@ When fallback is enabled, provider failure can fall back to deterministic output
 
 ## Publication rule
 
-<ParamField path="paper_writer_timeout_sec" type="number" default="180">
-  Maximum seconds to wait for a response from the provider before treating the request as failed. Minimum value is `10`. Increase this for very long papers or slow network links.
-</ParamField>
-
-<ParamField path="paper_writer_temperature" type="number" default="0.2">
-  Sampling temperature passed to the model. Range `0.0`–`2.0`. Lower values produce more deterministic output; the default `0.2` is appropriate for structured research writing.
-</ParamField>
-
-<ParamField path="paper_writer_max_tokens" type="number" default="12000">
-  Maximum number of output tokens the model may generate per paper-write request. Minimum value is `512`. Increase this if your papers are truncated.
-</ParamField>
-
-<ParamField path="paper_writer_fallback_enabled" type="boolean" default="true">
-  When `true` and `paper_writer_provider` is `synthetic.new`, a failed provider request causes Enoch to fall back to the `deterministic` template instead of raising an error. Set to `false` if you want provider failures to surface explicitly.
-</ParamField>
-
-## Synthetic.new config
-
-Add the following fields to your control VM's config file to test provider-backed paper rewriting with Synthetic.new and GLM-5.1. Confirm corpus quality scans and human review before treating any output as release-ready:
-
-```json
-{
-  "paper_writer_provider": "synthetic.new",
-  "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
-  "paper_writer_model": "hf:zai-org/GLM-5.1",
-  "paper_writer_api_key": "your-provider-key",
-  "paper_writer_fallback_enabled": true,
-  "paper_evidence_sync_enabled": true
-}
-```
-
-<Note>
-  Do not publish generated paper artifacts until corpus quality gates and human review pass. The paper-writer output is a draft, and `RELEASE_STATUS.md` lists corpus import, quality scans, and the full GLM-5.1 rewrite loop as pending in the release snapshot.
-</Note>
+Generated drafts should not enter the public corpus until provenance and quality gates pass and a human has accepted the limitations.
