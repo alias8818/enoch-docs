@@ -26,24 +26,91 @@ These docs are written for new operators, contributors, and reviewers. They are 
   </Card>
 </CardGroup>
 
-## What is in the release snapshot
+    <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
+      <a
+        href="/guides/dispatch-flow"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="play-circle" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Dispatch a research run</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Run preflight checks, validate the queue, and dispatch the next candidate safely.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/guides/paper-artifacts"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="file-text" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Generate paper artifacts</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Sync evidence, generate AI-authored draft artifacts, and run quality gates before release.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/configuration/overview"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="settings" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Configure Enoch</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Set required fields, worker connection, alerts, and paper-writer provider.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/deployment"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="server" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Deploy to production</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Full two-machine setup: control VM, worker machine, systemd services, and smoke tests.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/guides/alerts"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="bell" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">Set up queue alerts</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Enable Pushover notifications for queue hangs and stoppage detection.
+          </span>
+        </div>
+      </a>
+      <a
+        href="/reference/api-endpoints"
+        className="flex flex-col gap-4 rounded-none border bg-gray-50 p-4 outline-none shadow-sm shadow-gray-950/5 transition hover:border-primary hover:shadow-md dark:bg-gray-950 dark:shadow-black/20 dark:hover:border-primary"
+      >
+        <Icon icon="code" color="rgb(var(--primary))" size={18} className="shrink-0" />
+        <div className="flex flex-col gap-1">
+          <span className="font-serif text-base font-medium text-gray-900 dark:text-gray-50">API reference</span>
+          <span className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+            Source-grounded endpoint reference for the documented FastAPI surface.
+          </span>
+        </div>
+      </a>
+    </div>
+  </div>
+  <hr className="border-0 border-t border-border" />
 
-The local project snapshot used for this docs pass contains:
+  <div className="flex flex-col gap-2 rounded-none border bg-gray-50 p-4 dark:bg-gray-950">
+    <h2 className="font-serif text-xl font-medium leading-normal text-gray-900 dark:text-gray-50">Release-safe framing</h2>
+    <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+      Enoch-generated reports are AI-generated research artifacts for inspection, replication, and critique. They are not peer-reviewed or human-authored papers. Keep claims tied to run notes, evidence bundles, claim ledgers, and quality reports before sharing artifacts externally.
+    </p>
+    <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-400">
+      Need product images? Use <a href="/reference/screenshots-needed">the screenshot needs list</a> and capture real redacted runtime views instead of inventing screenshots.
+    </p>
+  </div>
 
-- `enoch-agentic-research-system`: the FastAPI control-plane and wake-gate code, deployment helpers, tests, and source docs.
-- `enoch-ai-research-corpus`: a corpus repository of AI-generated research artifacts with `paper.md`, `metadata.json`, `evidence_bundle.json`, `claim_ledger.json`, and `paper_manifest.json` files.
-- `hf-enoch-ai-research-corpus`: a Hugging Face dataset export with `data/artifacts.jsonl` and `dataset_summary.json` reporting 159 artifacts.
-- `RELEASE_STATUS.md`: a dated staging note that records secret-scan evidence and remaining release gates from April 28, 2026.
-
-## Core docs
-
-- [Introduction](/introduction) — system purpose and boundaries.
-- [Quickstart](/quickstart) — local developer smoke test.
-- [Deployment](/deployment) — control VM, worker, systemd, alerts, Notion sync, and paper drafting timers.
-- [Control plane](/concepts/control-plane) — runtime authority, queue state, and dispatch safety.
-- [Wake gate](/concepts/wake-gate) — process and telemetry gating.
-- [Evidence and artifacts](/concepts/evidence-and-artifacts) — evidence sync, paper writer, corpus gates, and provenance.
-
-## Important caveat
-
-The generated reports are AI-generated research artifacts, not peer-reviewed scientific claims and not human-authored papers. Use them for inspection, critique, replication planning, and workflow research; do not cite them as validated science without independent review.
+</div>
