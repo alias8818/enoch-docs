@@ -1,6 +1,6 @@
 # Enoch Docs
 
-This repository is the source for the **Enoch documentation website**. It is a Mintlify site written in MDX for people who want to understand, review, run, or deploy Enoch.
+This repository is the source for the **Enoch documentation website** at <https://solo-09d10f60.mintlify.app/>. It is a Mintlify site written in MDX for people who want to understand, review, run, or deploy Enoch.
 
 Enoch is an agentic research control plane. It queues research ideas, checks whether local AI workers are safe to use, supervises long-running runs, preserves evidence, and packages AI-generated research artifacts with explicit provenance.
 
@@ -20,28 +20,37 @@ Enoch is an agentic research control plane. It queues research ideas, checks whe
 
 | Goal | Read this |
 | --- | --- |
-| Understand what Enoch is | [`introduction.mdx`](introduction.mdx) |
-| Run a local smoke test | [`quickstart.mdx`](quickstart.mdx) |
-| Deploy the control plane and worker | [`deployment.mdx`](deployment.mdx) |
-| Configure required tokens and paths | [`configuration/overview.mdx`](configuration/overview.mdx) |
-| Learn the dispatch flow | [`guides/dispatch-flow.mdx`](guides/dispatch-flow.mdx) |
-| Review paper/provenance boundaries | [`reference/authorship-provenance.mdx`](reference/authorship-provenance.mdx) |
-| Troubleshoot common failures | [`reference/troubleshooting.mdx`](reference/troubleshooting.mdx) |
+| Understand what Enoch is | <https://solo-09d10f60.mintlify.app/introduction> |
+| Run a local smoke test | <https://solo-09d10f60.mintlify.app/quickstart> |
+| Deploy the control plane and worker | <https://solo-09d10f60.mintlify.app/deployment> |
+| Configure required tokens and paths | <https://solo-09d10f60.mintlify.app/configuration/overview> |
+| Learn the dispatch flow | <https://solo-09d10f60.mintlify.app/guides/dispatch-flow> |
+| Review paper/provenance boundaries | <https://solo-09d10f60.mintlify.app/reference/authorship-provenance> |
+| Troubleshoot common failures | <https://solo-09d10f60.mintlify.app/reference/troubleshooting> |
 
 If you are evaluating whether Enoch is worth deploying, read in this order:
 
-1. [`introduction.mdx`](introduction.mdx) — what problem the system solves.
-2. [`quickstart.mdx`](quickstart.mdx) — a one-machine local smoke test.
-3. [`deployment.mdx`](deployment.mdx) — the conservative two-machine deployment path.
-4. [`reference/authorship-provenance.mdx`](reference/authorship-provenance.mdx) — how to interpret generated research artifacts.
+1. [Introduction](https://solo-09d10f60.mintlify.app/introduction) — what problem the system solves.
+2. [Quickstart](https://solo-09d10f60.mintlify.app/quickstart) — a one-machine local smoke test.
+3. [Deployment](https://solo-09d10f60.mintlify.app/deployment) — the conservative two-machine deployment path.
+4. [Authorship and provenance](https://solo-09d10f60.mintlify.app/reference/authorship-provenance) — how to interpret generated research artifacts.
 
 ## Related Enoch surfaces
 
+- **Hosted docs website:** <https://solo-09d10f60.mintlify.app/>
 - **Docs source:** <https://github.com/alias8818/enoch-docs>
 - **System repository:** <https://github.com/alias8818/enoch-agentic-research-system>
 - **Research corpus:** <https://github.com/alias8818/enoch-ai-research-corpus>
 - **Launch site:** <https://alias8818.github.io/enoch-agentic-research-system/>
 - **Profile / project index:** <https://alias8818.github.io/>
+
+## Hosted URL and custom domain
+
+The current hosted Mintlify docs URL is <https://solo-09d10f60.mintlify.app/>. It is the best link for readers. The GitHub repo remains the source for editing and review.
+
+The `solo-...mintlify.app` hostname is functional but not ideal for launch polish. When you are ready to use a nicer domain, configure a custom domain in the Mintlify dashboard and add the required DNS record at your domain provider.
+
+Do not commit Mintlify API keys or dashboard tokens to this repository.
 
 ## Preview and validate locally
 
