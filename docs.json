@@ -4,9 +4,9 @@
   "name": "Enoch Docs",
   "description": "Source-grounded documentation for the Enoch agentic research control plane and AI-generated research artifact corpus.",
   "colors": {
-    "primary": "#848c8e",
-    "light": "#11161e",
-    "dark": "#cfd0d2"
+    "primary": "#2563eb",
+    "light": "#60a5fa",
+    "dark": "#64748b"
   },
   "favicon": "favicon.ico",
   "logo": {
