@@ -4,7 +4,7 @@ description: "A FastAPI service that owns queue state, dispatch decisions, pause
 sidebarTitle: "Control Plane"
 ---
 
-The Enoch control plane is the runtime authority for autonomous research work. It sits between the upstream intake surface (Notion scoring and idea cards) and the worker machine running local AI jobs. Everything that touches safety, scheduling, or state — queue transitions, dispatch decisions, pause and maintenance mode, single-lane GPU protection, project records, and paper review — goes through the control plane. It is built as a FastAPI service on a LangGraph-era state and graph model, and it exposes its full operational surface at `/control/api/*`.
+The Enoch control plane is the runtime authority for autonomous research work. It sits between the upstream intake surface (Notion scoring and idea cards) and the worker machine running local AI jobs. Everything that touches safety, scheduling, or state — queue transitions, dispatch decisions, pause and maintenance mode, single-lane GPU protection, project records, and paper review — goes through the control plane. It is built as a FastAPI service on a LangGraph-era state and graph model, and it exposes dashboard and operator APIs under `/control`, with dashboard-focused reads under `/control/api/*` and action endpoints such as `/control/dispatch-next`, `/control/pause`, and `/control/resume`.
 
 ## Architecture overview
 
@@ -170,4 +170,4 @@ Control-plane endpoints are served under the `/control` prefix. Most data endpoi
 
 ## How the control plane differs from the worker
 
-The control plane runs on the control VM and never executes agent code directly. It holds state, makes scheduling decisions, and calls the worker. The worker machine runs the wake gate service and the Codex/OMX agent execution layer. The worker reports back to the control plane through the wake gate callback when a run is complete. This separation means the control plane's view of queue state is always authoritative even when the worker is unreachable, and dispatch decisions are never made inside the worker process itself.
+The control plane runs on the control VM and never executes agent code directly. It holds state, makes scheduling decisions, and calls the worker. The worker machine runs the wake gate service and the Codex/OMX agent execution layer. The worker reports back to the control plane through the wake gate callback when a run is complete. This separation keeps queue state canonical in the control-plane database even when the worker is unreachable. Dispatch decisions are made by the control plane, while the worker reports health, telemetry, and wake-gate completion evidence back to it.

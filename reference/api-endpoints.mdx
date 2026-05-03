@@ -376,6 +376,25 @@ Request body (`PaperReviewBulkRewriteRequest`):
 
 ---
 
+### `POST /control/api/paper-reviews/{paper_id}/prepare-finalization-package`
+
+Assembles the finalization package for an approved paper review. Use `dry_run: true` to preview the package manifest without writing the package. Use only after the review checklist and approval gates have passed.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{
+    "idempotency_key": "package-my-paper-001",
+    "requested_by": "operator",
+    "target_label": "public-release",
+    "dry_run": true
+  }' \
+  http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/prepare-finalization-package
+```
+
+---
+
 ### `POST /control/api/paper-reviews/{paper_id}/approve-finalization`
 
 Marks a paper as approved for finalization. Requires `idempotency_key` and `requested_by`.
