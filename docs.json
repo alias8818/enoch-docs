@@ -30,9 +30,19 @@
     "global": {
       "anchors": [
         {
-          "anchor": "GitHub",
+          "anchor": "Docs source",
           "icon": "github",
+          "href": "https://github.com/alias8818/enoch-docs"
+        },
+        {
+          "anchor": "System repo",
+          "icon": "code",
           "href": "https://github.com/alias8818/enoch-agentic-research-system"
+        },
+        {
+          "anchor": "Corpus",
+          "icon": "database",
+          "href": "https://github.com/alias8818/enoch-ai-research-corpus"
         }
       ]
     },
@@ -78,8 +88,7 @@
             "pages": [
               "reference/api-endpoints",
               "reference/authorship-provenance",
-              "reference/troubleshooting",
-              "reference/screenshots-needed"
+              "reference/troubleshooting"
             ]
           }
         ]
@@ -87,15 +96,24 @@
     ]
   },
   "navbar": {
-    "links": [],
+    "links": [
+      {
+        "label": "System repo",
+        "href": "https://github.com/alias8818/enoch-agentic-research-system"
+      },
+      {
+        "label": "Corpus",
+        "href": "https://github.com/alias8818/enoch-ai-research-corpus"
+      }
+    ],
     "primary": {
       "type": "github",
-      "href": "https://github.com/alias8818/enoch-agentic-research-system"
+      "href": "https://github.com/alias8818/enoch-docs"
     }
   },
   "footer": {
     "socials": {
-      "github": "https://github.com/alias8818/enoch-agentic-research-system"
+      "github": "https://github.com/alias8818/enoch-docs"
     }
   }
 }
