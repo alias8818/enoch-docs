@@ -1,6 +1,6 @@
 ---
-title: "Enoch API endpoints: operator reference"
-description: "Operator reference for the Enoch FastAPI surface: health, control-plane queues, dispatch, paper review, wake gate, Enoch Core, and dashboards."
+title: "Enoch API endpoints: source-grounded reference"
+description: "Reference for the Enoch endpoints documented from the FastAPI source: health, queue and dispatch, paper review, wake gate, Enoch Core, and dashboards."
 sidebarTitle: "API Endpoints"
 ---
 
@@ -306,7 +306,7 @@ Returns `404` if no matching item exists.
 
 ---
 
-### `POST /control/api/paper-reviews/{id}/rewrite-draft`
+### `POST /control/api/paper-reviews/{paper_id}/rewrite-draft`
 
 Rewrites the paper draft artifacts for the given paper using the configured AI writer (e.g. GLM-5.1 via Synthetic.new). If `paper_evidence_sync_enabled` is `true`, the control plane syncs evidence from the worker before rewriting.
 
@@ -376,7 +376,7 @@ Request body (`PaperReviewBulkRewriteRequest`):
 
 ---
 
-### `POST /control/api/paper-reviews/{id}/approve-finalization`
+### `POST /control/api/paper-reviews/{paper_id}/approve-finalization`
 
 Marks a paper as approved for finalization. Requires `idempotency_key` and `requested_by`.
 
@@ -394,7 +394,7 @@ curl -fsS \
 
 ---
 
-### `POST /control/api/paper-reviews/{id}/status`
+### `POST /control/api/paper-reviews/{paper_id}/status`
 
 Updates the `review_status` for a paper review item.
 
@@ -416,7 +416,7 @@ Valid `review_status` values: `unreviewed`, `triage_ready`, `in_review`, `change
 
 ---
 
-### `POST /control/api/paper-reviews/{id}/checklist/{item_id}`
+### `POST /control/api/paper-reviews/{paper_id}/checklist/{item_id}`
 
 Updates the status of a single checklist item for a paper review.
 

@@ -20,7 +20,7 @@ Enoch treats these as control-plane problems, not model problems. It uses proces
 
 ## Architecture flow
 
-The full pipeline from research idea to published artifact follows this sequence:
+The intended pipeline from research idea to reviewable corpus artifact follows this sequence:
 
 ```text
 LLM research scout
@@ -60,7 +60,7 @@ Runtime authority begins when a scored candidate becomes a queue item in the Eno
     Generates publication-style Markdown reports from evidence context while preserving uncertainty and provenance. Does not free-float against raw model output.
   </Card>
   <Card title="Quality gates" icon="circle-check">
-    Scans generated reports for placeholder citations, missing provenance, and missing evidence artifacts before they enter the corpus. Nothing publishes until the gates pass.
+    Scans generated reports for placeholder citations, missing provenance, and missing evidence artifacts before corpus release. Do not publish generated artifacts until the gates pass and a human operator has reviewed the result.
   </Card>
 </CardGroup>
 
@@ -73,3 +73,9 @@ The same discipline applies at every boundary: the control plane holds queue loc
 <Note>
   Research artifacts produced by Enoch runs are AI-generated and built from run notes, evidence bundles, claim ledgers, and run metrics. They are not human-authored or peer-reviewed. See the authorship and provenance documentation for recommended citation language.
 </Note>
+
+## Release boundaries
+
+The current release materials show a staged public-release package, not a claim that every generated artifact is final. The root `RELEASE_STATUS.md` says secret scans and code tests were clean, while corpus import, index building, quality scans, public license selection, and full GLM-5.1 paper rewrite work still needed completion at the time of the release snapshot. Treat these docs as operator and contributor guidance for the Enoch software and review pipeline, not as a guarantee that all corpus artifacts are publication-ready.
+
+The public corpus framing is conservative: generated reports are artifacts for inspection, replication, and critique. Human review is required before relying on any generated research claim.
