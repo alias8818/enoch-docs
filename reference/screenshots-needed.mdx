@@ -1,26 +1,49 @@
 ---
-title: "Screenshot needs"
-description: "Runtime screenshots and visuals that would improve the docs but require a real demo instance or user-provided assets."
+title: "Screenshot and image needs for Enoch docs"
+description: "Runtime screenshots and diagrams that should be captured from a clean Enoch demo instead of invented in documentation."
+sidebarTitle: "Screenshot Needs"
 ---
 
-# Screenshot needs
+The docs should not invent product screenshots. Capture the items below from a clean local or staging deployment when you have a safe demo config with no live secrets, private hostnames, private prompts, or unreleased run data visible.
 
-This docs pass did not fabricate screenshots. The most useful images require a clean demo deployment or user-provided runtime views.
+## Required runtime screenshots
 
-## Needed screenshots
+| Page or guide | Capture needed | Why it matters |
+|---|---|---|
+| [Quickstart](/quickstart) | Dashboard at `http://127.0.0.1:8787/dashboard` after saving a local bearer token | Shows beginners what a successful local smoke-test dashboard looks like |
+| [Dispatch flow](/guides/dispatch-flow) | A dry-run dispatch response with no live launch | Demonstrates safe candidate inspection before enabling live dispatch |
+| [Dispatch flow](/guides/dispatch-flow) | A blocked dispatch/status response | Shows operators how blockers appear before they troubleshoot |
+| [Wake gate](/concepts/wake-gate) | Worker dashboard or run detail showing a quiet-window / `wake_ready`-style state | Makes process and telemetry gating concrete without overexplaining it in prose |
+| [Paper artifacts](/guides/paper-artifacts) | Paper review queue row before and after checklist updates | Shows the human review step that prevents generated drafts from being mistaken for publications |
+| [Authorship](/reference/authorship-provenance) | Example artifact folder with `paper.md`, `claim_ledger.json`, `evidence_bundle.json`, and `paper_manifest.json` | Reinforces that generated reports travel with provenance artifacts |
+| Corpus artifact row | Source corpus `papers/index.md` or the Hugging Face dataset page | Shows how generated artifacts are packaged for public inspection |
 
-1. **Main dashboard overview** — `/dashboard` with non-secret sample queue, status, and paper data.
-2. **Control status data** — `/control/api/status` rendered in a terminal or dashboard view with tokens redacted.
-3. **Worker preflight result** — successful `/control/api/preflight` response with secrets redacted.
-4. **Dry-run dispatch response** — `/control/dispatch-next` with `dry_run: true` and no private hostnames.
-5. **Paper review detail** — a generated artifact review item showing checklist, evidence links, and status, with private paths redacted.
-6. **Corpus artifact folder** — public GitHub view of one artifact containing `paper.md`, `metadata.json`, `evidence_bundle.json`, `claim_ledger.json`, and `paper_manifest.json`.
-7. **Hugging Face dataset preview** — `data/artifacts.jsonl` fields and dataset card caveat.
+## Redaction checklist
 
-## Redaction rules
+Before adding any screenshot:
 
-Before adding screenshots, remove or blur bearer tokens, API keys, Notion IDs, private hostnames, LAN IPs, user names, home paths, unpublished logs, provider credentials, and production queue state.
+- Hide bearer tokens, API keys, Notion IDs, private hostnames, private IPs, local usernames, and browser profile data.
+- Use demo project names rather than private research prompts or personal notes.
+- Prefer cropped UI areas over full-desktop screenshots.
+- Keep AI-generated paper text visibly labeled as generated and not peer-reviewed.
+- Store image files under `images/` with descriptive names such as `dashboard-local-smoke-test.png`.
 
-## Optional diagrams
+## Diagram needs
 
-Static diagrams can be source-generated without a live system: idea intake to queue handoff, control VM and worker wake-gate deployment, evidence bundle to generated artifact to corpus export, and authorship/provenance responsibility split.
+A simple architecture diagram would help the introduction and control-plane pages. It should show only sourced system boundaries:
+
+```text
+LLM scout / Notion intake
+  -> Enoch control plane
+  -> worker wake gate
+  -> Codex/OMX run workspace
+  -> evidence + claim ledger
+  -> generated artifact + human review
+  -> corpus export
+```
+
+Use a diagram when it clarifies the flow. Do not add decorative generated images that imply screens or capabilities the repo does not ship.
+
+## Current local assets
+
+The repository includes sample feature images, but no current MDX page should treat those files as product captures. Keep sample images unused unless they are intentionally replaced by real, redacted screenshots from the list above.

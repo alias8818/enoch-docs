@@ -111,7 +111,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/dispatch-next | python3 -m json.tool
 ```
 
-A successful dry run returns `action: "dry_run_dispatch"` with the selected `candidate` (candidate selection, single-lane check, and pause gate all passed). If the queue is paused, it returns `action: "paused"`; if no eligible candidate exists or an active lane already exists, it returns `action: "noop"`. In all three cases `ok` is `true` (router.py:1506). Review the candidate fields — especially `project_id`, `project_name`, and `machine_target` — before proceeding.
+A successful dry run returns `action: "dry_run_dispatch"` with the selected `candidate` after candidate selection, single-lane checks, and pause gates pass. If the queue is paused, it returns `action: "paused"`; if no eligible candidate exists or an active lane already exists, it returns `action: "noop"`. Review the candidate fields — especially `project_id`, `project_name`, and `machine_target` — before proceeding.
 
 </Step>
 
@@ -127,13 +127,13 @@ curl -fsS \
   http://127.0.0.1:8787/control/dispatch-next | python3 -m json.tool
 ```
 
-A successful live dispatch returns `action: "live_dispatch"` with top-level fields `candidate`, `active_count`, `event_id`, and `reason`. The `live` field contains a `LiveDispatchResult` object (models.py:376-383) with `run_id`, `project_id`, `project_dir`, `prompt_file`, `prepare`, `dispatch`, and `preflight`. The worker will receive the dispatch and begin the agent run.
+A successful live dispatch returns `action: "live_dispatch"` with fields such as `candidate`, `active_count`, `event_id`, `reason`, and a `live` object that records run, preparation, dispatch, and preflight details. The worker will receive the dispatch and begin the agent run.
 
 </Step>
 
 <Step title="Wake gate tracks run to completion">
 
-After dispatch, the worker's wake gate takes over process and telemetry tracking. The control plane receives completion signals only after the wake gate is satisfied — meaning the process tree has exited, CPU and GPU averages are below idle thresholds, GPU peak is below its threshold, memory/VRAM has settled (UMA allocatable memory exceeds the threshold or dedicated VRAM returned to baseline), and a sustained quiet-window of samples has accumulated (gate.py:166-172). The gate transitions to `WAKE_READY` (if the session is still idle) or `FINISHED_READY` (if a `session-end` event was received), then fires a completion callback to the configured `completion_callback_url`.
+After dispatch, the worker's wake gate takes over process and telemetry tracking. The control plane receives completion signals only after the wake gate is satisfied — the process tree has exited, CPU/GPU activity is below configured thresholds, memory/VRAM has settled, and the quiet window has accumulated enough samples. The gate then fires a completion callback to the configured `completion_callback_url`.
 
 Monitor progress via the status endpoint or the control dashboard at:
 
