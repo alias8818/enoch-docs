@@ -1,93 +1,44 @@
 ---
-title: "Evidence bundles and AI-generated research artifacts"
-description: "Enoch syncs run notes and evidence bundles from the worker, generates provenance-tracked research artifacts, and runs quality gates before corpus release."
-sidebarTitle: "Evidence & Artifacts"
+title: "Evidence and artifacts"
+description: "How Enoch preserves run evidence, writes generated artifacts, and frames the corpus."
 ---
 
-Autonomous AI research runs produce scattered evidence: notes written during execution, intermediate metrics, result summaries, and claim records. Without a system to collect and preserve that evidence before artifact generation begins, generated reports have no stable grounding — they become prose detached from the work that produced them. Enoch treats evidence collection as a required pipeline stage, not an optional export. Evidence syncs from the worker machine to the control VM after every run, and the artifact writer consumes only what the sync produced. Nothing enters a generated report that did not come from a run record, an evidence bundle, or a claim ledger.
+# Evidence and artifacts
 
-## What evidence is
+Enoch separates generated prose from the evidence that grounded it. That separation is the main reason the generated corpus is reviewable.
 
-During a run, the agent operates inside a project workspace on the worker machine. That workspace accumulates:
+## Evidence files
 
-- **Run notes** — free-form notes written by the agent during execution, capturing intermediate observations and decisions.
-- **Metrics** — quantitative measurements produced by experiments or evaluations.
-- **Result summaries** — structured summaries of what the run found.
-- **Evidence bundles** (`evidence_bundle.json`) — a collected artifact that packages the run's key evidence in a structured, machine-readable form.
-- **Claim ledgers** (`claim_ledger.json`) — a record of the specific claims the agent made during the run, with boundaries preserved so that generated reports do not conflate or over-state them.
+The corpus snapshot contains per-artifact folders with files such as:
 
-These files remain on the worker machine until Enoch syncs them. The control plane tracks the paths to evidence bundle, claim ledger, and manifest files in each `PaperRecord` (`evidence_bundle_path`, `claim_ledger_path`, `manifest_path`).
+- `paper.md`
+- `metadata.json`
+- `evidence_bundle.json`
+- `claim_ledger.json`
+- `paper_manifest.json`
 
-## How evidence sync works
+The Hugging Face export flattens those artifacts into `data/artifacts.jsonl` and reports fields including `paper_markdown`, `metadata`, `evidence_bundle`, `claim_ledger`, `paper_manifest`, `github_url`, `ai_generated`, `human_authorship_claimed`, and `review_status`.
 
-Before the artifact writer runs, Enoch syncs evidence from the worker project workspace to the control VM. The primary sync method is HTTP — the control plane calls the worker wake gate API to retrieve evidence files. If the HTTP sync is unavailable or returns an error, an optional SSH fallback uses `paper_evidence_sync_ssh_host` and `paper_evidence_sync_remote_root` from your config to copy files directly.
+## Evidence sync
 
-<AccordionGroup>
-  <Accordion title="Evidence sync config fields">
-    | Field | Default | Description |
-    |---|---|---|
-    | `paper_evidence_sync_enabled` | `false` | Enable evidence sync before paper generation |
-    | `paper_evidence_sync_ssh_host` | `worker-user@worker.example` | SSH target for fallback sync |
-    | `paper_evidence_sync_remote_root` | `~/enoch/projects` | Remote project root for SSH fallback |
-    | `paper_evidence_sync_timeout_sec` | `90` | Timeout (seconds) for sync operations |
-  </Accordion>
-</AccordionGroup>
+When `paper_evidence_sync_enabled` is true, the control plane can sync evidence from a worker project root before paper generation. Config fields include `paper_evidence_sync_ssh_host`, `paper_evidence_sync_remote_root`, and `paper_evidence_sync_timeout_sec`.
 
-## What the artifact writer produces
+Docs should not imply evidence exists for a run unless artifact files or metadata show it.
 
-Once evidence is synced, the artifact writer generates publication-style research artifacts from the collected evidence context. It does not write against raw model output — it uses the run notes, evidence bundle, and claim ledger as its source of truth. The writer produces:
+## Artifact writing
 
-- **Markdown report** (`draft_markdown_path`) — the primary human-readable research artifact, written in a publication-adjacent style.
-- **LaTeX source** (`draft_latex_path`) — a LaTeX version of the report for publication formatting pipelines.
-- **`evidence_bundle.json`** — the structured evidence package the report was generated from.
-- **`claim_ledger.json`** — the claim boundaries preserved from the run.
-- **`paper_manifest.json`** (`manifest_path`) — a manifest listing all artifact files, their paths, and provenance metadata.
+The default writer is `deterministic`, which avoids an external model call. The code also supports aliases for a `synthetic.new` OpenAI-compatible provider. Configure provider URL, model, API key, timeout, temperature, max tokens, and fallback behavior through `paper_writer_*` fields.
 
-The artifact writer is configured through the `paper_writer_*` fields in your config. The default provider is `deterministic`, which generates template-based drafts without calling an external LLM. If you have access to the Synthetic.new OpenAI-compatible endpoint, you can set `paper_writer_provider` to `synthetic.new` and use the configured `paper_writer_model` value, which defaults to `hf:zai-org/GLM-5.1`. The model, temperature, and token limit are deployment settings, not guarantees of quality.
+Provider support does not mean generated papers are validated or peer reviewed.
 
-## Quality gates
+## Corpus gates
 
-Generated artifacts do not automatically enter the corpus. Before a paper can move past `draft_review` status, it must pass the quality gate scan. The scan checks for:
+The corpus quality policy requires generated artifacts to avoid fake citations, placeholder markers, implied human authorship, and peer-review claims. It also expects provenance metadata and evidence/claim-ledger availability or an explicit statement that those artifacts are missing.
 
-- **Placeholder citations** — references that look like `[CITATION]`, `[REF]`, or similar unfilled placeholders left by the writer.
-- **Missing provenance** — sections of the report that make claims without a traceable source in the evidence bundle or claim ledger.
-- **Missing evidence artifacts** — a report that references an `evidence_bundle.json` or `claim_ledger.json` that was not synced or does not exist on the control VM.
+## Current local corpus snapshot
 
-<Warning>
-Do not publish or finalize a paper until the quality gate checks pass and a human reviewer accepts the remaining risk. A paper with placeholder citations or missing provenance artifacts misrepresents the evidence behind its claims. The control plane tracks quality gate results in the paper review record and requires `approved_for_finalization` status before the finalization package is prepared.
-</Warning>
+The local Hugging Face export reports 159 generated artifacts. Older release notes in the root repo were dated April 28, 2026 and listed remaining release gates, so treat counts and status as snapshot-specific.
 
-## Paper status lifecycle
+## Correct framing
 
-Papers move through the following `PaperStatus` values as they progress from generation to release:
-
-| Status | Meaning |
-|---|---|
-| `eligible` | Run complete; evidence synced; ready for generation |
-| `draft_generating` | Artifact writer is generating the draft |
-| `draft_review` | Draft generated; awaiting operator quality review |
-| `publication_generating` | Publication-quality rewrite in progress |
-| `publication_draft` | Publication draft ready for finalization review |
-| `human_review_required` | Quality gate flagged issues requiring human judgment |
-| `archived` | Paper archived; removed from active review queue |
-
-The review workflow (`ReviewStatus`) tracks the operator's progress through the checklist: `unreviewed` → `triage_ready` → `in_review` → `changes_requested` or `approved_for_finalization` → `finalized`. Papers can also be `rejected` or placed in `blocked` status if a blocker is recorded.
-
-## Provenance framing
-
-The reports Enoch produces are AI-generated research artifacts, not human-authored or peer-reviewed papers. They are built from run notes, evidence bundles, claim ledgers, and reproducibility traces produced during autonomous agent runs. The provenance chain is:
-
-```text
-agent run → run notes + metrics + results
-         → evidence_bundle.json + claim_ledger.json (synced to control VM)
-         → artifact writer (consumes evidence context)
-         → Markdown report + LaTeX + paper_manifest.json
-         → quality gate scan
-         → corpus release
-```
-
-The authorship statement for all artifacts produced by Enoch runs is:
-
-> The reports produced by this system are AI-generated research artifacts created from automated run notes, evidence bundles, claim ledgers, and reproducibility traces. The maintainer releases the corpus for inspection and critique but does not claim personal authorship of the generated papers, arguments, or prose.
-
-When citing a paper produced by an Enoch run, credit the system operator as the release maintainer, not as the human author of the generated content. See the [authorship and provenance reference](/reference/authorship-provenance) for recommended citation language.
+Generated reports are AI-generated research artifacts released for inspection, critique, and replication planning. They are not human-authored academic papers and should not be used as validated scientific evidence without independent review.

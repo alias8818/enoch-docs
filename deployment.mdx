@@ -1,232 +1,144 @@
 ---
-title: "Deploy Enoch: full two-machine production setup guide"
-description: "Set up a two-machine Enoch deployment with a control VM, a worker machine, systemd services, Pushover alerts, and the paper artifact pipeline."
-sidebarTitle: "Deployment"
+title: "Deployment"
+description: "A conservative two-machine deployment guide for the Enoch control plane and worker wake gate."
 ---
 
-A production Enoch deployment splits responsibility across two machines: a control VM that hosts the FastAPI control plane, dashboard, queue state, paper review APIs, alert timer, and corpus tooling; and a worker machine that hosts the wake gate used by OMX/Codex runs, tracks process trees and telemetry, and stores project workspaces and evidence. This guide walks you through every step, from prerequisites to smoke-testing the live API. A single-machine development deployment is also possible — run both services on localhost and set `worker_wake_gate_url` to the same host.
+# Deployment
+
+The reference deployment splits Enoch across two machines:
+
+- **Control VM** — runs the FastAPI control plane, dashboard, queue state, paper review APIs, timers, and optional corpus/export tooling.
+- **Worker machine** — runs the wake-gate API used by Codex/OMX jobs, tracks processes and telemetry, and stores project workspaces and evidence.
+
+You can also run both roles on one host for development.
 
 ## Prerequisites
 
-<Tabs>
-  <Tab title="Control VM">
-    Install the following on the control VM before proceeding:
+Control VM:
 
-    - Linux with systemd
-    - Python 3.11+
-    - `uv`
-    - `git`
-    - Network access to the worker machine
-  </Tab>
-  <Tab title="Worker machine">
-    Install the following on the worker machine before proceeding:
+- Linux with systemd
+- Python 3.11+
+- `uv`
+- `git`
+- network access to the worker API
 
-    - Linux with systemd
-    - Python 3.11+
-    - `uv`
-    - `git`
-    - OMX/Codex CLI stack used for agent execution
-    - Optional: NVIDIA telemetry libraries for GPU visibility
-  </Tab>
-</Tabs>
+Worker machine:
 
-## Deployment steps
+- Linux with systemd or an equivalent process manager
+- Python 3.11+
+- `uv`
+- `git`
+- the Codex/OMX stack used by your dispatch script
+- NVIDIA telemetry libraries if you want GPU visibility
 
-<Steps>
-  <Step title="Clone and install on each machine">
-    Run the following commands on both the control VM and the worker machine. For forks, replace `alias8818` with your GitHub owner.
+## Install the control plane
 
-    ```bash
-    sudo mkdir -p /opt/enoch-agentic-research-system
-    sudo chown "$USER":"$USER" /opt/enoch-agentic-research-system
-    git clone https://github.com/alias8818/enoch-agentic-research-system.git /opt/enoch-agentic-research-system
-    cd /opt/enoch-agentic-research-system
-    uv venv --python /usr/bin/python3 .venv
-    uv pip install --python .venv/bin/python -e .
-    uv run pytest -q
-    ```
-  </Step>
+```bash
+git clone https://github.com/alias8818/enoch-agentic-research-system.git
+cd enoch-agentic-research-system
+uv venv --python /usr/bin/python3 .venv
+uv pip install --python .venv/bin/python -e .
+uv run pytest -q
+```
 
-  <Step title="Configure the control VM">
-    You can use the helper script to install dependencies, copy the checkout into `/opt`, create config and state directories, and install systemd units in one step:
+The helper can copy the checkout into `/opt`, create config/state directories, install dependencies, and write systemd units when run as root:
 
-    ```bash
-    sudo scripts/install-control-plane.sh
-    ```
+```bash
+sudo scripts/install-control-plane.sh \
+  --prefix /opt/enoch-agentic-research-system \
+  --config-dir /etc/enoch \
+  --state-dir /var/lib/enoch-control-plane \
+  --user enoch
+```
 
-    For manual setup, create the config and state directories and copy the example config:
+Edit `/etc/enoch/config.json` before enabling the service. Replace every placeholder token and URL.
 
-    ```bash
-    sudo mkdir -p /etc/enoch /var/lib/enoch-control-plane
-    sudo cp /opt/enoch-agentic-research-system/config.example.json /etc/enoch/config.json
-    sudo editor /etc/enoch/config.json
-    ```
+## Configure required secrets
 
-    Set at minimum the following required fields in `/etc/enoch/config.json`. The example below enables live dispatch for the pipeline described in steps 6 and 7:
+Generate distinct values for `omx_inbound_bearer_token`, `completion_callback_token`, and `worker_wake_gate_bearer_token`:
 
-    ```json
-    {
-      "listen_host": "0.0.0.0",
-      "listen_port": 8787,
-      "state_dir": "/var/lib/enoch-control-plane/state",
-      "project_root": "/var/lib/enoch-control-plane/projects",
-      "dispatch_script_path": "/opt/enoch-agentic-research-system/deploy/enoch_omx_dispatch.sh",
-      "omx_inbound_bearer_token": "generate-a-long-random-token",
-      "completion_callback_url": "https://automation.example.com/webhook/omx-wake-ready",
-      "completion_callback_token": "generate-a-long-random-token",
-      "worker_wake_gate_url": "http://worker.example:8787",
-      "worker_wake_gate_bearer_token": "worker-api-token",
-      "live_dispatch_enabled": true
-    }
-    ```
+```bash
+python3 -c "import secrets; print(secrets.token_urlsafe(48))"
+```
 
-    <Warning>
-      Generate `omx_inbound_bearer_token` and `completion_callback_token` with a cryptographically secure generator. Never reuse tokens across deployments and never commit live config files or credentials.
+Never commit live config files, Notion tokens, Pushover credentials, provider API keys, private hostnames, or production logs.
 
-      ```bash
-      python3 - <<'PY'
-      import secrets
-      print(secrets.token_urlsafe(48))
-      PY
-      ```
-    </Warning>
-  </Step>
+## Run the control service
 
-  <Step title="Configure the worker machine">
-    Use the helper script to install dependencies and write a worker-focused example config:
+```bash
+sudo systemctl daemon-reload
+sudo systemctl enable --now enoch-control-plane.service
+sudo systemctl status enoch-control-plane.service
+curl -fsS http://127.0.0.1:8787/healthz
+```
 
-    ```bash
-    scripts/install-worker.sh
-    ```
+Open the dashboard and authenticate with the configured inbound token:
 
-    For a minimal manual worker config, copy `config.example.json`, then set `state_dir`, `project_root`, and `omx_inbound_bearer_token`, and run the service on port `8787`.
+```text
+http://<control-vm>:8787/dashboard
+```
 
-    The control VM uses the following settings to communicate with the worker:
+## Configure the worker
 
-    - `worker_wake_gate_url` — the URL of the worker API
-    - `worker_wake_gate_bearer_token` — the token for authenticated worker checks
-    - `paper_evidence_sync_*` settings — used when importing evidence from worker project folders before artifact generation
-  </Step>
+On the worker host:
 
-  <Step title="Install the systemd service on the control VM">
-    Copy the service unit, reload systemd, enable and start the service, and confirm it is running:
+```bash
+git clone https://github.com/alias8818/enoch-agentic-research-system.git
+cd enoch-agentic-research-system
+scripts/install-worker.sh
+```
 
-    ```bash
-    sudo cp /opt/enoch-agentic-research-system/deploy/omx-wake-gate.service /etc/systemd/system/enoch-control-plane.service
-    sudo systemctl daemon-reload
-    sudo systemctl enable --now enoch-control-plane.service
-    sudo systemctl status enoch-control-plane.service
-    ```
+The worker can run the same app with a worker-focused config:
 
-    Check the health endpoint:
+```bash
+OMX_WAKE_GATE_CONFIG=$HOME/.config/enoch-worker/config.json \
+  uv run uvicorn omx_wake_gate.app:app --host 0.0.0.0 --port 8787
+```
 
-    ```bash
-    curl -fsS http://127.0.0.1:8787/healthz
-    ```
+The control VM uses `worker_wake_gate_url` and `worker_wake_gate_bearer_token` to call this worker. Set `paper_evidence_sync_*` only if paper generation should copy evidence from the worker project root.
 
-    Open the dashboard in your browser. Use `omx_inbound_bearer_token` as the login token:
+## Optional timers
 
-    ```text
-    http://<control-vm>:8787/dashboard
-    ```
-  </Step>
+The repo includes systemd units for optional workflows:
 
-  <Step title="Enable Pushover queue alerts (optional)">
-    Pushover is optional but recommended for alerting on queue hangs or stoppages. Add the following fields to `/etc/enoch/config.json`:
+- `enoch-queue-alert-check.timer` — periodically checks queue health and can send Pushover alerts when configured.
+- `enoch-notion-sync.timer` — syncs Notion intake/projection data when Notion environment variables are configured.
+- `enoch-paper-draft-next.timer` — drafts the next eligible paper without dispatching new work.
 
-    ```json
-    {
-      "pushover_alerts_enabled": true,
-      "pushover_app_token": "your-pushover-application-token",
-      "pushover_user_key": "your-pushover-user-key",
-      "queue_alert_cooldown_sec": 1800,
-      "queue_alert_hang_after_sec": 3600
-    }
-    ```
+Enable only the timers you have configured and tested.
 
-    Install the alert timer:
+## Smoke-test before live dispatch
 
-    ```bash
-    sudo cp /opt/enoch-agentic-research-system/deploy/enoch-queue-alert-check.service /etc/systemd/system/
-    sudo cp /opt/enoch-agentic-research-system/deploy/enoch-queue-alert-check.timer /etc/systemd/system/
-    sudo systemctl daemon-reload
-    sudo systemctl enable --now enoch-queue-alert-check.timer
-    systemctl list-timers enoch-queue-alert-check.timer
-    ```
+```bash
+export ENOCH_BASE_URL=http://<control-vm>:8787
+export ENOCH_CONTROL_TOKEN=<omx_inbound_bearer_token>
+scripts/smoke-test-local.sh
+```
 
-    To trigger a manual alert or preflight check:
+Then test worker preflight:
 
-    ```bash
-    sudo OMX_WAKE_GATE_CONFIG=/etc/enoch/config.json /opt/enoch-agentic-research-system/deploy/enoch_queue_alert_check.py
-    ```
-  </Step>
+```bash
+curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"wake_gate_url":"http://<worker>:8787","bearer_token":"<worker-token>","require_paused":false,"strict":false}' \
+  "$ENOCH_BASE_URL/control/api/preflight" | python3 -m json.tool
+```
 
-  <Step title="Smoke-test the core API paths">
-    Read the token from your config and run the status and preflight checks:
+Use dry-run dispatch first:
 
-    ```bash
-    TOKEN=$(python3 - <<'PY'
-    import json
-    print(json.load(open('/etc/enoch/config.json'))['omx_inbound_bearer_token'])
-    PY
-    )
+```bash
+curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
+  -H 'Content-Type: application/json' \
+  -d '{"dry_run":true,"requested_by":"operator-smoke-test"}' \
+  "$ENOCH_BASE_URL/control/dispatch-next" | python3 -m json.tool
+```
 
-    curl -fsS -H "Authorization: Bearer $TOKEN" \
-      http://127.0.0.1:8787/control/api/status | python3 -m json.tool
+## Paper artifact workflow
 
-    curl -fsS -H "Authorization: Bearer $TOKEN" \
-      -H 'Content-Type: application/json' \
-      -d '{"wake_gate_url":"http://worker.example:8787","bearer_token":"worker-api-token","require_paused":false,"strict":false}' \
-      http://127.0.0.1:8787/control/api/preflight | python3 -m json.tool
-    ```
+Paper generation is optional and depends on evidence and paper rows. The default `paper_writer_provider` is `deterministic`. The code also supports an OpenAI-compatible `synthetic.new` provider with `paper_writer_base_url`, `paper_writer_model`, and `paper_writer_api_key` settings.
 
-    Run a dry-run dispatch to check dispatch readiness before sending real work:
+Do not publish generated artifacts until corpus quality gates pass and a human understands the limitations.
 
-    ```bash
-    curl -fsS -H "Authorization: Bearer $TOKEN" \
-      -H 'Content-Type: application/json' \
-      -d '{"dry_run":true,"requested_by":"operator"}' \
-      http://127.0.0.1:8787/control/dispatch-next | python3 -m json.tool
-    ```
-  </Step>
+## What the repository does not include
 
-  <Step title="Review the dispatch flow">
-    Every live dispatch request passes through the following checks in order. Understanding this sequence helps you diagnose failures at each stage:
-
-    1. No conflicting active GPU lane exists (single active lane enforced).
-    2. A queue item exists.
-    3. Live dispatch is enabled (`live_dispatch_enabled` must be `true` in config).
-    4. The control plane is not paused and maintenance mode is not active (checked together).
-    5. Worker preflight is healthy.
-    6. The dispatch script launches the agent run.
-    7. The wake gate tracks process and telemetry truth.
-    8. The completion callback or status update is emitted only after the gate is satisfied.
-
-    <Tip>
-      Always use dry-run dispatch first when testing a new deployment. It exercises the core dispatch guards — pause checks, lane safety (single active GPU lane), and candidate selection — without launching a real agent run. Note that worker preflight is only performed during live dispatch, not dry-run.
-    </Tip>
-  </Step>
-
-  <Step title="Configure the paper artifact workflow">
-    The control plane can rewrite and package generated research artifacts when paper rows and evidence are present. The default writer is deterministic. Add the following settings to `/etc/enoch/config.json` only when you want to use the Synthetic.new OpenAI-compatible provider with GLM-5.1:
-
-    ```json
-    {
-      "paper_writer_provider": "synthetic.new",
-      "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
-      "paper_writer_model": "hf:zai-org/GLM-5.1",
-      "paper_writer_api_key": "your-provider-key",
-      "paper_writer_fallback_enabled": true,
-      "paper_evidence_sync_enabled": true
-    }
-    ```
-
-    <Warning>
-      Do not publish generated artifacts until the corpus quality gates pass. The quality gates scan for placeholder citations, missing provenance, and missing evidence artifacts; human review is still required before treating any generated artifact as reliable.
-    </Warning>
-  </Step>
-</Steps>
-
-## What is not included
-
-This repository does not include live secrets, private production config, generated paper corpus artifacts, old workflow-tool exports, private run state databases, or production logs. Those are intentionally excluded. Use the example config and this guide to recreate a clean deployment from scratch.
+The public code repository should not include live secrets, private production config, generated private runtime state, production logs, private host defaults, or old workflow-tool exports as product assets.
