@@ -1,12 +1,42 @@
 ---
-title: "Enoch API endpoints: complete public surface reference"
-description: "Full reference for every public Enoch endpoint: health, queue and dispatch, paper review, wake gate, Enoch Core, and the operations dashboard."
+title: "Enoch API endpoints: operator reference"
+description: "Operator reference for the Enoch FastAPI surface: health, control-plane queues, dispatch, paper review, wake gate, Enoch Core, and dashboards."
 sidebarTitle: "API Endpoints"
 ---
 
-Every endpoint in Enoch is served by the FastAPI application running on the control VM (default port `8787`) and the worker (also port `8787`). All endpoints except `GET /healthz`, `GET /dashboard`, and `GET /control/dashboard` require a bearer token. The two dashboard HTML endpoints are unauthenticated for the initial page load; the dashboard itself prompts for a bearer token and stores it in `localStorage` for subsequent API calls. Read the Authentication section below before making your first request.
+Every endpoint in Enoch is served by the FastAPI application running on the control VM (default port `8787`) and the worker (also port `8787`). This page documents the operator-facing endpoints that a new maintainer is most likely to call directly. It is not a generated OpenAPI dump; compatibility and legacy routes are listed in the route coverage note below so readers do not mistake omitted examples for missing code. All endpoints except `GET /healthz`, `GET /dashboard`, and `GET /control/dashboard` require a bearer token. The two dashboard HTML endpoints are unauthenticated for the initial page load; the dashboard itself prompts for a bearer token and stores it in `localStorage` for subsequent API calls. Read the Authentication section below before making your first request.
+
+<Note>
+Source audit note: this page was checked against `omx_wake_gate/app.py`, `omx_wake_gate/control_plane/router.py`, and `omx_wake_gate/enoch_core/router.py` in the parent source repository. Keep examples conservative: generated research artifacts are AI-generated, live dispatch depends on config and worker preflight, and legacy route names remain only for compatibility.
+</Note>
+
 
 <AccordionGroup>
+
+
+<Accordion title="Route coverage and legacy paths">
+
+This reference focuses on the endpoints operators normally call by hand. The source router also exposes compatibility, projection, and dashboard-support routes. Treat these as advanced surfaces unless you are maintaining the control plane or dashboard itself.
+
+| Route group | Source-grounded notes |
+|---|---|
+| `/control/health`, `/control/state` | Authenticated control-plane liveness and raw state helpers. |
+| `/control/dashboard` | Unauthenticated HTML shell for the control dashboard; API calls from the page still require the bearer token. |
+| `/control/api/alerts/queue-check` | Runs the queue alert check used by alert timers and dashboard operations. |
+| `/control/api/worker-callback` | Receives worker callback payloads used during post-run reconciliation. |
+| `/control/api/paper-reviews/backfill` and `/control/api/paper-reviews/{paper_id}` | Maintenance/detail endpoints for review queue records. |
+| `/control/api/paper-reviews/{paper_id}/claim`, `/checklist/{item_id}`, `/status`, `/rewrite-draft`, `/approve-finalization`, `/prepare-finalization-package` | Paper-review mutation endpoints. Use the paper artifact guide before calling them. |
+| `/control/api/papers/{paper_id}` and `/control/api/papers/{paper_id}/artifact/{field}` | Paper detail and artifact retrieval endpoints. |
+| `/control/queue`, `/control/papers` | HTML dashboard pages for queues and papers. |
+| `/control/import/legacy-snapshot` | Imports legacy queue/paper snapshots into the control-plane store. |
+| `/control/intake/notion-ideas`, `/control/api/intake/notion-observation` | Intake observation and idea ingest surfaces. Notion is an intake/triage surface, not runtime authority. |
+| `/control/projections/notion/queue`, `/control/projections/notion/papers`, `/control/projections/notion/execution-updates` | Notion-facing projection endpoints for queue, paper, and execution update views. |
+| `/control/export/snapshot` | Exports a state snapshot for review or migration. |
+| `/project-status/{project_id}`, `/project-paper/{project_id}/read`, `/project-paper/{project_id}` | Worker-side project/paper helpers used by the run and dashboard flows. |
+| `/dashboard/queue-snapshot`, `/dashboard/paper-snapshot`, `/dashboard/api/run/{run_id}`, `/dashboard/api/paper-artifact/{project_id}`, `/dashboard/paper-artifact/{project_id}` | Worker dashboard support routes. |
+| `/enoch-core/candidates/paper-draft`, `/enoch-core/candidates/paper-polish` | Candidate-selection helpers used by Enoch Core shadow/compare/enforce modes. |
+
+</Accordion>
 
 <Accordion title="Authentication">
 

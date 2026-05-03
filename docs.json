@@ -2,7 +2,7 @@
   "$schema": "https://mintlify.com/docs.json",
   "theme": "willow",
   "name": "Enoch Agentic Research System",
-  "description": "Control plane for autonomous AI research — queue ideas, gate dispatch, supervise runs, and generate provenance-tracked research artifacts.",
+  "description": "Control plane for autonomous AI research \u2014 queue ideas, gate dispatch, supervise runs, and generate provenance-tracked research artifacts.",
   "colors": {
     "primary": "#848c8e",
     "light": "#11161e",
@@ -20,7 +20,11 @@
     "eyebrows": "breadcrumbs"
   },
   "contextual": {
-    "options": ["copy", "view", "assistant"]
+    "options": [
+      "copy",
+      "view",
+      "assistant"
+    ]
   },
   "navigation": {
     "global": {
@@ -74,7 +78,8 @@
             "pages": [
               "reference/api-endpoints",
               "reference/authorship-provenance",
-              "reference/troubleshooting"
+              "reference/troubleshooting",
+              "reference/screenshot-needs"
             ]
           }
         ]
