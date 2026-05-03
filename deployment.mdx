@@ -160,7 +160,7 @@ Every live dispatch request passes through the following checks in order. Unders
 
 ## Configure the paper artifact workflow
 
-The control plane can rewrite and package generated research artifacts when paper rows and evidence are present. This path depends on provider credentials and, in the release snapshot, the full GLM-5.1 rewrite loop was still listed as pending before public release. Add the following settings to `/etc/enoch/config.json` only when you are ready to test the provider-backed writer:
+The control plane can rewrite and package generated research artifacts when paper rows and evidence are present. This path depends on provider credentials and remains an operator-reviewed path, not a publication guarantee. Add the following settings to `/etc/enoch/config.json` only when you are ready to test the provider-backed writer:
 
 ```json
 {
@@ -174,7 +174,7 @@ The control plane can rewrite and package generated research artifacts when pape
 ```
 
 <Warning>
-  Do not publish generated artifacts until corpus import, index building, packaging/provenance scans, and human review are complete. The packaging/provenance checks scan for placeholder citations, missing provenance, and missing evidence artifacts; the release snapshot still listed several corpus-publication steps as pending.
+  Do not publish generated artifacts until corpus import, index building, packaging/provenance lint, strict claim/evidence audit status, and human review are explicit. The packaging/provenance checks scan for placeholder citations, missing provenance, and required metadata files. The stricter claim/evidence audit is separate and currently reports blocked audit gaps rather than full deep auditability.
 </Warning>
 
 ## What is not included

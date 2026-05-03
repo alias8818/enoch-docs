@@ -4,7 +4,7 @@ description: "Configure the provider Enoch can use to rewrite research artifacts
 sidebarTitle: "Paper Writer"
 ---
 
-When a research run has a paper row and evidence context, the Enoch control plane can rewrite and package generated paper artifacts. You control which provider performs that rewrite through the `paper_writer_provider` field. The `deterministic` mode produces a fixed review-required template with no external dependencies, while `synthetic.new` connects to a hosted OpenAI-compatible API using the configured model. The release snapshot still listed the full GLM-5.1 rewrite loop as pending before public release, so treat provider-backed rewriting as an operator-tested path, not a publication guarantee.
+When a research run has a paper row and evidence context, the Enoch control plane can rewrite and package generated paper artifacts. You control which provider performs that rewrite through the `paper_writer_provider` field. The `deterministic` mode produces a fixed review-required template with no external dependencies, while `synthetic.new` connects to a hosted OpenAI-compatible API using the configured model. Treat provider-backed rewriting as an operator-reviewed path, not a publication guarantee. If claim extraction is unavailable, the writer must preserve existing ledgers or write a blocked empty ledger that cannot pass strict claim/evidence audit.
 
 ## Providers
 
@@ -67,5 +67,5 @@ Add the following fields to your control VM's config file to test provider-backe
 ```
 
 <Note>
-  Do not publish generated paper artifacts until corpus packaging/provenance checks and human review pass. The paper-writer output is a draft, and `RELEASE_STATUS.md` lists corpus import, packaging/provenance scans, and the full GLM-5.1 rewrite loop as pending in the release snapshot.
+  Do not publish generated paper artifacts until corpus packaging/provenance lint, strict claim/evidence audit status, and human review are explicit. The paper-writer output is a draft; a packaging/provenance pass is not a deep claim audit.
 </Note>

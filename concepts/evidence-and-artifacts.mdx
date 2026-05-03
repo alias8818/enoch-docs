@@ -33,12 +33,12 @@ Provider support does not mean generated papers are validated or peer reviewed.
 
 ## Corpus gates
 
-The corpus packaging/provenance policy requires generated artifacts to avoid fake citations, placeholder markers, implied human authorship, and peer-review claims. It also expects provenance metadata and evidence/claim-ledger availability or an explicit statement that those artifacts are missing.
+The corpus packaging/provenance policy requires generated artifacts to avoid fake citations, placeholder markers, implied human authorship, and peer-review claims. It also expects provenance metadata plus evidence-bundle and claim-ledger files. The stricter claim/evidence audit separately checks whether ledgers contain evidence-linked claims and whether referenced result files are public or explicitly unavailable.
 
 ## Current local corpus snapshot
 
 <Warning>
-Do not publish or finalize a paper until packaging/provenance checks and human review pass. A paper with placeholder citations or missing provenance artifacts misrepresents the evidence behind its claims. The control plane tracks review status and supports finalization-package preparation, but the release snapshot still listed corpus import, index building, packaging/provenance scans, and the full GLM-5.1 paper rewrite loop as pending before public release.
+Do not publish or finalize a paper until packaging/provenance lint, strict claim/evidence audit status, and human review are explicit. A paper with placeholder citations or missing provenance artifacts misrepresents the evidence behind its claims. A paper can pass packaging/provenance lint while still failing the stricter claim/evidence audit if its claim ledger is empty or its result-file references are not public.
 </Warning>
 
 ## Correct framing
@@ -63,7 +63,7 @@ The reports Enoch produces are AI-generated research artifacts, not human-author
 
 ```text
 agent run → run notes + metrics + results
-         → evidence_bundle.json + claim_ledger.json (synced to control VM)
+         → evidence_bundle.json + claim_ledger.json (synced to control VM; strict audit is separate)
          → artifact writer (consumes evidence context)
          → Markdown report + LaTeX + paper_manifest.json
          → packaging/provenance scan

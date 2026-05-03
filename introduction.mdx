@@ -15,7 +15,7 @@ Autonomous research runs fail in mundane but important ways:
 - evidence can be scattered across worker folders;
 - generated reports can overstate unsupported claims if provenance is lost.
 
-Enoch addresses those problems with explicit state, authenticated APIs, worker preflight, process tracking, telemetry thresholds, evidence bundles, claim ledgers, and packaging/provenance checks.
+Enoch addresses those problems with explicit state, authenticated APIs, worker preflight, process tracking, telemetry thresholds, evidence bundles, claim ledgers, packaging/provenance lint, and an explicit strict claim/evidence audit status.
 
 ## Architecture flow
 
@@ -47,7 +47,7 @@ Notion and the upstream scouting workflow are intake surfaces. Runtime authority
 
 ## What Enoch is not
 
-Enoch is not a peer-review system, a guarantee of scientific novelty, a replacement for expert review, or a collection of old workflow-tool exports. The corpus is useful because it preserves generated work and evidence boundaries, not because every generated claim is true.
+Enoch is not a peer-review system, a guarantee of scientific novelty, a replacement for expert review, or a collection of old workflow-tool exports. The corpus is useful because it preserves generated work and evidence boundaries, not because every generated claim is true. The current public status separates 159/159 packaging/provenance lint from 0/159 strict claim/evidence audit pass.
 
 ## Recommended next step
 

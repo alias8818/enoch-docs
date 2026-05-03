@@ -7,7 +7,7 @@ sidebarTitle: "Paper Artifacts"
 After a research run completes on the worker, the control plane on the VM can generate or rewrite structured paper artifacts when paper rows and evidence context are available. This process — optional evidence sync, artifact writing, packaging/provenance scanning, and paper review — is the review stage of the Enoch research loop. The output is a Markdown and LaTeX draft that should be grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
 
 <Warning>
-Do not publish generated artifacts until corpus import, index building, packaging/provenance scans, and human review pass. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
+Do not publish generated artifacts until corpus import, index building, packaging/provenance lint, strict claim/evidence audit status, and human review are explicit. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
 </Warning>
 
 ## 1. Confirm evidence exists
@@ -93,8 +93,8 @@ If configured, `synthetic.new` can rewrite draft content through an OpenAI-compa
 
 ## 6. Apply corpus gates
 
-The corpus policy rejects placeholder citations, fake citations, peer-review claims, implied human authorship, and missing provenance/evidence unless explicitly stated.
+The corpus packaging/provenance policy rejects placeholder citations, fake citations, peer-review claims, implied human authorship, and missing metadata files unless explicitly stated. The strict claim/evidence audit is separate: it requires non-empty evidence-linked claim ledgers and public or explicitly unavailable result-file references.
 
 ## Current snapshot
 
-The local Hugging Face export reports 159 artifacts. Counts can change as corpus import and packaging/provenance scans are rerun.
+The public corpus currently reports 159 indexed artifacts, 159/159 packaging/provenance lint passes, and 0/159 strict claim/evidence audit passes. Counts can change as corpus import, packaging/provenance lint, and strict audit reports are rerun.

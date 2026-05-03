@@ -13,7 +13,7 @@ Enoch is an agentic research control plane. It queues research ideas, checks whe
 ## What this repo is not
 
 - Not the Enoch application code. Use [`alias8818/enoch-agentic-research-system`](https://github.com/alias8818/enoch-agentic-research-system) for the FastAPI control plane, dashboard, deployment scripts, and tests.
-- Not the generated research corpus. Use [`alias8818/enoch-ai-research-corpus`](https://github.com/alias8818/enoch-ai-research-corpus) for generated artifacts, evidence bundles, claim ledgers, manifests, and packaging/provenance reports.
+- Not the generated research corpus. Use [`alias8818/enoch-ai-research-corpus`](https://github.com/alias8818/enoch-ai-research-corpus) for generated artifacts, evidence bundles, claim ledgers, manifests, packaging/provenance reports, and strict claim/evidence audit reports.
 - Not a place for live secrets, private runtime state, production configs, or unreleased run data.
 
 ## Start here
