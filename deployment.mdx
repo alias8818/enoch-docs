@@ -7,7 +7,7 @@ description: "A conservative two-machine deployment guide for the Enoch control 
 
 The reference deployment splits Enoch across two machines:
 
-- **Control VM** — runs the FastAPI control plane, dashboard, queue state, paper review APIs, timers, and optional corpus/export tooling.
+- **Control VM** — runs the FastAPI control plane, dashboard, queue state, publication automation APIs, timers, and optional corpus/export tooling.
 - **Worker machine** — runs the wake-gate API used by Codex/OMX jobs, tracks processes and telemetry, and stores project workspaces and evidence.
 
 You can also run both roles on one host for development.
@@ -174,7 +174,7 @@ The control plane can rewrite and package generated research artifacts when pape
 ```
 
 <Warning>
-  Do not publish generated artifacts until corpus import, index building, packaging/provenance lint, strict claim/evidence audit status, and human review are explicit. The packaging/provenance checks scan for placeholder citations, missing provenance, and required metadata files. The stricter claim/evidence audit is separate and currently reports blocked audit gaps rather than full deep auditability.
+  Do not publish generated artifacts until corpus import, index building, packaging/provenance lint, and strict claim/evidence audit status are explicit. The packaging/provenance checks scan for placeholder citations, missing provenance, and required metadata files. The stricter claim/evidence audit is separate and currently reports blocked audit gaps rather than full deep auditability.
 </Warning>
 
 ## What is not included

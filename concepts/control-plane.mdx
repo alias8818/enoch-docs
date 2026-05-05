@@ -1,11 +1,11 @@
 ---
 title: "Control plane"
-description: "How the FastAPI control plane owns runtime state, dispatch safety, paper review, and dashboard truth."
+description: "How the FastAPI control plane owns runtime state, dispatch safety, publication automation, and dashboard truth."
 ---
 
 # Control plane
 
-The Enoch control plane is the runtime authority for queued research work. It is implemented as a FastAPI app with explicit state models for projects, queue items, runs, paper records, paper reviews, events, and pause flags.
+The Enoch control plane is the runtime authority for queued research work. It is implemented as a FastAPI app with explicit state models for projects, queue items, runs, paper records, publication automation records, events, and pause flags.
 
 ## What it owns
 
@@ -14,7 +14,7 @@ The Enoch control plane is the runtime authority for queued research work. It is
 - **Pause and maintenance controls** — `/control/pause`, `/control/resume`, and related state expose operator intent.
 - **Worker preflight** — `/control/api/preflight` and `/control/worker/preflight` call a worker wake-gate API before live dispatch.
 - **Project and run records** — APIs expose project detail, run detail, queue views, and dashboard summaries.
-- **Paper review state** — paper records and review records support drafting, checklist updates, status transitions, finalization packaging, and artifact reads.
+- **Publication automation state** — paper records and automation records support drafting, checklist updates, status transitions, finalization packaging, and artifact reads.
 - **Events and projections** — the control plane stores operational events and can expose Notion-oriented projections.
 
 ## Dispatch safety
@@ -25,7 +25,7 @@ Dry-run dispatch is the first test for a new deployment because it exercises the
 
 ## Dashboard truth
 
-The dashboard is useful because it reads control-plane state instead of trusting a model session to self-report. It surfaces queue health, blockers, flags, records, events, paper review items, and configuration status.
+The dashboard is useful because it reads control-plane state instead of trusting a model session to self-report. It surfaces queue health, blockers, flags, records, events, publication automation items, and configuration status.
 
 ## Relationship to intake tools
 

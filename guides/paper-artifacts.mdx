@@ -1,13 +1,13 @@
 ---
-title: "Generate and review AI-generated research artifacts"
-description: "Sync evidence from the worker, run the artifact writer, scan packaging/provenance checks, and progress papers through the review queue to finalization."
+title: "Generate and finalize AI-generated research artifacts"
+description: "Sync evidence from the worker, run the artifact writer, scan packaging/provenance checks, and progress papers through publication automation to finalization."
 sidebarTitle: "Paper Artifacts"
 ---
 
-After a research run completes on the worker, the control plane on the VM can generate or rewrite structured paper artifacts when paper rows and evidence context are available. This process — optional evidence sync, artifact writing, packaging/provenance scanning, and paper review — is the review stage of the Enoch research loop. The output is a Markdown and LaTeX draft that should be grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
+After a research run completes on the worker, the control plane on the VM can generate or rewrite structured paper artifacts when paper rows and evidence context are available. This process - optional evidence sync, artifact writing, packaging/provenance scanning, and publication automation - is the finalization stage of the Enoch research loop. The output is a Markdown and LaTeX draft that should be grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
 
 <Warning>
-Do not publish generated artifacts until corpus import, index building, packaging/provenance lint, strict claim/evidence audit status, and human review are explicit. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
+Do not publish generated artifacts until corpus import, index building, packaging/provenance lint, and strict claim/evidence audit status are explicit. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
 </Warning>
 
 ## 1. Confirm evidence exists
@@ -64,12 +64,12 @@ If `paper_writer_fallback_enabled` is `true`, the writer falls back to a determi
 
 ## 3. Scan packaging/provenance checks
 
-After the artifact is written, a review record is created in the paper review queue with a `review_status` of `unreviewed` or `triage_ready`. The packaging/provenance check includes a ranked checklist of items the reviewer must pass, fail, or accept-as-risk before the paper can be approved for finalization. It does not validate peer review, scientific correctness, or independent replication.
+After the artifact is written, a publication automation record is created with a `review_status` of `unreviewed` or `triage_ready`. The packaging/provenance check includes a ranked checklist of items the automation lane must pass, fail, or accept as a recorded risk before the paper can be finalized. It does not validate peer review, scientific correctness, or independent replication.
 
-![Sanitized publication review queue showing review states, paper states, rank score, and checklist progress](/images/dashboard-paper-reviews.png)
+![Sanitized publication automation queue showing automation states, paper states, rank score, and checklist progress](/images/dashboard-paper-reviews.png)
 
 
-You can view all papers currently in the review queue:
+You can view all papers currently in the publication automation queue:
 
 ```bash
 curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
@@ -80,9 +80,9 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 
 Use dry-run first. The `enoch-paper-draft-next.timer` can automate this path after you have tested it.
 
-## 4. Review generated drafts
+## 4. Finalize generated drafts
 
-Paper review APIs support claiming review items, updating checklist items, changing review status, rewriting drafts, approving finalization, and preparing finalization packages. The dashboard exposes the same concepts for operators, but generated prose still needs human review.
+Paper automation APIs support claiming automation items, updating checklist items, changing automation state, rewriting drafts, marking papers ready for finalization, and preparing finalization packages. The dashboard exposes the same concepts for operators, while generated prose remains AI-generated and not peer-reviewed.
 
 ![Sanitized papers queue showing generated draft paths, claim ledger paths, and manifest paths](/images/dashboard-papers.png)
 
@@ -97,4 +97,4 @@ The corpus packaging/provenance policy rejects placeholder citations, fake citat
 
 ## Current snapshot
 
-The public corpus currently reports 302 indexed artifacts, 302/302 packaging/provenance lint passes, and 2/302 strict claim/evidence audit passes. Counts can change as corpus import, packaging/provenance lint, and strict audit reports are rerun.
+The public corpus currently reports 356 indexed artifacts, 356/356 packaging/provenance lint passes, and 2/356 strict claim/evidence audit passes. Counts can change as corpus import, packaging/provenance lint, and strict audit reports are rerun.

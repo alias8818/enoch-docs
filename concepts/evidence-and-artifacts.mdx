@@ -38,7 +38,7 @@ The corpus packaging/provenance policy requires generated artifacts to avoid fak
 ## Current local corpus snapshot
 
 <Warning>
-Do not publish or finalize a paper until packaging/provenance lint, strict claim/evidence audit status, and human review are explicit. A paper with placeholder citations or missing provenance artifacts misrepresents the evidence behind its claims. A paper can pass packaging/provenance lint while still failing the stricter claim/evidence audit if its claim ledger is empty or its result-file references are not public.
+Do not publish or finalize a paper until packaging/provenance lint and strict claim/evidence audit status are explicit. A paper with placeholder citations or missing provenance artifacts misrepresents the evidence behind its claims. A paper can pass packaging/provenance lint while still failing the stricter claim/evidence audit if its claim ledger is empty or its result-file references are not public.
 </Warning>
 
 ## Correct framing
@@ -47,15 +47,15 @@ Papers move through the following `PaperStatus` values as they progress from gen
 
 | Status | Meaning |
 |---|---|
-| `eligible` | Run complete; paper row eligible for generation or review |
+| `eligible` | Run complete; paper row eligible for generation |
 | `draft_generating` | Artifact writer is generating the draft |
-| `draft_review` | Draft generated; awaiting operator packaging/provenance review |
+| `draft_review` | Draft generated; awaiting automated packaging/provenance checks |
 | `publication_generating` | Publication-targeted rewrite in progress |
-| `publication_draft` | Publication draft ready for finalization review |
+| `publication_draft` | Publication draft ready for automated finalization |
 | `human_review_required` | Packaging/provenance check flagged issues requiring human judgment |
-| `archived` | Paper archived; removed from active review queue |
+| `archived` | Paper archived; removed from active publication automation queue |
 
-The review workflow (`ReviewStatus`) tracks the operator's progress through the checklist: `unreviewed` → `triage_ready` → `in_review` → `changes_requested` or `approved_for_finalization` → `finalized`. Papers can also be `rejected` or placed in `blocked` status if a blocker is recorded.
+The publication automation workflow (`ReviewStatus`) tracks checklist and finalization state: `unreviewed` -> `triage_ready` -> `in_review` -> `changes_requested` or `approved_for_finalization` -> `finalized`. Papers can also be `rejected` or placed in `blocked` status if a blocker is recorded.
 
 ## Provenance framing
 

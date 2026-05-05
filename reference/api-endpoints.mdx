@@ -248,7 +248,7 @@ curl -fsS \
 
 ### `GET /control/api/paper-reviews`
 
-Returns the publication review queue sorted by `rank_score` descending by default.
+Returns the publication automation queue sorted by `rank_score` descending by default.
 
 Query parameters:
 
@@ -272,7 +272,7 @@ curl -fsS \
 
 ### `GET /control/api/paper-reviews/next`
 
-Returns the highest-ranked paper review detail item matching the given filters. Defaults to `paper_status=publication_draft`, excluding finalized and rejected items.
+Returns the highest-ranked publication automation detail item matching the given filters. Defaults to `paper_status=publication_draft`, excluding finalized and rejected items.
 
 ```bash
 curl -fsS \
@@ -356,7 +356,7 @@ Request body (`PaperReviewBulkRewriteRequest`):
 
 ### `POST /control/api/paper-reviews/{paper_id}/prepare-finalization-package`
 
-Assembles the finalization package for an approved paper review. Use `dry_run: true` to preview the package manifest without writing the package. Use only after the review checklist and approval gates have passed.
+Assembles the finalization package for a publication automation item. Use `dry_run: true` to preview the package manifest without writing the package. Use after the automated packaging checklist has passed.
 
 ```bash
 curl -fsS \
@@ -375,7 +375,7 @@ curl -fsS \
 
 ### `POST /control/api/paper-reviews/{paper_id}/approve-finalization`
 
-Marks a paper as approved for finalization. Requires `idempotency_key` and `requested_by`.
+Marks a paper as ready for finalization. Requires `idempotency_key` and `requested_by`.
 
 ```bash
 curl -fsS \
@@ -393,7 +393,7 @@ curl -fsS \
 
 ### `POST /control/api/paper-reviews/{paper_id}/status`
 
-Updates the `review_status` for a paper review item.
+Updates the `review_status` automation state for a paper item.
 
 ```bash
 curl -fsS \
@@ -415,7 +415,7 @@ Valid `review_status` values: `unreviewed`, `triage_ready`, `in_review`, `change
 
 ### `POST /control/api/paper-reviews/{paper_id}/checklist/{item_id}`
 
-Updates the status of a single checklist item for a paper review.
+Updates the status of a single packaging/finalization checklist item.
 
 ```bash
 curl -fsS \

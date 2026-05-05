@@ -53,7 +53,7 @@ When fallback is enabled, provider failure can fall back to deterministic output
 
 ## Synthetic.new config
 
-Add the following fields to your control VM's config file to test provider-backed paper rewriting with Synthetic.new and GLM-5.1. Confirm corpus packaging/provenance scans and human review before treating any output as release-ready:
+Add the following fields to your control VM's config file to test provider-backed paper rewriting with Synthetic.new and GLM-5.1. Confirm corpus packaging/provenance scans and strict claim/evidence audit status before treating any output as release-ready:
 
 ```json
 {
@@ -67,5 +67,5 @@ Add the following fields to your control VM's config file to test provider-backe
 ```
 
 <Note>
-  Do not publish generated paper artifacts until corpus packaging/provenance lint, strict claim/evidence audit status, and human review are explicit. The paper-writer output is a draft; a packaging/provenance pass is not a deep claim audit.
+  Do not publish generated paper artifacts until corpus packaging/provenance lint and strict claim/evidence audit status are explicit. The paper-writer output is a draft; a packaging/provenance pass is not a deep claim audit.
 </Note>
