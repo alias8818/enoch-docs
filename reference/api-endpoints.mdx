@@ -3,9 +3,9 @@ title: "API endpoints"
 description: "A source-derived map of the main Enoch API surfaces."
 ---
 
-Every endpoint in Enoch is served by the FastAPI application running on the control VM (default port `8787`) and the worker (also port `8787`). All endpoints except root `GET /healthz`, `GET /dashboard`, and `GET /control/dashboard` require a bearer token. The control-plane health endpoint is `GET /control/health` and does require authentication. The two dashboard HTML endpoints are unauthenticated for the initial page load; the dashboard itself prompts for a bearer token and stores it in `localStorage` for subsequent API calls. Read the Authentication section below before making your first request.
+Enoch serves control-plane and worker APIs from FastAPI apps that commonly listen on port `8787`. All endpoints except root `GET /healthz`, `GET /dashboard`, and `GET /control/dashboard` require a bearer token. The control-plane health endpoint is `GET /control/health` and does require authentication. The dashboard shell is unauthenticated for the initial page load; it prompts for a bearer token and stores it in `localStorage` for subsequent API calls. Read the Authentication section below before making your first request.
 
-This page maps the main endpoint groups present in the local source snapshot. It is not a generated OpenAPI reference; verify request and response models against the code before building clients.
+This page maps the main endpoint groups present in the local source snapshot. It is not a generated OpenAPI reference; verify request and response models against the code before building clients. The operator dashboard now prefers bounded `/control/api/v1/*` read models, while older broad status surfaces remain available for compatibility and debug.
 
 ## Authentication
 
@@ -13,7 +13,7 @@ This page maps the main endpoint groups present in the local source snapshot. It
 
 <Accordion title="Authentication">
 
-Unauthenticated routes include `GET /healthz`, `GET /dashboard`, and `GET /favicon.ico`. Dashboard data APIs and most control-plane routes require a bearer token or an explicit token bootstrap path where the dashboard code supports it.
+Unauthenticated routes include `GET /healthz`, `GET /dashboard`, `GET /control/dashboard`, and `GET /favicon.ico`. Dashboard data APIs and most control-plane routes require a bearer token or an explicit token bootstrap path where the dashboard code supports it.
 
 ```http
 Authorization: Bearer <omx_inbound_bearer_token>
@@ -61,7 +61,7 @@ curl -fsS \
 
 ### `GET /control/api/status`
 
-Returns the full dispatch safety and queue state aggregated from the control-plane database. Add `?refresh_worker=true` to trigger a fresh worker preflight before responding.
+Returns a compatibility dispatch-safety snapshot aggregated from the control-plane database. Add `?refresh_worker=true` to trigger a fresh worker preflight before responding. For bounded operator cards, prefer `GET /control/api/v1/overview`.
 
 ```bash
 curl -fsS \
@@ -95,6 +95,75 @@ curl -fsS \
   "http://127.0.0.1:8787/control/api/queue-health?refresh_worker=true" \
   | python3 -m json.tool
 ```
+
+</Accordion>
+
+<Accordion title="Bounded operator read models">
+
+The v1 read models are the preferred dashboard and integration surface. They answer operator questions with pagination, hard caps, and bounded SQL reads.
+
+### `GET /control/api/v1/overview`
+
+Returns the operator overview cards, the top actionable items, and recent events. This is the main bounded dashboard snapshot.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  "http://127.0.0.1:8787/control/api/v1/overview?active_limit=5&event_limit=10" \
+  | python3 -m json.tool
+```
+
+Key overview fields include:
+
+| Field | Meaning |
+|---|---|
+| `operator_counts` | Canonical operator lanes such as attention, running, write, publish, and imported |
+| `operator_detail_counts` | Drill-down compatibility/detail counts |
+| `paper_pipeline.write_needed` | Actionable positive paper work only |
+| `paper_pipeline.raw_completed_no_paper_candidates` | Informational/debug rows before the decision gate |
+| `paper_pipeline.not_writable_by_decision_gate` | Rows rejected by the decision gate |
+| `paper_pipeline.publish_ready` | Finalized drafts missing corpus import |
+| `paper_pipeline.published_imported` | Papers already represented in the corpus-import ledger |
+
+### `GET /control/api/v1/lanes`
+
+Returns the active lane view and next candidate, with bounded active-item and count data.
+
+### `GET /control/api/v1/queue`
+
+Returns a bounded queue list with cursor pagination, `page_size`, `status`, `search`, and `sort` controls.
+
+### `GET /control/api/v1/runs`
+
+Returns a bounded run list with cursor pagination and filters for state, project, and search.
+
+### `GET /control/api/v1/runs/{run_id}`
+
+Returns one run, its project, a bounded paper list, and a bounded event list.
+
+### `GET /control/api/v1/projects/{project_id}`
+
+Returns one project, the current queue item, bounded run and paper lists, bounded events, and worker observations.
+
+### `GET /control/api/v1/papers`
+
+Returns a bounded paper list with cursor pagination, `status`, `search`, and `sort` controls.
+
+### `GET /control/api/v1/papers/{paper_id}`
+
+Returns one paper, its project, its run, and a bounded event list.
+
+### `GET /control/api/v1/events`
+
+Returns a bounded audit/event list with optional entity, type, search, and payload filters.
+
+### `GET /control/api/v1/observability/health`
+
+Returns route-observability health, if enabled.
+
+### `GET /control/api/v1/observability/memory`
+
+Returns the controller process RSS and memory warning status.
 
 </Accordion>
 
@@ -564,19 +633,25 @@ Valid `mode` values: `exec`, `resume`. Valid `reasoning_effort` values: `low`, `
 
 <Accordion title="Dashboard">
 
-### `GET /dashboard`
+### `GET /control/dashboard`
 
-Returns the browser-based Enoch Control Status Dashboard as an HTML page. No authentication is required to load the page; the dashboard prompts for a bearer token and stores it in `localStorage`.
+Returns the browser-based Enoch control dashboard shell as an HTML page. No authentication is required to load the page; the dashboard prompts for a bearer token and stores it in `localStorage`.
 
 ```bash
-open http://127.0.0.1:8787/dashboard
+open http://127.0.0.1:8787/control/dashboard
 ```
+
+---
+
+### `GET /dashboard`
+
+Redirects to `/control/dashboard`.
 
 ---
 
 ### `GET /dashboard/api`
 
-Returns the full dashboard snapshot as JSON. Used by the worker dashboard for polling.
+Returns the full wake-gate dashboard snapshot as JSON. Used by the worker-side console for polling.
 
 Query parameters:
 

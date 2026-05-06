@@ -1,20 +1,9 @@
 ---
 title: "Quickstart"
-description: "Run the Enoch FastAPI app locally and exercise the built-in smoke-test script."
+description: "Run the Enoch FastAPI app locally and exercise the bounded operator dashboard smoke test."
 ---
 
-This quickstart walks you through a local developer smoke test: clone the repository, generate a minimal config with randomized tokens, start the FastAPI service, and verify that the health, status, preflight, and dispatch dry-run endpoints respond. By the end you will have a running dashboard and a baseline for docs/API exploration before moving to a real two-machine deployment.
-
-<Note>
-  This quickstart does not require a separate worker machine. It points the worker wake gate URL back at the local API so preflight and dry-run checks can execute on one machine. It does not prove that live dispatch is production-ready; live dispatch is disabled by default and requires worker setup.
-</Note>
-
-## Prerequisites
-
-- Python 3.11 or newer
-- `uv`
-- `git`
-- a checkout of `enoch-agentic-research-system`
+This quickstart gets a developer clone to a running local API and dashboard. It does not require a real worker machine.
 
 ## 1. Install dependencies and run tests
 
@@ -57,11 +46,11 @@ export OMX_WAKE_GATE_CONFIG=$PWD/.local/config/config.json
 uv run uvicorn omx_wake_gate.app:app --host 127.0.0.1 --port 8787
 ```
 
-Open `http://127.0.0.1:8787/dashboard`.
+Open `http://127.0.0.1:8787/control/dashboard`.
 
-![Sanitized Enoch dashboard status view showing dispatch safety, queue counts, source freshness, and active lane state](/images/dashboard-status-blocked.png)
+If you use the shorter `/dashboard` URL, it redirects to the same operator shell.
 
-This screenshot is a sanitized internal capture. It hides the bearer token and replaces private identifiers with demo values.
+The dashboard opens as a professional operator console. It leads with attention, running work, paper-writing, finalization, and publish/import cards instead of raw JSON.
 
 ## 4. Run smoke tests
 
@@ -72,10 +61,10 @@ export OMX_WAKE_GATE_CONFIG=$PWD/.local/config/config.json
 scripts/smoke-test-local.sh
 ```
 
-Expected result: health, status, preflight, and dispatch dry-run endpoints respond with JSON. A dry run may return `noop`, `paused`, or `dry_run_dispatch` depending on local queue state; the important smoke-test result is that the API paths are reachable and return structured responses.
+Expected result: health, bounded overview, preflight, and dispatch dry-run endpoints respond with JSON. The smoke uses `/control/api/v1/overview` by default so large live ledgers do not make the check noisy. Set `ENOCH_STATUS_ENDPOINT=/control/api/status` only when you intentionally need the wider compatibility payload. For a control-plane-only smoke where worker preflight is covered separately, set `ENOCH_SMOKE_SKIP_PREFLIGHT=1`.
 
-The script calls `GET /healthz`, `GET /control/api/status`, `POST /control/api/preflight`, and `POST /control/dispatch-next` with `dry_run: true`.
+The script calls `GET /healthz`, `GET /control/api/v1/overview`, `POST /control/api/preflight`, and `POST /control/dispatch-next` with `dry_run: true`.
 
-## 5. Move carefully to real worker testing
+## 5. Move to two-machine testing
 
-After the local smoke test passes, read [deployment](/deployment). A live two-machine setup needs distinct control and worker tokens, reachable worker API URLs, and a dispatch script path that is correct for the worker environment.
+After local smoke tests pass, follow [deployment](/deployment) to configure a control VM and a worker machine.

@@ -1,36 +1,60 @@
 ---
 title: "Control plane"
-description: "How the FastAPI control plane owns runtime state, dispatch safety, publication automation, and dashboard truth."
+description: "How the FastAPI control plane owns dispatch safety, bounded read models, and the operator dashboard."
 ---
 
 # Control plane
 
-The Enoch control plane is the runtime authority for queued research work. It is implemented as a FastAPI app with explicit state models for projects, queue items, runs, paper records, publication automation records, events, and pause flags.
+The Enoch control plane is the runtime authority for queued work. It owns dispatch decisions, pause and maintenance controls, worker preflight, publication automation, events, and the bounded read models that the operator dashboard consumes.
+
+When the store backend is Supabase, the same operator questions are answered from bounded SQL read models rather than full-table scans. Raw states still exist for debug and compatibility, but they should not drive the first-screen workflow.
 
 ## What it owns
 
-- **Queue state** — queue items move through statuses such as `queued`, `dispatching`, `running`, `awaiting_wake`, `wake_received`, `reconciling`, `completed`, `paused`, `canceled`, `dispatch_error`, `blocked`, and `needs_review`.
-- **Dispatch decisions** — `/control/dispatch-next` checks whether a candidate can be launched and supports dry-run requests.
-- **Pause and maintenance controls** — `/control/pause`, `/control/resume`, and related state expose operator intent.
-- **Worker preflight** — `/control/api/preflight` and `/control/worker/preflight` call a worker wake-gate API before live dispatch.
-- **Project and run records** — APIs expose project detail, run detail, queue views, and dashboard summaries.
-- **Publication automation state** — paper records and automation records support drafting, checklist updates, status transitions, finalization packaging, and artifact reads.
-- **Events and projections** — the control plane stores operational events and can expose Notion-oriented projections.
+- **Queue and run state** — queue items move through execution, callback, blocked, paused, and terminal states.
+- **Dispatch safety** — `/control/dispatch-next` checks whether a candidate can launch and supports dry-run requests.
+- **Pause and maintenance controls** — `/control/pause`, `/control/resume`, and the related state expose operator intent.
+- **Worker preflight** — `/control/api/preflight` and `/control/worker/preflight` call the worker wake-gate API before live dispatch.
+- **Publication automation** — paper records and automation records support drafting, checklist updates, status transitions, finalization packaging, and artifact reads.
+- **Bounded read models** — `/control/dashboard` and `/control/api/v1/*` answer operator questions with paginated, capped views.
+- **Events and projections** — the control plane stores audit events and can expose Notion/Supabase-oriented projections.
+
+## What the dashboard shows first
+
+The redesigned control dashboard is a professional operator shell. It leads with simple questions:
+
+- What needs my attention?
+- What is running?
+- What can be written?
+- What can be finalized?
+- What is ready to publish?
+- What is already imported?
+
+The shell uses cards, tables, search, pagination, and collapsed debug panels. Raw JSON, raw lifecycle labels, and artifact previews stay in drill-down views.
+
+## Read-model semantics
+
+The dashboard and the v1 read models separate operator questions from raw evidence.
+
+- `operator_counts` and `operator_detail_counts` drive the primary cards and drill-downs.
+- `paper_pipeline.write_needed` means actionable positive paper work only.
+- `paper_pipeline.raw_completed_no_paper_candidates` is informational/debug only.
+- `paper_pipeline.not_writable_by_decision_gate` counts completed rows that the decision gate rejects.
+- `paper_pipeline.publish_ready` means finalized drafts that still need a corpus-import ledger row.
+- `paper_pipeline.published_imported` means the paper is already represented in the corpus-import ledger.
+
+That split keeps the dashboard honest: raw completed/no-paper rows are not the same thing as papers to write.
 
 ## Dispatch safety
 
 A dispatch is safe only when the control plane has a dispatchable queue item, pause and maintenance flags allow work, no active lane is already running, and worker preflight passes. The control plane is the lock holder; callers should not bypass it with ad hoc scripts.
 
-Dry-run dispatch is the first test for a new deployment because it exercises the guard path without launching a real agent job.
-
-## Dashboard truth
-
-The dashboard is useful because it reads control-plane state instead of trusting a model session to self-report. It surfaces queue health, blockers, flags, records, events, publication automation items, and configuration status.
+Use dry-run dispatch first when testing a new deployment. It exercises the guard path without launching a real agent job.
 
 ## Relationship to intake tools
 
-Notion and LLM-assisted scouting help decide what ideas are worth queueing. They are not the runtime authority. Once work enters Enoch, the control plane decides what is queued, what is active, what is blocked, and what evidence is available.
+Supabase-native idea intake helps decide what is worth queueing. It is not the runtime authority. Once work enters Enoch, the control plane decides what is queued, what is active, what is blocked, and what evidence is available.
 
 ## Important boundaries
 
-The control plane cannot prove a generated research claim is true. It can preserve the operational state and artifacts needed for review. Human review and replication remain required before treating a generated artifact as reliable science.
+The control plane cannot prove that a generated research claim is true. It can preserve the operational state and artifacts needed for review. Human review and replication still matter before treating a generated artifact as reliable science.

@@ -7,7 +7,7 @@ description: "A conservative two-machine deployment guide for the Enoch control 
 
 The reference deployment splits Enoch across two machines:
 
-- **Control VM** — runs the FastAPI control plane, dashboard, queue state, publication automation APIs, timers, and optional corpus/export tooling.
+- **Control VM** — runs the FastAPI control plane, the professional operator dashboard, bounded read models, publication automation APIs, timers, and optional corpus/export tooling.
 - **Worker machine** — runs the wake-gate API used by Codex/OMX jobs, tracks processes and telemetry, and stores project workspaces and evidence.
 
 You can also run both roles on one host for development.
@@ -41,7 +41,7 @@ uv pip install --python .venv/bin/python -e .
 uv run pytest -q
 ```
 
-The helper can copy the checkout into `/opt`, create config/state directories, install dependencies, and write systemd units when run as root:
+The helper can copy the checkout into `/opt`, create config and state directories, install dependencies, and write systemd units when run as root:
 
 ```bash
 sudo scripts/install-control-plane.sh \
@@ -75,8 +75,10 @@ curl -fsS http://127.0.0.1:8787/healthz
 Open the dashboard and authenticate with the configured inbound token:
 
 ```text
-http://<control-vm>:8787/dashboard
+http://<control-vm>:8787/control/dashboard
 ```
+
+`/dashboard` redirects to the same shell. The dashboard uses bounded `/control/api/v1/*` read models by default, so the first screen stays focused on operator questions rather than raw JSON.
 
 ## Configure the worker
 
@@ -104,7 +106,7 @@ curl -fsS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8787/control/health
 The repo includes systemd units for optional workflows:
 
 - `enoch-queue-alert-check.timer` — periodically checks queue health and can send Pushover alerts when configured.
-- `enoch-notion-sync.timer` — syncs Notion intake/projection data when Notion environment variables are configured.
+- `enoch-notion-sync.timer` — syncs legacy Notion intake/projection data when those environment variables are configured.
 - `enoch-paper-draft-next.timer` — drafts the next eligible paper without dispatching new work.
 
 Enable only the timers you have configured and tested.
@@ -116,6 +118,8 @@ export ENOCH_BASE_URL=http://<control-vm>:8787
 export ENOCH_CONTROL_TOKEN=<omx_inbound_bearer_token>
 scripts/smoke-test-local.sh
 ```
+
+The smoke script uses `/control/api/v1/overview` by default. That keeps the test bounded and aligned with the operator dashboard. If you need the broader compatibility payload, set `ENOCH_STATUS_ENDPOINT=/control/api/status` explicitly.
 
 Then test worker preflight:
 
@@ -141,41 +145,28 @@ Paper generation is optional and depends on evidence and paper rows. The default
 
 Do not publish generated artifacts until corpus packaging/provenance checks pass and a human understands the limitations.
 
+The public paper counts should stay gate-aware:
+
+- `paper_pipeline.write_needed` is actionable positive work only.
+- `paper_pipeline.raw_completed_no_paper_candidates` is informational/debug only.
+- `paper_pipeline.publish_ready` means finalized drafts still missing corpus import.
+
 ## Review the dispatch flow
 
 Every live dispatch request passes through the following checks in order. Understanding this sequence helps you diagnose failures at each stage:
 
-1. No conflicting active GPU lane exists (single active lane enforced).
+1. No conflicting active GPU lane exists.
 2. A queue item exists.
 3. Live dispatch is enabled (`live_dispatch_enabled` must be `true` in config).
-4. The control plane is not paused and maintenance mode is not active (checked together).
+4. The control plane is not paused and maintenance mode is not active.
 5. Worker preflight is healthy.
 6. The dispatch script launches the agent run.
 7. The wake gate tracks process and telemetry truth.
 8. The completion callback or status update is emitted only after the gate is satisfied.
 
 <Tip>
-  Always use dry-run dispatch first when testing a new deployment. It exercises the core dispatch guards — pause checks, lane safety (single active GPU lane), and candidate selection — without launching a real agent run. Note that worker preflight is only performed during live dispatch, not dry-run.
+  Always use dry-run dispatch first when testing a new deployment. It exercises the core dispatch guards without launching a real agent run. Worker preflight is only performed during live dispatch, not dry-run.
 </Tip>
-
-## Configure the paper artifact workflow
-
-The control plane can rewrite and package generated research artifacts when paper rows and evidence are present. This path depends on provider credentials and remains an automated packaging/finalization path, not a publication guarantee or a substitute for independent review. Add the following settings to `/etc/enoch/config.json` only when you are ready to test the provider-backed writer:
-
-```json
-{
-  "paper_writer_provider": "synthetic.new",
-  "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
-  "paper_writer_model": "hf:zai-org/GLM-5.1",
-  "paper_writer_api_key": "your-provider-key",
-  "paper_writer_fallback_enabled": true,
-  "paper_evidence_sync_enabled": true
-}
-```
-
-<Warning>
-  Do not publish generated artifacts until corpus import, index building, packaging/provenance lint, and strict claim/evidence audit status are explicit. The packaging/provenance checks scan for placeholder citations, missing provenance, and required metadata files. The stricter claim/evidence audit is separate and currently reports blocked audit gaps rather than full deep auditability.
-</Warning>
 
 ## What is not included
 
