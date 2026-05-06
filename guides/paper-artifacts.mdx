@@ -69,7 +69,7 @@ After the artifact is written, a publication automation record is created with a
 ![Sanitized publication automation queue showing automation states, paper states, rank score, and checklist progress](/images/dashboard-paper-reviews.png)
 
 
-You can view all papers currently in the publication automation queue:
+You can dry-run the next paper-positive write candidate. This is not a queue listing; it answers whether any completed run is currently eligible to become a first draft:
 
 ```bash
 curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
@@ -78,7 +78,7 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
   "$ENOCH_BASE_URL/control/papers/draft-next" | python3 -m json.tool
 ```
 
-Use dry-run first. The `enoch-paper-draft-next.timer` can automate this path after you have tested it.
+Use dry-run first. In current deployments this path should remain explicit and bounded; unattended timers should stay disabled unless you intentionally re-enable them for a controlled drain.
 
 ## 4. Finalize generated drafts
 

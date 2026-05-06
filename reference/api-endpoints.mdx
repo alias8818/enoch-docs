@@ -248,7 +248,7 @@ curl -fsS \
 
 ### `GET /control/api/paper-reviews`
 
-Returns the publication automation queue sorted by `rank_score` descending by default.
+Returns publication automation detail rows sorted by `rank_score` descending by default. Raw review-like values are compatibility/detail states for APIs and historical rows; the primary operator workflow is write -> finalize -> publish/import, with publish/import gated by the corpus-import ledger.
 
 Query parameters:
 
@@ -393,7 +393,7 @@ curl -fsS \
 
 ### `POST /control/api/paper-reviews/{paper_id}/status`
 
-Updates the `review_status` automation state for a paper item.
+Updates the raw `review_status` automation state for a paper item. This endpoint is retained for compatibility/detail workflows; it should not be presented as the normal public paper-approval path.
 
 ```bash
 curl -fsS \
@@ -409,7 +409,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/status
 ```
 
-Valid `review_status` values: `unreviewed`, `triage_ready`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, `rejected`.
+Valid raw `review_status` values: `unreviewed`, `triage_ready`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, `rejected`. Public/operator copy should describe these as automation/detail states, not human approval states.
 
 ---
 

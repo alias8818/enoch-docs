@@ -43,19 +43,17 @@ Do not publish or finalize a paper until packaging/provenance lint and strict cl
 
 ## Correct framing
 
-Papers move through the following `PaperStatus` values as they progress from generation to release:
+Operator-facing paper state is intentionally simpler than the internal compatibility enums:
 
-| Status | Meaning |
+| Operator lane | Meaning |
 |---|---|
-| `eligible` | Run complete; paper row eligible for generation |
-| `draft_generating` | Artifact writer is generating the draft |
-| `draft_review` | Draft generated; awaiting automated packaging/provenance checks |
-| `publication_generating` | Publication-targeted rewrite in progress |
-| `publication_draft` | Publication draft ready for automated finalization |
-| `human_review_required` | Packaging/provenance check flagged issues requiring human judgment |
-| `archived` | Paper archived; removed from active publication automation queue |
+| Write | A completed run passed the paper-positive decision gate and has no live paper row yet. |
+| Finalize | A generated publication draft is missing its automated finalization package. |
+| Publish/import | A finalized publication draft is missing a corpus-import ledger row. |
+| Published/imported | The corpus-import ledger represents the finalized draft in the public corpus. |
+| Done / no paper | A completed run is negative, ambiguous, already represented, or otherwise not writable. |
 
-The publication automation workflow (`ReviewStatus`) tracks checklist and finalization state: `unreviewed` -> `triage_ready` -> `in_review` -> `changes_requested` or `approved_for_finalization` -> `finalized`. Papers can also be `rejected` or placed in `blocked` status if a blocker is recorded.
+The API still exposes raw compatibility values such as `draft_review`, `publication_draft`, `human_review_required`, `in_review`, and `approved_for_finalization` for historical rows and integration clients. Treat those as internal/detail states. They should not be read as a normal manual paper-approval workflow. The dashboard and state doctor derive operator counts from the paper-positive decision gate, finalization package evidence, and the corpus-import ledger.
 
 ## Provenance framing
 
