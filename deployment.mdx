@@ -61,7 +61,7 @@ Generate distinct values for `omx_inbound_bearer_token`, `completion_callback_to
 python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
 
-Never commit live config files, Notion tokens, Pushover credentials, provider API keys, private hostnames, or production logs.
+Never commit live config files, legacy Notion tokens, Pushover credentials, provider API keys, private hostnames, or production logs.
 
 ## Run the control service
 
@@ -106,8 +106,8 @@ curl -fsS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8787/control/health
 The repo includes systemd units for optional workflows:
 
 - `enoch-queue-alert-check.timer` — periodically checks queue health and can send Pushover alerts when configured.
-- `enoch-notion-sync.timer` — syncs legacy Notion intake/projection data when those environment variables are configured.
-- `enoch-paper-draft-next.timer` — drafts the next eligible paper without dispatching new work.
+- `enoch-notion-sync.timer` — legacy compatibility only; syncs Notion intake/projection data when those environment variables are configured.
+- `enoch-paper-draft-next.timer` — legacy unattended paper drafting path. Keep disabled unless you intentionally run a controlled, bounded drain and have verified the decision gate.
 
 Enable only the timers you have configured and tested.
 
@@ -143,7 +143,7 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 
 Paper generation is optional and depends on evidence and paper rows. The default `paper_writer_provider` is `deterministic`. The code also supports an OpenAI-compatible `synthetic.new` provider with `paper_writer_base_url`, `paper_writer_model`, and `paper_writer_api_key` settings.
 
-Do not publish generated artifacts until corpus packaging/provenance checks pass and a human understands the limitations.
+Do not publish generated artifacts until corpus import, packaging/provenance checks, and strict claim/evidence audit status are explicit. Human review or replication may still be needed before treating claims as reliable science, but paper finalization itself is automated.
 
 The public paper counts should stay gate-aware:
 

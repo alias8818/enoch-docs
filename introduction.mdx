@@ -22,7 +22,7 @@ Enoch addresses those problems with explicit state, authenticated APIs, worker p
 ```text
 LLM-assisted idea scouting
   -> structured idea card
-  -> Notion scoring / prioritization
+  -> Supabase-native idea/project/queue rows
   -> Enoch queue candidate
   -> FastAPI control plane
   -> worker preflight and dispatch safety checks
@@ -33,7 +33,7 @@ LLM-assisted idea scouting
   -> corpus quality and provenance gates
 ```
 
-Notion and the upstream scouting workflow are intake surfaces. Runtime authority begins when an idea becomes an Enoch queue item.
+Supabase-native intake and the upstream scouting workflow are intake surfaces. Notion sync remains a legacy compatibility path. Runtime authority begins when an idea becomes an Enoch queue item.
 
 ## Main components
 

@@ -1,11 +1,13 @@
 ---
 title: "Idea intake"
-description: "How Enoch separates upstream idea scouting and Notion scoring from runtime execution authority."
+description: "How Enoch separates upstream idea scouting, Supabase-native intake, and runtime execution authority."
 ---
 
 # Idea intake
 
-Enoch does not require ideas to originate in the control plane. The source docs describe an upstream LLM-assisted scouting process that reviewed technical signals, framed candidate experiments, and used Notion as an intake and prioritization surface.
+Enoch does not require ideas to originate in the control plane. An upstream LLM-assisted scouting process can review technical signals, frame candidate experiments, and write structured idea cards. The current preferred intake path is Supabase-native: write idea, project, queue, and event rows together so the control plane can dispatch from one database-backed workbench.
+
+Notion was an earlier intake and prioritization surface. Treat it as legacy compatibility unless you have explicitly enabled the Notion sync units for an older workflow.
 
 ## Intake stages
 
@@ -13,8 +15,8 @@ Enoch does not require ideas to originate in the control plane. The source docs 
 External technical signals
   -> candidate idea card
   -> weighted scoring / prioritization
-  -> Notion review surface
-  -> queue handoff
+  -> Supabase idea row
+  -> Supabase project + queue item
   -> Enoch control-plane execution
 ```
 
@@ -28,14 +30,22 @@ External technical signals
 - expected evidence type
 - failure or kill criteria
 - why the experiment might matter
+- source metadata and dispatch priority
 
-## What Notion is for
+## Supabase-native intake
 
-Notion can hold idea cards, scores, status, links, and handoff metadata. It is useful for prioritization and review. Notion is not the execution engine. The Enoch control plane owns runtime state once a queue item exists.
+A dispatch-ready intake write should create or update the related records as one intentional batch:
 
-## Notion sync
+1. `enoch.ideas` stores the idea text, scoring metadata, source payload, target machine, model, and sandbox.
+2. `enoch.projects` gives the control plane a stable project identity and project directory.
+3. `enoch.queue_items` makes the idea dispatchable when its status is `queued` and dispatch safety allows work.
+4. `enoch.idea_events` records provenance for the intake event.
 
-The code repo includes `enoch-notion-sync` systemd units and a Notion sync helper. Configure Notion credentials through environment files, not committed config.
+Use the control-plane API dry-run path first where available. If you must use direct SQL, run a rollback dry-run before committing rows, and verify the result in `enoch.idea_workbench`.
+
+## Legacy Notion sync
+
+The code repo still includes `enoch-notion-sync` systemd units and a Notion sync helper for older deployments. Configure Notion credentials through environment files, not committed config. Do not enable Notion sync in a Supabase-native deployment unless you intentionally want that legacy projection path.
 
 ```bash
 NOTION_TOKEN=replace-with-token

@@ -15,9 +15,9 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
   "$ENOCH_BASE_URL/control/api/status" | python3 -m json.tool
 ```
 
-Review `dispatch_safe` and `dispatch_blockers` before proceeding. The dashboard UI is at `http://<control-vm>:8787/dashboard`.
+Review `dispatch_safe` and `dispatch_blockers` before proceeding. The operator dashboard UI is at `http://<control-vm>:8787/control/dashboard`. The shorter `/dashboard` URL redirects to the same shell on current deployments.
 
-![Sanitized dashboard status view showing a blocked dispatch state and the core dispatch counters](/images/dashboard-status-blocked.png)
+![Current operator overview showing attention, running work, paper-writing, and publish/import cards](/images/dashboard-status-blocked.png)
 
 Use the dashboard as a fast visual check, but trust the API response as the source of truth for automation.
 
@@ -63,9 +63,9 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 
 The queue tabs show the same read model from different operator angles. Empty active and queued views are useful during smoke testing because they prove the dashboard can read canonical queue state without launching work.
 
-![Sanitized active queue tab showing no active rows](/images/dashboard-active-queue.png)
+![Current active queue tab showing bounded active-work rows](/images/dashboard-active-queue.png)
 
-![Sanitized queued queue tab showing no queued rows](/images/dashboard-queued-queue.png)
+![Current queued queue tab showing bounded ready-queue rows](/images/dashboard-queued-queue.png)
 
 
 The control plane checks that a queue item exists, pause and maintenance flags allow work, no conflicting active lane exists, worker preflight passes, and the dispatch script can be launched for live dispatch.

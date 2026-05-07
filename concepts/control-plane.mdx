@@ -17,7 +17,7 @@ When the store backend is Supabase, the same operator questions are answered fro
 - **Worker preflight** — `/control/api/preflight` and `/control/worker/preflight` call the worker wake-gate API before live dispatch.
 - **Publication automation** — paper records and automation records support drafting, checklist updates, status transitions, finalization packaging, and artifact reads.
 - **Bounded read models** — `/control/dashboard` and `/control/api/v1/*` answer operator questions with paginated, capped views.
-- **Events and projections** — the control plane stores audit events and can expose Notion/Supabase-oriented projections.
+- **Events and projections** — the control plane stores audit events and exposes Supabase-native projections, with legacy Notion compatibility views only when that sync path is enabled.
 
 ## What the dashboard shows first
 
@@ -57,4 +57,4 @@ Supabase-native idea intake helps decide what is worth queueing. It is not the r
 
 ## Important boundaries
 
-The control plane cannot prove that a generated research claim is true. It can preserve the operational state and artifacts needed for review. Human review and replication still matter before treating a generated artifact as reliable science.
+The control plane cannot prove that a generated research claim is true. It can preserve the operational state and artifacts needed for audit. Independent review and replication still matter before treating a generated artifact as reliable science.

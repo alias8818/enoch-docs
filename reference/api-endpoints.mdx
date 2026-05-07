@@ -27,7 +27,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/status
 ```
 
-The dashboard also accepts the token as a `?token=` URL query parameter on first load, after which it is stored in `localStorage`.
+The dashboard stores the token in browser `localStorage` after the operator enters and saves it. Do not pass bearer tokens in dashboard URLs.
 
 </Accordion>
 
@@ -530,7 +530,7 @@ Query parameters:
 
 ### `GET /control/api/intake/notion`
 
-Returns the latest Notion intake sync observation, the current queued-project projection, skipped-row reason counts, and recent intake events.
+Returns the latest intake observation for the legacy Notion sync path, the current queued-project projection, skipped-row reason counts, and recent intake events. Supabase-native intake should normally be verified through the Supabase idea workbench and queue tables instead of this compatibility endpoint.
 
 ```bash
 curl -fsS \

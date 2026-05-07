@@ -66,7 +66,7 @@ If `paper_writer_fallback_enabled` is `true`, the writer falls back to a determi
 
 After the artifact is written, a publication automation record may still expose legacy fields such as `review_status` with values like `unreviewed` or `triage_ready`. Treat those as raw compatibility/detail fields, not the operator work queue. The packaging/provenance check includes a ranked checklist of items the automation lane must pass, fail, or accept as a recorded risk before the paper can be finalized. It does not validate peer review, scientific correctness, or independent replication.
 
-![Sanitized publication automation queue showing automation states, paper states, rank score, and checklist progress](/images/dashboard-paper-reviews.png)
+![Current publication automation queue showing automation states, paper states, rank score, and checklist progress](/images/dashboard-paper-reviews.png)
 
 
 You can dry-run the next paper-positive write candidate. This is not a queue listing; it answers whether any completed run is currently eligible to become a first draft:
@@ -84,7 +84,7 @@ Use dry-run first. In current deployments this path should remain explicit and b
 
 Paper automation APIs support claiming automation items, updating checklist items, changing raw automation state, rewriting drafts, marking papers ready for finalization, and preparing finalization packages. The dashboard presents the simpler operator lanes: write, finalize, publish/import, published/imported, and done/no paper. Generated prose remains AI-generated and not peer-reviewed.
 
-![Sanitized papers queue showing generated draft paths, claim ledger paths, and manifest paths](/images/dashboard-papers.png)
+![Current papers queue showing generated draft paths, claim ledger paths, and manifest paths](/images/dashboard-papers.png)
 
 
 ## 5. Rewrite with an optional provider
