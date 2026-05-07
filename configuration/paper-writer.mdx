@@ -1,10 +1,10 @@
 ---
 title: "Paper writer provider and AI model config settings"
-description: "Configure the provider Enoch can use to rewrite research artifacts, from the deterministic review template to an optional Synthetic.new/GLM-5.1 writer."
+description: "Configure the provider Enoch can use to rewrite research artifacts, from the deterministic template to an optional Synthetic.new/GLM-5.1 writer."
 sidebarTitle: "Paper Writer"
 ---
 
-When a research run has a paper row and evidence context, the Enoch control plane can rewrite and package generated paper artifacts. You control which provider performs that rewrite through the `paper_writer_provider` field. The `deterministic` mode produces a fixed review-required template with no external dependencies, while `synthetic.new` connects to a hosted OpenAI-compatible API using the configured model. Treat provider-backed rewriting as an automated packaging/finalization path, not a publication guarantee or a substitute for independent review. If claim extraction is unavailable, the writer must preserve existing ledgers or write a blocked empty ledger that cannot pass strict claim/evidence audit.
+When a research run has a paper row and evidence context, the Enoch control plane can rewrite and package generated paper artifacts. You control which provider performs that rewrite through the `paper_writer_provider` field. The `deterministic` mode produces a fixed bounded template with no external dependencies, while `synthetic.new` connects to a hosted OpenAI-compatible API using the configured model. Treat provider-backed rewriting as an automated packaging/finalization path, not a publication guarantee or a substitute for independent validation. If claim extraction is unavailable, the writer must preserve existing ledgers or write a blocked empty ledger that cannot pass strict claim/evidence audit.
 
 ## Providers
 
@@ -31,7 +31,7 @@ If `paper_writer_api_key` is empty, provider code can look for `SYNTHETIC_API_KE
 
 ## Fallback behavior
 
-When fallback is enabled, provider failure can fall back to deterministic output. That is operationally useful, but reviewers should still inspect the draft and its evidence before finalization.
+When fallback is enabled, provider failure can fall back to deterministic output. That is operationally useful, but the resulting artifact still needs explicit packaging/provenance and strict claim/evidence audit status before it is release-ready.
 
 ## Publication rule
 

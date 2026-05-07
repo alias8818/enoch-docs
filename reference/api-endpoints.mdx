@@ -326,7 +326,7 @@ Query parameters:
 | `page` | `1` | Page number |
 | `page_size` | `50` | Rows per page (1–500) |
 | `search` | `""` | Full-text filter |
-| `review_status` | `""` | One of `triage_ready`, `unreviewed`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, `rejected` |
+| `review_status` | `""` | Raw compatibility/detail filter. Values include `triage_ready`, `unreviewed`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, and `rejected`. Do not present these as the operator workflow. |
 | `paper_status` | `""` | One of `eligible`, `draft_generating`, `draft_review`, `publication_generating`, `publication_draft`, `human_review_required`, `archived` |
 | `include_rank_reasons` | `true` | Include per-item rank reason arrays |
 | `sort` | `-rank_score` | Sort column; prefix with `-` for descending (e.g. `rank_score`) |
@@ -444,7 +444,7 @@ curl -fsS \
 
 ### `POST /control/api/paper-reviews/{paper_id}/approve-finalization`
 
-Marks a paper as ready for finalization. Requires `idempotency_key` and `requested_by`.
+Compatibility endpoint with a legacy path name. It marks a paper automation item as ready for finalization; it is not the normal operator gate. Requires `idempotency_key` and `requested_by`.
 
 ```bash
 curl -fsS \
@@ -462,7 +462,7 @@ curl -fsS \
 
 ### `POST /control/api/paper-reviews/{paper_id}/status`
 
-Updates the raw `review_status` automation state for a paper item. This endpoint is retained for compatibility/detail workflows; it should not be presented as the normal public paper-approval path.
+Updates the raw `review_status` automation state for a paper item. This endpoint is retained for compatibility/detail workflows; it should not be presented as the public or operator paper path.
 
 ```bash
 curl -fsS \
@@ -478,7 +478,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/paper-reviews/my-paper-id/status
 ```
 
-Valid raw `review_status` values: `unreviewed`, `triage_ready`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, `rejected`. Public/operator copy should describe these as automation/detail states, not human approval states.
+Valid raw `review_status` values: `unreviewed`, `triage_ready`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, `rejected`. Public/operator copy should describe these as automation/detail states, not the operator lane labels. The primary operator model is write -> finalize -> publish/import.
 
 ---
 
