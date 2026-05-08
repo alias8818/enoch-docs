@@ -4,9 +4,9 @@
   "name": "Enoch Docs",
   "description": "Documentation website for learning, deploying, and reviewing the Enoch agentic research control plane and generated-artifact corpus.",
   "colors": {
-    "primary": "#2563eb",
-    "light": "#60a5fa",
-    "dark": "#64748b"
+    "primary": "#cc785c",
+    "light": "#f2b29a",
+    "dark": "#a9583e"
   },
   "favicon": "favicon.ico",
   "logo": {
