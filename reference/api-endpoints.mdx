@@ -7,6 +7,13 @@ Enoch serves control-plane and worker APIs from FastAPI apps that commonly liste
 
 This page maps the main endpoint groups present in the local source snapshot. It is not a generated OpenAPI reference; verify request and response models against the code before building clients. The operator dashboard now prefers bounded `/control/api/v1/*` read models, while older broad status surfaces remain available for compatibility and debug.
 
+## API versioning
+
+- `/control/api/v1/*` is the preferred bounded read API for dashboards, scripts, and external integrations.
+- Older broad status and dashboard endpoints are compatibility/debug surfaces.
+- Command endpoints are behavior-stable, but clients should verify request and response models against source until generated OpenAPI docs are published.
+- Legacy `/omx/event` remains available as an event-ingest compatibility hook; new docs should describe the product as Enoch Control Plane.
+
 ## Authentication
 
 <AccordionGroup>
@@ -16,7 +23,7 @@ This page maps the main endpoint groups present in the local source snapshot. It
 Unauthenticated routes include `GET /healthz`, `GET /dashboard`, `GET /control/dashboard`, and `GET /favicon.ico`. Dashboard data APIs and most control-plane routes require a bearer token or an explicit token bootstrap path where the dashboard code supports it.
 
 ```http
-Authorization: Bearer <omx_inbound_bearer_token>
+Authorization: Bearer <control_api_bearer_token>
 ```
 
 Pass the token in every request:
@@ -44,7 +51,7 @@ curl -fsS http://127.0.0.1:8787/healthz
 Response:
 
 ```json
-{"ok": true, "service": "omx_wake_gate", "timestamp": "2025-05-01T12:00:00+00:00"}
+{"ok": true, "service": "enoch_worker_gate", "timestamp": "2025-05-01T12:00:00+00:00"}
 ```
 
 ### `GET /control/health`
@@ -546,7 +553,7 @@ These endpoints are served by the worker process and are called by the agent run
 
 ### `POST /omx/event`
 
-Receives OMX/Codex lifecycle events from the agent runtime. The wake gate uses these events to track process state and determine when a quiet window has been reached.
+Receives legacy OMX-compatible/Codex lifecycle events from the agent runtime. The worker gate uses these events to track process state and determine when a quiet window has been reached.
 
 ```bash
 curl -fsS \
@@ -562,7 +569,7 @@ curl -fsS \
   http://worker.example:8787/omx/event
 ```
 
-Request body (`OmxEvent`) key fields:
+Request body (`ControlPlaneEvent`; `OmxEvent` remains a deprecated compatibility alias) key fields:
 
 ```json
 {
@@ -651,7 +658,7 @@ Redirects to `/control/dashboard`.
 
 ### `GET /dashboard/api`
 
-Returns the full wake-gate dashboard snapshot as JSON. Used by the worker-side console for polling.
+Returns the full legacy worker dashboard snapshot as JSON. Use bounded `/control/api/v1/*` endpoints for primary operator dashboards and integrations.
 
 Query parameters:
 

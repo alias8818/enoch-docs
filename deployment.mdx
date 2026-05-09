@@ -1,6 +1,6 @@
 ---
 title: "Deployment"
-description: "A conservative two-machine deployment guide for the Enoch control plane and worker wake gate."
+description: "A conservative two-machine deployment guide for the Enoch Control Plane and worker gate."
 ---
 
 # Deployment
@@ -8,7 +8,7 @@ description: "A conservative two-machine deployment guide for the Enoch control 
 The reference deployment splits Enoch across two machines:
 
 - **Control VM** — runs the FastAPI control plane, the professional operator dashboard, bounded read models, publication automation APIs, timers, and optional corpus/export tooling.
-- **Worker machine** — runs the wake-gate API used by Codex/OMX jobs, tracks processes and telemetry, and stores project workspaces and evidence.
+- **Worker machine** — runs the worker-gate API used by Codex jobs, tracks processes and telemetry, and stores project workspaces and evidence.
 
 You can also run both roles on one host for development.
 
@@ -28,7 +28,7 @@ Worker machine:
 - Python 3.11+
 - `uv`
 - `git`
-- the Codex/OMX stack used by your dispatch script
+- the Codex stack used by your dispatch script
 - NVIDIA telemetry libraries if you want GPU visibility
 
 ## Install the control plane
@@ -55,7 +55,7 @@ Edit `/etc/enoch/config.json` before enabling the service. Replace every placeho
 
 ## Configure required secrets
 
-Generate distinct values for `omx_inbound_bearer_token`, `completion_callback_token`, and `worker_wake_gate_bearer_token`:
+Generate distinct values for `control_api_bearer_token`, `completion_callback_token`, and `worker_wake_gate_bearer_token`:
 
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(48))"
@@ -93,8 +93,8 @@ scripts/install-worker.sh
 The worker can run the same app with a worker-focused config:
 
 ```bash
-OMX_WAKE_GATE_CONFIG=$HOME/.config/enoch-worker/config.json \
-  uv run uvicorn omx_wake_gate.app:app --host 0.0.0.0 --port 8787
+ENOCH_CONFIG=$HOME/.config/enoch-worker/config.json \
+  uv run uvicorn enoch_control_plane.app:app --host 0.0.0.0 --port 8787
 ```
 
 ```bash
@@ -115,7 +115,7 @@ Enable only the timers you have configured and tested.
 
 ```bash
 export ENOCH_BASE_URL=http://<control-vm>:8787
-export ENOCH_CONTROL_TOKEN=<omx_inbound_bearer_token>
+export ENOCH_CONTROL_TOKEN=<control_api_bearer_token>
 scripts/smoke-test-local.sh
 ```
 

@@ -3,15 +3,15 @@ title: "Configuration overview"
 description: "Required and optional Enoch config fields, with safe defaults and secret-handling guidance."
 ---
 
-Enoch reads its configuration from a single JSON file whose path you set in the `OMX_WAKE_GATE_CONFIG` environment variable. Every field is validated at startup using Pydantic; the service refuses to start if a required field is missing or a value is out of range. This page documents the core configuration fields, shows you how to generate the secure tokens the service needs, and walks through the annotated `config.example.json` used as the repository baseline. Worker, evidence-sync, and paper-writer fields are covered on their respective sub-pages.
+Enoch reads its configuration from a single JSON file whose path you set in the `ENOCH_CONFIG` environment variable, with `ENOCH_CONTROL_PLANE_CONFIG` accepted as a secondary explicit config variable. Every field is validated at startup using Pydantic; the service refuses to start if a required field is missing or a value is out of range. This page documents the core configuration fields, shows you how to generate the secure tokens the service needs, and walks through the annotated `config.example.json` used as the repository baseline. Worker, evidence-sync, and paper-writer fields are covered on their respective sub-pages.
 
-Enoch reads JSON configuration from the path in `OMX_WAKE_GATE_CONFIG`. The app validates required fields at startup with Pydantic.
+Enoch reads JSON configuration from the path in `ENOCH_CONFIG`. The app validates required fields at startup with Pydantic.
 
 Start from `config.example.json`, then replace every placeholder before running a live deployment.
 
 ## Required fields
 
-- `omx_inbound_bearer_token` — bearer token for dashboard/control API calls and incoming OMX event posts.
+- `control_api_bearer_token` — bearer token for dashboard/control API calls and incoming worker event posts.
 - `completion_callback_url` — URL called when a wake-gated run completes.
 - `completion_callback_token` — bearer token sent to the completion callback endpoint.
 
@@ -42,7 +42,7 @@ Supported workload classes are `inference_eval`, `training`, `control_plane`, an
 
 ## Deprecated aliases
 
-Older private prototypes used `n8n_callback_url`, `n8n_bearer_token`, and `n8n_callback_timeout_sec`. New configs should use `completion_callback_*` fields.
+Older private prototypes used `omx_inbound_bearer_token`, `n8n_callback_url`, `n8n_bearer_token`, and `n8n_callback_timeout_sec`. New configs should use `control_api_bearer_token` and `completion_callback_*` fields.
 
 ## Secret handling
 
@@ -90,11 +90,11 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
 {
   "listen_host": "0.0.0.0",
   "listen_port": 8787,
-  "state_dir": "~/.local/state/omx-wake-gate",
+  "state_dir": "~/.local/state/enoch-worker-gate",
   "project_root": "~/enoch/projects",
-  "dispatch_script_path": "~/enoch/bin/enoch_omx_dispatch.sh",
+  "dispatch_script_path": "~/enoch/bin/enoch_codex_dispatch.sh",
   "dispatch_timeout_sec": 30,
-  "omx_inbound_bearer_token": "replace-with-local-omx-hook-token",
+  "control_api_bearer_token": "replace-with-local-control-api-token",
   "sample_interval_sec": 5,
   "default_workload_class": "inference_eval",
   "idle_sustain_sec": 180,
@@ -129,7 +129,7 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
     "vllm",
     "sglang"
   ],
-  "completion_callback_url": "https://automation.example.com/webhook/omx-wake-ready",
+  "completion_callback_url": "https://automation.example.com/webhook/enoch-control-plane-wake-ready",
   "completion_callback_token": "replace-with-callback-token",
   "completion_callback_timeout_sec": 120,
   "log_events": true,

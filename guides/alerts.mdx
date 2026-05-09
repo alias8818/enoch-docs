@@ -33,7 +33,7 @@ systemctl list-timers enoch-queue-alert-check.timer
 Run a one-shot check:
 
 ```bash
-sudo OMX_WAKE_GATE_CONFIG=/etc/enoch/config.json \
+sudo ENOCH_CONFIG=/etc/enoch/config.json \
   /opt/enoch-agentic-research-system/deploy/enoch_queue_alert_check.py
 ```
 

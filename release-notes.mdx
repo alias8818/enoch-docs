@@ -1,0 +1,29 @@
+---
+title: "Release notes"
+description: "Version history and compatibility notes for Enoch Control Plane."
+---
+
+# Release notes
+
+The canonical runtime changelog lives in the system repository at [`CHANGELOG.md`](https://github.com/alias8818/enoch-agentic-research-system/blob/main/CHANGELOG.md). This page mirrors the operationally important notes for docs readers.
+
+## 0.2.0 — 2026-05-09
+
+- Package name changed to `enoch-control-plane`.
+- Python module changed to `enoch_control_plane`.
+- FastAPI entrypoint changed to `enoch_control_plane.app:app`.
+- Preferred config variable is `ENOCH_CONFIG`; `ENOCH_CONTROL_PLANE_CONFIG` is accepted when an explicit control-plane name is useful.
+- Preferred API/dashboard token field is `control_api_bearer_token`.
+- Preferred worker decision artifact path is `.enoch/project_decision.json`.
+- Legacy `.omx/project_decision.json`, `omx_inbound_bearer_token`, and `/omx/event` remain compatibility surfaces for older runs and integrations.
+
+## 0.1.0 — 2026-05-04
+
+- Initial Enoch control-plane release with queue state, worker preflight, pause/resume controls, dashboard read models, paper pipeline gates, Supabase-backed runtime ledgers, and public-release validation tooling.
+
+## Version policy
+
+- Runtime version is tracked in the system repo `VERSION` and `pyproject.toml`.
+- Every runtime release should update `CHANGELOG.md` and this docs page.
+- `/control/api/v1/*` is the preferred bounded read API for dashboards and integrations.
+- Broad status and legacy dashboard endpoints are compatibility/debug surfaces unless a page explicitly says otherwise.

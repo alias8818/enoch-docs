@@ -86,6 +86,7 @@
           {
             "group": "Reference",
             "pages": [
+              "release-notes",
               "reference/api-endpoints",
               "reference/authorship-provenance",
               "reference/troubleshooting"

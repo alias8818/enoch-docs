@@ -9,16 +9,16 @@ Start with the smallest truth source: health, status, config, then worker prefli
 
 ## API will not start
 
-Check that `OMX_WAKE_GATE_CONFIG` points to readable JSON, required callback/token fields are set, `omx_inbound_bearer_token` is set, and configured paths are valid for the service user.
+Check that `ENOCH_CONFIG` points to readable JSON, required callback/token fields are set, `control_api_bearer_token` is set, and configured paths are valid for the service user.
 
 ```bash
-python3 -m json.tool "$OMX_WAKE_GATE_CONFIG"
-uv run python -m compileall -q omx_wake_gate tests
+python3 -m json.tool "$ENOCH_CONFIG"
+uv run python -m compileall -q enoch_control_plane tests
 ```
 
 ## Dashboard returns unauthorized
 
-Use the configured `omx_inbound_bearer_token` as a bearer token. Do not confuse it with `completion_callback_token` or `worker_wake_gate_bearer_token`. The HTML shell is served at `/dashboard`; dashboard data routes require token-bearing requests.
+Use the configured `control_api_bearer_token` as a bearer token. Do not confuse it with `completion_callback_token` or `worker_wake_gate_bearer_token`. The HTML shell is served at `/dashboard`; dashboard data routes require token-bearing requests.
 
 ## Dispatch is blocked
 
