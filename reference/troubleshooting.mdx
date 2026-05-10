@@ -7,6 +7,10 @@ description: "Diagnose common Enoch setup, dispatch, worker, evidence, and paper
 
 Start with the smallest truth source: health, status, config, then worker preflight. Do not jump to live dispatch while basic checks are failing.
 
+If topology or terminology is unclear, start with the
+[current runtime snapshot](/current-runtime-snapshot) before debugging a
+specific symptom.
+
 ## API will not start
 
 Check that `ENOCH_CONFIG` points to readable JSON, required callback/token fields are set, `control_api_bearer_token` is set, and configured paths are valid for the service user.

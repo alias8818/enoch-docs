@@ -54,6 +54,7 @@
             "group": "Get Started",
             "pages": [
               "introduction",
+              "current-runtime-snapshot",
               "quickstart",
               "deployment"
             ]

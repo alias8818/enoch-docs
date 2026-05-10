@@ -7,6 +7,10 @@ description: "How Enoch waits for process and telemetry evidence before treating
 
 The worker gate is the worker-side reliability check for long-running agent jobs. It exists because an agent session ending is not the same as the machine being idle. Older field and endpoint names may still say `wake_gate`; treat that as compatibility naming.
 
+For how the worker gate fits the current host topology, callback retry model,
+and project decision artifact contract, see
+[current runtime snapshot](/current-runtime-snapshot).
+
 ## What it observes
 
 The code models process snapshots, process info, telemetry samples, run records, and gate callbacks. Configuration supports `sample_interval_sec`, `idle_sustain_sec`, CPU and GPU idle thresholds, VRAM delta thresholds, workload profiles, and stale-project process reaper settings.
