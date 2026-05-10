@@ -58,7 +58,10 @@ Run the repository validation script before committing docs changes:
 node scripts/validate-docs.mjs
 ```
 
-The validator checks that `docs.json` navigation points to existing MDX pages, that image references resolve, and that obsolete placeholder assets are not referenced.
+The validator checks that `docs.json` navigation points to existing MDX pages,
+that image references resolve, that obsolete placeholder assets are not
+referenced, and that current-runtime topology claims link to the canonical
+Current Runtime Snapshot.
 
 ## Content rules
 

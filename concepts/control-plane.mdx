@@ -6,6 +6,8 @@ description: "How the FastAPI control plane owns dispatch safety, bounded read m
 # Control plane
 
 The Enoch control plane is the runtime authority for queued work. It owns dispatch decisions, pause and maintenance controls, worker preflight, publication automation, events, and the bounded read models that the operator dashboard consumes.
+For current runtime topology and storage authority, see
+[current runtime snapshot](/current-runtime-snapshot).
 
 When the store backend is Postgres, the same operator questions are answered from bounded SQL read models rather than full-table scans. Raw states still exist for debug and compatibility, but they should not drive the first-screen workflow.
 

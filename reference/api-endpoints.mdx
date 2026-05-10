@@ -6,6 +6,8 @@ description: "A source-derived map of the main Enoch API surfaces."
 Enoch serves control-plane and worker APIs from FastAPI apps that commonly listen on port `8787`. All endpoints except root `GET /healthz`, `GET /dashboard`, and `GET /control/dashboard` require a bearer token. The control-plane health endpoint is `GET /control/health` and does require authentication. The dashboard shell is unauthenticated for the initial page load; it prompts for a bearer token and stores it in `localStorage` for subsequent API calls. Read the Authentication section below before making your first request.
 
 This page maps the main endpoint groups present in the local source snapshot. It is not a generated OpenAPI reference; verify request and response models against the code before building clients. The operator dashboard now prefers bounded `/control/api/v1/*` read models, while older broad status surfaces remain available for compatibility and debug.
+For current runtime topology and compatibility boundaries, see
+[current runtime snapshot](/current-runtime-snapshot).
 
 ## API versioning
 

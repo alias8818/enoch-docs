@@ -8,6 +8,20 @@ const warnings = [];
 const mdxFiles = walk(root).filter((file) => file.endsWith('.mdx'));
 const mdxSet = new Set(mdxFiles.map((file) => stripExt(path.relative(root, file))));
 const imageExt = new Set(['.png', '.jpg', '.jpeg', '.gif', '.webp', '.svg', '.ico']);
+const runtimeSnapshotRoute = '/current-runtime-snapshot';
+const runtimeSnapshotFile = 'current-runtime-snapshot.mdx';
+const runtimeTopologyTerms = [
+  ['enoch-core', /\benoch-core\b/i],
+  ['/opt/enoch-control-plane', /\/opt\/enoch-control-plane/],
+  ['GB10', /\bGB10\b/],
+  ['worker gate', /\bworker[- ]gate\b/i],
+  ['local Postgres', /\blocal Postgres\b/i],
+  ['control-plane storage', /\bcontrol-plane storage\b/i],
+  ['.enoch/project_decision.json', /\.enoch\/project_decision\.json/],
+  ['.omx/project_decision.json', /\.omx\/project_decision\.json/],
+  ['Research Facility', /\bResearch Facility\b/],
+  ['write_needed', /\bwrite_needed\b/],
+];
 
 function walk(dir) {
   return fs.readdirSync(dir, { withFileTypes: true }).flatMap((entry) => {
@@ -59,6 +73,20 @@ function checkLinks(text, rel, filePath) {
     }
   }
 }
+function lineFor(text, offset) {
+  return text.slice(0, offset).split('\n').length;
+}
+function checkRuntimeSnapshotLink(text, rel) {
+  if (rel === runtimeSnapshotFile) return;
+  const matches = [];
+  for (const [label, pattern] of runtimeTopologyTerms) {
+    const match = pattern.exec(text);
+    if (match) matches.push(`${label} at line ${lineFor(text, match.index)}`);
+  }
+  if (matches.length && !text.includes(runtimeSnapshotRoute)) {
+    errors.push(`${rel}: mentions current runtime topology without linking to ${runtimeSnapshotRoute}: ${matches.join(', ')}`);
+  }
+}
 
 for (const file of mdxFiles) {
   const rel = path.relative(root, file);
@@ -72,6 +100,7 @@ for (const file of mdxFiles) {
   }
   checkFenceBalance(text, rel);
   checkLinks(text, rel, file);
+  checkRuntimeSnapshotLink(text, rel);
   if (/(?:src=|href=|\]\()"?\/?images\/sample-feature-(?:dark|light)\.png/.test(text)) warnings.push(`${rel}: references placeholder sample feature image`);
 }
 

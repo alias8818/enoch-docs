@@ -4,6 +4,8 @@ description: "How Enoch preserves run evidence, writes generated artifacts, and 
 ---
 
 Autonomous AI research runs produce scattered evidence: notes written during execution, intermediate metrics, result summaries, and claim records. Without a system to collect and preserve that evidence before artifact generation begins, generated reports have no stable grounding — they become prose detached from the work that produced them. Enoch treats evidence collection as a required pipeline stage, not an optional export. Evidence sync is available before paper generation and rewrite work, but it is configuration-gated: `paper_evidence_sync_enabled` defaults to `false` in `config.example.json`. When enabled, the control plane attempts to copy high-signal run evidence from the worker before rewriting artifacts. When disabled, or when no local evidence is present, generated drafts must stay bounded by the available run record, evidence bundle, or claim ledger and should not be presented as evidence-complete artifacts.
+For current runtime topology and worker boundaries, see
+[current runtime snapshot](/current-runtime-snapshot).
 
 Enoch separates generated prose from the evidence that grounded it. That separation is the main reason the generated corpus is reviewable.
 
