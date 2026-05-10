@@ -1,11 +1,11 @@
 ---
-title: "Wake gate"
+title: "Worker gate"
 description: "How Enoch waits for process and telemetry evidence before treating a run as complete."
 ---
 
-# Wake gate
+# Worker gate
 
-The wake gate is the worker-side reliability check for long-running agent jobs. It exists because an agent session ending is not the same as the machine being idle.
+The worker gate is the worker-side reliability check for long-running agent jobs. It exists because an agent session ending is not the same as the machine being idle. Older field and endpoint names may still say `wake_gate`; treat that as compatibility naming.
 
 ## What it observes
 
@@ -27,4 +27,4 @@ The reaper can identify stale project processes by command markers such as `llam
 
 ## Operator guidance
 
-Tune thresholds per workload, use dry-run dispatch and preflight endpoints first, keep worker tokens distinct where practical, and treat wake-gate evidence as operational evidence rather than scientific validation of generated results.
+Tune thresholds per workload, use dry-run dispatch and preflight endpoints first, keep worker tokens distinct where practical, and treat worker-gate evidence as operational evidence rather than scientific validation of generated results.

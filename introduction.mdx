@@ -22,23 +22,23 @@ Enoch addresses those problems with explicit state, authenticated APIs, worker p
 ```text
 LLM-assisted idea scouting
   -> structured idea card
-  -> Supabase-native idea/project/queue rows
+  -> control-plane idea/project/queue rows
   -> Enoch queue candidate
   -> FastAPI control plane
   -> worker preflight and dispatch safety checks
-  -> worker wake gate
+  -> worker gate
   -> agent run with process + telemetry supervision
   -> evidence sync
   -> generated research artifact
   -> corpus quality and provenance gates
 ```
 
-Supabase-native intake and the upstream scouting workflow are intake surfaces. Notion sync remains a legacy compatibility path. Runtime authority begins when an idea becomes an Enoch queue item.
+Control-plane intake and the upstream scouting workflow are intake surfaces. Notion sync remains a legacy compatibility path. Runtime authority begins when an idea becomes an Enoch queue item. Current production storage is local Postgres on `enoch-core`; older Supabase wording is migration/compatibility terminology.
 
 ## Main components
 
 - **Control plane API** — queue/project/run/paper state, pause controls, dashboard data, dispatch decisions, and publication automation APIs.
-- **Wake gate** — process-tree and CPU/GPU quiet-window checks for long-running local jobs.
+- **Worker gate** — process-tree and CPU/GPU quiet-window checks for long-running local jobs.
 - **Worker preflight** — authenticated checks against the worker API before live dispatch.
 - **Single active lane** — the control plane blocks overlapping active queue work.
 - **Evidence sync** — copies evidence from worker project folders before artifact generation when enabled.

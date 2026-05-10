@@ -537,7 +537,7 @@ Query parameters:
 
 ### `GET /control/api/intake/notion`
 
-Returns the latest intake observation for the legacy Notion sync path, the current queued-project projection, skipped-row reason counts, and recent intake events. Supabase-native intake should normally be verified through the Supabase idea workbench and queue tables instead of this compatibility endpoint.
+Returns the latest intake observation for the legacy Notion sync path, the current queued-project projection, skipped-row reason counts, and recent intake events. Current control-plane intake should normally be verified through the idea workbench and queue tables instead of this compatibility endpoint.
 
 ```bash
 curl -fsS \
@@ -547,7 +547,7 @@ curl -fsS \
 
 </Accordion>
 
-<Accordion title="Wake Gate (Worker)">
+<Accordion title="Worker Gate">
 
 These endpoints are served by the worker process and are called by the agent runtime and by the control plane during live dispatch.
 

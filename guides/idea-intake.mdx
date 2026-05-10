@@ -1,11 +1,11 @@
 ---
 title: "Idea intake"
-description: "How Enoch separates upstream idea scouting, Supabase-native intake, and runtime execution authority."
+description: "How Enoch separates upstream idea scouting, control-plane intake, and runtime execution authority."
 ---
 
 # Idea intake
 
-Enoch does not require ideas to originate in the control plane. An upstream LLM-assisted scouting process can review technical signals, frame candidate experiments, and write structured idea cards. The current preferred intake path is Supabase-native: write idea, project, queue, and event rows together so the control plane can dispatch from one database-backed workbench.
+Enoch does not require ideas to originate in the control plane. An upstream LLM-assisted scouting process can review technical signals, frame candidate experiments, and write structured idea cards. The current preferred intake path is control-plane native: write idea, project, queue, and event rows together so the control plane can dispatch from one database-backed workbench. In production that database is local Postgres on `enoch-core`; Supabase-era wording is historical migration terminology.
 
 Notion was an earlier intake and prioritization surface. Treat it as legacy compatibility unless you have explicitly enabled the Notion sync units for an older workflow.
 
@@ -15,8 +15,8 @@ Notion was an earlier intake and prioritization surface. Treat it as legacy comp
 External technical signals
   -> candidate idea card
   -> weighted scoring / prioritization
-  -> Supabase idea row
-  -> Supabase project + queue item
+  -> control-plane idea row
+  -> control-plane project + queue item
   -> Enoch control-plane execution
 ```
 
@@ -32,7 +32,7 @@ External technical signals
 - why the experiment might matter
 - source metadata and dispatch priority
 
-## Supabase-native intake
+## Control-plane intake
 
 A dispatch-ready intake write should create or update the related records as one intentional batch:
 
@@ -45,7 +45,7 @@ Use the control-plane API dry-run path first where available. If you must use di
 
 ## Legacy Notion sync
 
-The code repo still includes `enoch-notion-sync` systemd units and a Notion sync helper for older deployments. Configure Notion credentials through environment files, not committed config. Do not enable Notion sync in a Supabase-native deployment unless you intentionally want that legacy projection path.
+The code repo still includes `enoch-notion-sync` systemd units and a Notion sync helper for older deployments. Configure Notion credentials through environment files, not committed config. Do not enable Notion sync in a current control-plane deployment unless you intentionally want that legacy projection path.
 
 ```bash
 NOTION_TOKEN=replace-with-token

@@ -35,7 +35,7 @@ Common blockers include queue pause, maintenance mode, no queued candidate, acti
 
 Check the worker URL, token, firewall, and worker service logs. Then run the preflight endpoint with `strict:false` to separate reachability from stricter readiness requirements.
 
-## Wake gate never completes
+## Worker gate never completes
 
 Possible causes include active child processes, strict CPU/GPU thresholds, unavailable or noisy GPU telemetry, wrong workload profile, or stale-process reaper markers that are too narrow. Inspect processes and telemetry before lowering thresholds.
 

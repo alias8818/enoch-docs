@@ -19,7 +19,7 @@ The corpus snapshot contains per-artifact folders with files such as:
 
 The Hugging Face export flattens those artifacts into `data/artifacts.jsonl` and reports fields including `paper_markdown`, `metadata`, `evidence_bundle`, `claim_ledger`, `paper_manifest`, `github_url`, `ai_generated`, `human_authorship_claimed`, and `review_status`.
 
-Before the artifact writer runs, Enoch syncs evidence from the worker project workspace to the control VM. When evidence sync is enabled, the primary sync method is HTTP — the control plane calls the worker wake gate API to retrieve evidence files. If the HTTP sync is unavailable or returns an error, an optional SSH fallback uses `paper_evidence_sync_ssh_host` and `paper_evidence_sync_remote_root` from your config to copy files directly.
+Before the artifact writer runs, Enoch syncs evidence from the worker project workspace to the control VM. When evidence sync is enabled, the primary sync method is HTTP: the control plane calls the worker-gate API to retrieve evidence files. If the HTTP sync is unavailable or returns an error, an optional SSH fallback uses `paper_evidence_sync_ssh_host` and `paper_evidence_sync_remote_root` from your config to copy files directly.
 
 When `paper_evidence_sync_enabled` is true, the control plane can sync evidence from a worker project root before paper generation. Config fields include `paper_evidence_sync_ssh_host`, `paper_evidence_sync_remote_root`, and `paper_evidence_sync_timeout_sec`.
 

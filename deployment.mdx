@@ -161,7 +161,7 @@ Every live dispatch request passes through the following checks in order. Unders
 4. The control plane is not paused and maintenance mode is not active.
 5. Worker preflight is healthy.
 6. The dispatch script launches the agent run.
-7. The wake gate tracks process and telemetry truth.
+7. The worker gate tracks process and telemetry truth.
 8. The completion callback or status update is emitted only after the gate is satisfied.
 
 <Tip>

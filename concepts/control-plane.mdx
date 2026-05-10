@@ -7,17 +7,17 @@ description: "How the FastAPI control plane owns dispatch safety, bounded read m
 
 The Enoch control plane is the runtime authority for queued work. It owns dispatch decisions, pause and maintenance controls, worker preflight, publication automation, events, and the bounded read models that the operator dashboard consumes.
 
-When the store backend is Supabase, the same operator questions are answered from bounded SQL read models rather than full-table scans. Raw states still exist for debug and compatibility, but they should not drive the first-screen workflow.
+When the store backend is Postgres, the same operator questions are answered from bounded SQL read models rather than full-table scans. Raw states still exist for debug and compatibility, but they should not drive the first-screen workflow.
 
 ## What it owns
 
 - **Queue and run state** — queue items move through execution, callback, blocked, paused, and terminal states.
 - **Dispatch safety** — `/control/dispatch-next` checks whether a candidate can launch and supports dry-run requests.
 - **Pause and maintenance controls** — `/control/pause`, `/control/resume`, and the related state expose operator intent.
-- **Worker preflight** — `/control/api/preflight` and `/control/worker/preflight` call the worker wake-gate API before live dispatch.
+- **Worker preflight** — `/control/api/preflight` and `/control/worker/preflight` call the worker-gate API before live dispatch.
 - **Publication automation** — paper records and automation records support drafting, checklist updates, status transitions, finalization packaging, and artifact reads.
 - **Bounded read models** — `/control/dashboard` and `/control/api/v1/*` answer operator questions with paginated, capped views.
-- **Events and projections** — the control plane stores audit events and exposes Supabase-native projections, with legacy Notion compatibility views only when that sync path is enabled.
+- **Events and projections** — the control plane stores audit events and exposes control-plane projections, with legacy Notion compatibility views only when that sync path is enabled.
 
 ## What the dashboard shows first
 
@@ -53,7 +53,7 @@ Use dry-run dispatch first when testing a new deployment. It exercises the guard
 
 ## Relationship to intake tools
 
-Supabase-native idea intake helps decide what is worth queueing. It is not the runtime authority. Once work enters Enoch, the control plane decides what is queued, what is active, what is blocked, and what evidence is available.
+Control-plane idea intake helps decide what is worth queueing. It is not the execution authority. Once work enters Enoch, the control plane decides what is queued, what is active, what is blocked, and what evidence is available.
 
 ## Important boundaries
 

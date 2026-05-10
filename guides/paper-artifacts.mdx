@@ -16,13 +16,13 @@ A complete corpus artifact usually includes `paper.md`, `metadata.json`, `eviden
 
 Before the artifact writer runs, the control plane should have access to the evidence the worker produced. If `paper_evidence_sync_enabled` is `true`, evidence sync runs when you trigger a draft rewrite; you can monitor its outcome in the rewrite response.
 
-When evidence sync is enabled, the control plane attempts an HTTP sync first, reading evidence files directly from the worker's wake gate API. If the worker returns the evidence, it is written into the local artifact root under the project directory. If the HTTP sync cannot retrieve the required high-signal evidence files, the control plane falls back to SSH, streaming a bounded tarball of evidence artifacts from the worker's project directory.
+When evidence sync is enabled, the control plane attempts an HTTP sync first, reading evidence files directly from the worker-gate API. If the worker returns the evidence, it is written into the local artifact root under the project directory. If the HTTP sync cannot retrieve the required high-signal evidence files, the control plane falls back to SSH, streaming a bounded tarball of evidence artifacts from the worker's project directory.
 
 Evidence paths the control plane looks for include:
 
 ```text
 run_notes.md
-.omx/project_decision.json
+.enoch/project_decision.json
 .omx/metrics.json
 results/<summary files>.json
 papers/<run_id>/evidence_bundle.json

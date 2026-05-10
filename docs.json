@@ -62,7 +62,7 @@
             "group": "Core Concepts",
             "pages": [
               "concepts/control-plane",
-              "concepts/wake-gate",
+              "concepts/worker-gate",
               "concepts/evidence-and-artifacts"
             ]
           },

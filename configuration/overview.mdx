@@ -12,7 +12,7 @@ Start from `config.example.json`, then replace every placeholder before running 
 ## Required fields
 
 - `control_api_bearer_token` — bearer token for dashboard/control API calls and incoming worker event posts.
-- `completion_callback_url` — URL called when a wake-gated run completes.
+- `completion_callback_url` — URL called when a worker-gated run completes.
 - `completion_callback_token` — bearer token sent to the completion callback endpoint.
 
 The config model also requires sensible paths for state, projects, and dispatch: `state_dir`, `project_root`, and `dispatch_script_path`.
@@ -28,7 +28,7 @@ The config model also requires sensible paths for state, projects, and dispatch:
 
 Use dry-run dispatch until you have intentionally enabled and tested live dispatch.
 
-## Wake-gate thresholds
+## Worker-gate thresholds
 
 Configure sampling, sustain windows, CPU/GPU thresholds, VRAM delta limits, workload profiles, and maximum wait after idle through the `sample_interval_sec`, `idle_sustain_sec`, `cpu_idle_threshold_pct`, `gpu_idle_*`, `vram_delta_threshold_mib`, `workload_profiles`, and `max_wait_after_idle_sec` fields.
 

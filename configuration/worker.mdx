@@ -5,11 +5,11 @@ description: "Configure worker preflight, evidence sync, and stale-process reapi
 
 # Worker configuration
 
-A worker is the machine that runs agent jobs and exposes a wake-gate API to the control plane. In local development, the control and worker roles can point at the same `127.0.0.1:8787` app.
+A worker is the machine that runs agent jobs and exposes a worker-gate API to the control plane. In local development, the control and worker roles can point at the same `127.0.0.1:8787` app.
 
 ## Connection fields
 
-- `worker_wake_gate_url` — base URL for the worker wake-gate API.
+- `worker_wake_gate_url` — base URL for the worker-gate API. The field name remains for compatibility.
 - `worker_wake_gate_bearer_token` — bearer token the control plane uses when calling the worker.
 
 For local development, set both `worker_wake_gate_url` and `completion_callback_url` to the local service. For production, use distinct tokens and hostnames.
