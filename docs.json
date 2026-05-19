@@ -43,6 +43,11 @@
           "anchor": "Corpus",
           "icon": "database",
           "href": "https://github.com/alias8818/enoch-ai-research-corpus"
+        },
+        {
+          "anchor": "Promising signals",
+          "icon": "sparkles",
+          "href": "https://github.com/alias8818/enoch-promising-signals"
         }
       ]
     },
@@ -90,6 +95,7 @@
               "release-notes",
               "reference/api-endpoints",
               "reference/authorship-provenance",
+              "reference/promising-signals",
               "reference/troubleshooting"
             ]
           }
@@ -106,6 +112,10 @@
       {
         "label": "Corpus",
         "href": "https://github.com/alias8818/enoch-ai-research-corpus"
+      },
+      {
+        "label": "Promising signals",
+        "href": "https://github.com/alias8818/enoch-promising-signals"
       }
     ],
     "primary": {
