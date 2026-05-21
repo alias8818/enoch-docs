@@ -13,10 +13,42 @@ For current runtime source-of-truth details, see the [Current Runtime Snapshot](
 
 Promising signals are generated records for Enoch runs with deterministic control-plane statuses such as `useful_signal`, `promising_if_scaled`, or `compute_scale_blocked`. They preserve small local signals, stopped follow-ups, and larger-compute next-step ideas.
 
+The current export (v1 schema) contains **519 deterministic, contract-clean signals** exported from the Enoch control plane.
+
+Status breakdown:
+- `useful_signal`: 452
+- `compute_scale_blocked`: 67
+
+Deterministic curation buckets:
+- Top external-researcher candidates: 129
+- Compute-scale blocked: 67
+- Follow-up recommended: 212
+- Weak/local-only preserved: 61
+- Likely stale/low-value archive: 50
+
+Start with the generated [ranked index](https://github.com/alias8818/enoch-promising-signals/blob/main/signals/ranked-index.md). The machine-readable source of truth is [`data/signals.jsonl`](https://github.com/alias8818/enoch-promising-signals/blob/main/data/signals.jsonl), ranking metadata is in [`data/ranking.json`](https://github.com/alias8818/enoch-promising-signals/blob/main/data/ranking.json), and count/status accounting is in [`data/manifest.json`](https://github.com/alias8818/enoch-promising-signals/blob/main/data/manifest.json).
+
+Ranking is deterministic. Bucket labels and scores are derived only from exported fields: evidence strength, hypothesis status, source lineage, compute-scale status, follow-up metadata/depth, and local evidence artifact references. No LLM review or manual judgment is accepted as ranking truth.
+
 ## What it is not
 
-These entries are not validated papers, not peer reviewed, not publication-positive, and not part of the public paper corpus. They are preservation records for future inspection or larger-compute follow-up.
+These entries are not validated papers, not peer reviewed, not publication-positive, and not part of the public paper corpus. They are preservation records for future inspection or larger-compute follow-up. Public evidence has not been copied for these records (`public_evidence_copied: false` in all records).
 
 ## Public release rule
 
 Public linking is allowed only when the generated JSONL, schema validator, public trust validator, and release-bundle validation pass. A promising signal can become a paper only through a separate future run that independently satisfies the paper-positive publication gate.
+
+## Regeneration
+
+The exporter lives in the system repo:
+
+```bash
+python3 scripts/export_promising_signals.py --output-repo ../enoch-promising-signals --clean-only
+```
+
+Validate the generated repository with:
+
+```bash
+python3 scripts/validate.py
+python3 scripts/validate_public_trust_surfaces.py
+```
