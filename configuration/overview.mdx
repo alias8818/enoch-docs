@@ -90,7 +90,7 @@ Older private prototypes used `omx_inbound_bearer_token`, `n8n_callback_url`, `n
 
 ## Annotated example config
 
-The following JSON mirrors the repository `config.example.json` baseline at the time this docs page was audited. It includes optional/default-off sections such as live dispatch, Pushover alerts, evidence sync, and provider-backed paper writing. Copy it, remove fields you do not need, and replace every placeholder value before use.
+The following JSON mirrors the repository `config.example.json` baseline at the time this docs page was audited. It includes optional/default-off sections such as queue pump, Pushover alerts, route observability, and provider-backed paper writing. Copy it, remove fields you do not need, and replace every placeholder value before use.
 
 ```json
 {
@@ -159,6 +159,12 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
       "wake_gate_url": "http://gb10-worker.example:8787",
       "bearer_token": "replace-with-gb10-worker-token",
       "role": "gpu_worker"
+    },
+    "cpu-proxmox-1": {
+      "wake_gate_url": "http://cpu-proxmox-1.example:8787",
+      "bearer_token": "replace-with-cpu-worker-token",
+      "role": "cpu_worker",
+      "min_memory_available_mib": 16384
     }
   },
   "workload_machine_targets": {
@@ -166,10 +172,6 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
     "gpu_required": "gb10"
   },
   "log_events": true,
-  "live_dispatch_enabled": false,
-  "queue_pump_enabled": false,
-  "queue_pump_followup_launch_enabled": false,
-  "queue_pump_paper_draft_enabled": false,
   "pushover_alerts_enabled": false,
   "pushover_app_token": "",
   "pushover_user_key": "",
@@ -177,6 +179,8 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
   "queue_alert_cooldown_sec": 1800,
   "queue_alert_hang_after_sec": 3600,
   "queue_pump_enabled": false,
+  "queue_pump_followup_launch_enabled": false,
+  "queue_pump_paper_draft_enabled": false,
   "paper_writer_provider": "deterministic",
   "paper_writer_base_url": "https://api.synthetic.new/openai/v1",
   "paper_writer_model": "hf:zai-org/GLM-5.1",
@@ -185,8 +189,13 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
   "paper_writer_temperature": 0.2,
   "paper_writer_max_tokens": 12000,
   "paper_writer_fallback_enabled": true,
+  "route_observability_enabled": false,
+  "route_observability_log_path": "",
+  "route_observability_slow_ms": 1000,
+  "route_observability_memory_warn_rss_mib": 0,
   "control_plane_store_backend": "sqlite",
   "enoch_core_store_backend": "control_plane",
+  "supabase_database_url": "",
   "legacy_notion_api_enabled": false
 }
 ```

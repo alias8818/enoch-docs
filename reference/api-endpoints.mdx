@@ -315,7 +315,7 @@ Response (`WorkerPreflightResponse`):
 }
 ```
 
-Optional request field `machine_target` selects a named entry from `worker_targets` instead of `wake_gate_url`.
+Optional request field `machine_target` selects a named entry from `worker_targets`. When set, the control plane resolves it to that target's `wake_gate_url`, bearer token, and memory floor.
 
 ---
 
@@ -342,7 +342,7 @@ Request body (`DraftNextRequest`):
 }
 ```
 
-Response `action` values: `"noop"`, `"dry_run_draft"`, `"drafted"`. When `paper_evidence_sync_enabled` is true and local evidence is missing, live calls can return HTTP 424 with an `evidence_sync` detail object.
+Response `action` values: `"noop"`, `"dry_run_draft"`, `"drafted"`. Live calls skip candidates with missing evidence and return `action: "noop"` with skipped candidate details; they do not return HTTP 424.
 
 </Accordion>
 
@@ -365,7 +365,7 @@ Returns `404` if neither a project record nor a queue item is found for `{projec
 
 <Accordion title="Paper Operations">
 
-Paper automation routes are also available under `/control/api/publication-automation/*` as aliases for `/control/api/paper-reviews/*`.
+Paper automation routes are mounted at both `/control/api/publication-automation/*` and `/control/api/paper-reviews/*`. Prefer `publication-automation` in new integrations.
 
 ### `GET /control/api/papers`
 
@@ -429,7 +429,7 @@ Returns `404` if no matching item exists.
 
 ### `POST /control/api/paper-reviews/{paper_id}/rewrite-draft`
 
-Rewrites the paper draft artifacts for the given paper using the configured AI writer (e.g. GLM-5.1 via Synthetic.new). If `paper_evidence_sync_enabled` is `true`, the control plane syncs evidence from the worker before rewriting.
+Rewrites the paper draft artifacts for the given paper using the configured AI writer (e.g. GLM-5.1 via Synthetic.new). If `paper_evidence_sync_enabled` is `true`, the control plane syncs evidence from the worker before rewriting. When sync is enabled and local evidence is still missing, live calls return HTTP 424 with an `evidence_sync` detail object.
 
 ```bash
 curl -fsS \

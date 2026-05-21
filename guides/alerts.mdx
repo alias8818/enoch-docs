@@ -30,7 +30,7 @@ sudo systemctl enable --now enoch-queue-alert-check.timer
 systemctl list-timers enoch-queue-alert-check.timer
 ```
 
-Run a one-shot check:
+Run a one-shot check on the control-plane host (see [current runtime snapshot](/current-runtime-snapshot) for topology):
 
 ```bash
 sudo ENOCH_CONFIG=/etc/enoch-control-plane/config.json \
