@@ -34,13 +34,17 @@ Use dry-run dispatch until you have intentionally enabled and tested live dispat
 
 Configure sampling, sustain windows, CPU/GPU thresholds, VRAM delta limits, workload profiles, and maximum wait after idle through the `sample_interval_sec`, `idle_sustain_sec`, `cpu_idle_threshold_pct`, `gpu_idle_*`, `vram_delta_threshold_mib`, `workload_profiles`, and `max_wait_after_idle_sec` fields.
 
-Supported workload classes are `inference_eval`, `training`, `control_plane`, and `agent_harness`.
+Supported workload classes are `unknown`, `cpu_only`, `gpu_required`, `inference_eval`, `training`, `control_plane`, and `agent_harness`.
 
 ## Optional integrations
 
 - Pushover queue alerts: `pushover_alerts_enabled`, `pushover_app_token`, `pushover_user_key`, `pushover_api_url`, `queue_alert_*`.
+- Queue pump (timer-driven dispatch): `queue_pump_enabled`, `queue_pump_followup_launch_enabled`, `queue_pump_paper_draft_enabled`.
+- Multi-worker routing: `worker_targets`, `workload_machine_targets` (maps workload classes such as `cpu_only` and `gpu_required` to named worker targets).
+- Store backend: `control_plane_store_backend` (`sqlite`, `supabase_readonly`, or `supabase`), `enoch_core_store_backend`, `supabase_database_url`. Production on `enoch-core` uses `supabase` with local Postgres; the setting name is a compatibility adapter label.
 - Paper writer: `paper_writer_provider`, `paper_writer_base_url`, `paper_writer_model`, `paper_writer_api_key`, `paper_writer_*` tuning, and fallback.
 - Evidence sync: `paper_evidence_sync_enabled`, `paper_evidence_sync_ssh_host`, `paper_evidence_sync_remote_root`, `paper_evidence_sync_timeout_sec`.
+- Route observability (private diagnostics): `route_observability_enabled`, `route_observability_log_path`, `route_observability_slow_ms`, `route_observability_memory_warn_rss_mib`.
 
 ## Deprecated aliases
 
@@ -77,7 +81,7 @@ Older private prototypes used `omx_inbound_bearer_token`, `n8n_callback_url`, `n
 </ParamField>
 
 <ParamField path="default_workload_class" type="string" default="inference_eval">
-  Workload class applied when a dispatch request does not specify one. Valid values are `inference_eval`, `training`, `control_plane`, and `agent_harness`. Each class maps to a threshold profile; `inference_eval` applies stricter idle requirements (longer sustain, lower CPU threshold) than `training`.
+  Workload class applied when a dispatch request does not specify one. Valid values are `unknown`, `cpu_only`, `gpu_required`, `inference_eval`, `training`, `control_plane`, and `agent_harness`. Each class maps to a threshold profile; `inference_eval` applies stricter idle requirements (longer sustain, lower CPU threshold) than `training`.
 </ParamField>
 
 <Tip>
@@ -118,6 +122,20 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
       "gpu_idle_avg_threshold_pct": 10.0,
       "gpu_idle_peak_threshold_pct": 20.0,
       "vram_delta_threshold_mib": 1024
+    },
+    "cpu_only": {
+      "idle_sustain_sec": 300,
+      "cpu_idle_threshold_pct": 20.0,
+      "gpu_idle_avg_threshold_pct": 10.0,
+      "gpu_idle_peak_threshold_pct": 20.0,
+      "vram_delta_threshold_mib": 1024
+    },
+    "gpu_required": {
+      "idle_sustain_sec": 180,
+      "cpu_idle_threshold_pct": 35.0,
+      "gpu_idle_avg_threshold_pct": 10.0,
+      "gpu_idle_peak_threshold_pct": 20.0,
+      "vram_delta_threshold_mib": 1024
     }
   },
   "max_wait_after_idle_sec": 43200,
@@ -131,10 +149,27 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
     "vllm",
     "sglang"
   ],
-  "completion_callback_url": "https://automation.example.com/webhook/enoch-control-plane-wake-ready",
+  "completion_callback_url": "https://automation.example.com/webhook/enoch-worker-callback",
   "completion_callback_token": "replace-with-callback-token",
   "completion_callback_timeout_sec": 120,
+  "worker_wake_gate_url": "http://worker.example:8787",
+  "worker_wake_gate_bearer_token": "replace-with-worker-token",
+  "worker_targets": {
+    "gb10": {
+      "wake_gate_url": "http://gb10-worker.example:8787",
+      "bearer_token": "replace-with-gb10-worker-token",
+      "role": "gpu_worker"
+    }
+  },
+  "workload_machine_targets": {
+    "cpu_only": "cpu-proxmox-1",
+    "gpu_required": "gb10"
+  },
   "log_events": true,
+  "live_dispatch_enabled": false,
+  "queue_pump_enabled": false,
+  "queue_pump_followup_launch_enabled": false,
+  "queue_pump_paper_draft_enabled": false,
   "pushover_alerts_enabled": false,
   "pushover_app_token": "",
   "pushover_user_key": "",
@@ -149,7 +184,10 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
   "paper_writer_timeout_sec": 180,
   "paper_writer_temperature": 0.2,
   "paper_writer_max_tokens": 12000,
-  "paper_writer_fallback_enabled": true
+  "paper_writer_fallback_enabled": true,
+  "control_plane_store_backend": "sqlite",
+  "enoch_core_store_backend": "control_plane",
+  "legacy_notion_api_enabled": false
 }
 ```
 

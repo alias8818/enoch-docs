@@ -15,7 +15,7 @@ and project decision artifact contract, see
 
 The code models process snapshots, process info, telemetry samples, run records, and gate callbacks. Configuration supports `sample_interval_sec`, `idle_sustain_sec`, CPU and GPU idle thresholds, VRAM delta thresholds, workload profiles, and stale-project process reaper settings.
 
-Supported workload classes in the config model are `inference_eval`, `training`, `control_plane`, and `agent_harness`.
+Supported workload classes in the config model are `unknown`, `cpu_only`, `gpu_required`, `inference_eval`, `training`, `control_plane`, and `agent_harness`. The `cpu_only` and `gpu_required` classes map to machine-target routing through `workload_machine_targets` and `worker_targets`.
 
 ## Gate idea
 

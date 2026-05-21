@@ -58,13 +58,27 @@ Response:
 
 ### `GET /control/health`
 
-Requires bearer authentication. Returns control-plane health and the configured SQLite database path.
+Requires bearer authentication. Returns control-plane health, the active store backend, and the configured database path (SQLite file path for local dev; Postgres adapter URL or label for production).
 
 ```bash
 curl -fsS \
   -H "Authorization: Bearer $TOKEN" \
   http://127.0.0.1:8787/control/health
 ```
+
+Response:
+
+```json
+{
+  "ok": true,
+  "service": "enoch-langgraph-control-plane",
+  "db_path": "/var/lib/enoch-control-plane/state/control_plane.sqlite3",
+  "store_backend": "sqlite",
+  "timestamp": "2025-05-01T12:00:00+00:00"
+}
+```
+
+Production on `enoch-core` sets `store_backend` to `supabase` with local Postgres; treat that value as a compatibility adapter label, not Supabase Cloud.
 
 ---
 
@@ -174,6 +188,26 @@ Returns route-observability health, if enabled.
 
 Returns the controller process RSS and memory warning status.
 
+### `GET /control/api/v1/automation-readiness`
+
+Returns long-haul automation readiness (`READY` or `BLOCKED`) with the first failing criterion when blocked.
+
+### `GET /control/api/v1/research-quality`
+
+Returns Research Facility quality signals and admission diagnostics for the operator dashboard.
+
+### `GET /control/api/v1/source-lineage`
+
+Returns source-lineage and dedupe context for intake and queue rows.
+
+### `GET /control/api/v1/projects`
+
+Returns a bounded project list with cursor pagination and search filters.
+
+### `POST /control/api/v1/followups/launch-next`
+
+Dry-runs or launches one bounded follow-up investigation from existing no-paper evidence. Used by queue-pump follow-up automation when enabled.
+
 </Accordion>
 
 <Accordion title="Queue Operations">
@@ -281,6 +315,35 @@ Response (`WorkerPreflightResponse`):
 }
 ```
 
+Optional request field `machine_target` selects a named entry from `worker_targets` instead of `wake_gate_url`.
+
+---
+
+### `POST /control/papers/draft-next`
+
+Drafts the next decision-gated positive paper candidate. Use `dry_run: true` first to preview eligibility without writing artifacts.
+
+```bash
+curl -fsS \
+  -H "Authorization: Bearer $TOKEN" \
+  -H "Content-Type: application/json" \
+  -d '{"dry_run": true, "requested_by": "operator"}' \
+  http://127.0.0.1:8787/control/papers/draft-next \
+  | python3 -m json.tool
+```
+
+Request body (`DraftNextRequest`):
+
+```json
+{
+  "dry_run": true,
+  "requested_by": "operator",
+  "force": false
+}
+```
+
+Response `action` values: `"noop"`, `"dry_run_draft"`, `"drafted"`. When `paper_evidence_sync_enabled` is true and local evidence is missing, live calls can return HTTP 424 with an `evidence_sync` detail object.
+
 </Accordion>
 
 <Accordion title="Project Operations">
@@ -301,6 +364,8 @@ Returns `404` if neither a project record nor a queue item is found for `{projec
 </Accordion>
 
 <Accordion title="Paper Operations">
+
+Paper automation routes are also available under `/control/api/publication-automation/*` as aliases for `/control/api/paper-reviews/*`.
 
 ### `GET /control/api/papers`
 
@@ -546,6 +611,12 @@ curl -fsS \
   -H "Authorization: Bearer $TOKEN" \
   http://127.0.0.1:8787/control/api/intake/notion
 ```
+
+---
+
+### `POST /control/api/worker-callback`
+
+Receives idempotent worker completion callbacks from the worker gate. Callbacks use an `idempotency_key`; duplicate keys with the same payload are accepted, conflicting payloads return `409`.
 
 </Accordion>
 
