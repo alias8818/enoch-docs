@@ -13,8 +13,10 @@ For current runtime topology and worker-gate boundaries, see
 
 - `worker_wake_gate_url` — base URL for the worker-gate API. The field name remains for compatibility.
 - `worker_wake_gate_bearer_token` — bearer token the control plane uses when calling the worker.
+- `worker_targets` — named worker endpoints with per-target URLs, tokens, roles, and optional memory floors.
+- `workload_machine_targets` — maps workload classes such as `cpu_only` and `gpu_required` to a `worker_targets` key.
 
-For local development, set both `worker_wake_gate_url` and `completion_callback_url` to the local service. For production, use distinct tokens and hostnames.
+For local development, set both `worker_wake_gate_url` and `completion_callback_url` to the local service. For production with multiple workers, configure `worker_targets` and route dispatches through `workload_machine_targets` or explicit `machine_target` in preflight requests.
 
 ## Evidence sync fields
 

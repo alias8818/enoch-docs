@@ -49,13 +49,13 @@ The helper can copy the checkout into `/opt`, create config and state directorie
 
 ```bash
 sudo scripts/install-control-plane.sh \
-  --prefix /opt/enoch-agentic-research-system \
-  --config-dir /etc/enoch \
+  --prefix /opt/enoch-control-plane \
+  --config-dir /etc/enoch-control-plane \
   --state-dir /var/lib/enoch-control-plane \
   --user enoch
 ```
 
-Edit `/etc/enoch/config.json` before enabling the service. Replace every placeholder token and URL.
+The script defaults to those paths when you omit the flags. Edit `/etc/enoch-control-plane/config.json` before enabling the service. Replace every placeholder token and URL.
 
 ## Configure required secrets
 

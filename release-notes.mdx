@@ -9,6 +9,15 @@ The canonical runtime changelog lives in the system repository at [`CHANGELOG.md
 For the current runtime topology and compatibility boundary, see
 [current runtime snapshot](/current-runtime-snapshot).
 
+## 0.3.0 — 2026-05-15
+
+- Added durable worker callback outbox and replay support for transient callback failures.
+- Added queue-alert auto-reconciliation for stale active lanes when a completed decision artifact is present.
+- Added Research Facility quality signals, post-prompt diagnostics, bounded-follow-up prioritization, and janitor candidate review support.
+- Tightened paper-production gates so only explicit positive decisions enter the write-needed lane.
+- Fixed stale active-lane handling, database connection lock release, janitor run-cycle integration, and corpus ledger idempotency.
+- Updated dependency locks and pinned GitHub Actions away from floating major tags.
+
 ## 0.2.0 — 2026-05-09
 
 - Package name changed to `enoch-control-plane`.

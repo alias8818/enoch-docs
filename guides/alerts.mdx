@@ -30,13 +30,18 @@ sudo systemctl enable --now enoch-queue-alert-check.timer
 systemctl list-timers enoch-queue-alert-check.timer
 ```
 
-Run a one-shot check:
+Run a one-shot check on the control-plane host (see [current runtime snapshot](/current-runtime-snapshot) for topology):
 
 ```bash
-sudo ENOCH_CONFIG=/etc/enoch/config.json \
-  /opt/enoch-agentic-research-system/deploy/enoch_queue_alert_check.py
+sudo ENOCH_CONFIG=/etc/enoch-control-plane/config.json \
+  /opt/enoch-control-plane/deploy/enoch_queue_alert_check.py
 ```
 
 ## Dispatch pump note
 
-The queue alert checker can also participate in queue pumping when configured. Treat that as live automation: test status, preflight, and dry-run dispatch first.
+When `"queue_pump_enabled": true`, the queue alert checker can also dispatch queued work when the lane is safe. Optional flags control follow-up launch and paper drafting:
+
+- `queue_pump_followup_launch_enabled` — dry-run and launch one bounded follow-up when no queued candidate exists (defaults off).
+- `queue_pump_paper_draft_enabled` — draft one eligible paper before dispatch (defaults off; compatibility path).
+
+Treat queue pumping as live automation: test status, preflight, and dry-run dispatch first.
