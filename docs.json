@@ -69,7 +69,8 @@
             "pages": [
               "concepts/control-plane",
               "concepts/worker-gate",
-              "concepts/evidence-and-artifacts"
+              "concepts/evidence-and-artifacts",
+              "concepts/research-facility"
             ]
           },
           {

@@ -1,0 +1,136 @@
+---
+title: "Research Facility"
+description: "The auditable lane for generating research candidates, scoring, admission, and queue promotion — intentionally separate from dispatch."
+---
+
+# Research Facility
+
+The Research Facility is the auditable lane for generating research ideas before they enter the worker queue. It is intentionally separate from dispatch: a generated candidate is not work until it is admitted and recorded with an admission reason.
+
+The facility answers two questions the old ad-hoc process could not answer reliably:
+
+1. Where did this idea come from?
+2. Why did it get queued?
+
+For current runtime topology, storage authority, and bounded-tick boundaries, see
+[current runtime snapshot](/current-runtime-snapshot).
+
+## Operator model
+
+```text
+sources (arXiv, GitHub, blogs, prior Enoch results, user batches, generated hypotheses)
+  -> research candidates (raw proposals before admission)
+  -> dedupe / history comparison
+  -> score (novelty + feasibility + accessibility + falsifiability)
+  -> admission decision (admitted / rejected / merged / needs-review)
+  -> optional enoch.ideas / projects / queue_items promotion
+  -> run / decision / paper/no-paper lineage
+```
+
+## Ledgers
+
+The Research Facility uses four dedicated ledgers in the control-plane database. None of them dispatch work by themselves.
+
+| Ledger | Table | Purpose | Dispatches? |
+| --- | --- | --- | --- |
+| Source | `enoch.research_sources` | External/internal source evidence: arXiv, GitHub, blogs, HN/X, prior Enoch results, user/ChatGPT batches, generated hypotheses. | No |
+| Candidate | `enoch.research_candidates` | Raw generated proposals before admission. Stores hypothesis, mechanism, baseline, success threshold, kill condition, artifacts, evidence, cost, failure modes, novelty comparison, dedupe key, and score. | No |
+| Admission | `enoch.research_admissions` | Immutable explanation for admitted/rejected/merged/needs-review decisions. This is the answer to "why did this get queued?" | No |
+| Lineage | `enoch.research_lineage` | Connects source -> candidate -> idea -> project -> run -> decision -> paper/no-paper -> follow-up candidate. | No |
+
+Promotion into runtime work still happens through the existing runtime ledgers (`enoch.ideas`, `enoch.projects`, `enoch.queue_items`).
+
+## Generation modes
+
+Candidates are generated through explicit, constrained modes. Each mode has required grounding and a specific scoring emphasis:
+
+| Mode | Required grounding | Scoring emphasis |
+| --- | --- | --- |
+| `fresh_grounded` | At least one source reference. | External grounding, novelty, falsifiability. |
+| `followup_from_negative` | Parent project/run lineage. | Explains what changed from a prior negative/mixed result. |
+| `moonshot` | Crisp falsifiable test despite low feasibility. | High novelty/accessibility, strong kill condition. |
+| `implementation_gap` | Practical gap in a paper/repo/system. | Feasible experiment and baseline clarity. |
+| `paper_replication_extension` | Paper/source lineage. | Bounded replication plus nontrivial extension. |
+| `home_hardware_accessibility` | Local/home AI impact. | Accessibility delta and hardware cost. |
+| `manual_import` | User/operator supplied. | Complete test contract, dedupe, and score. |
+
+Database checks enforce grounding for the two easiest-to-abuse modes: `fresh_grounded` must include source evidence; `followup_from_negative` must include parent lineage.
+
+## Candidate contract
+
+A candidate must be a testable research proposal, not a vague idea. Required fields include:
+
+- `hypothesis`
+- `mechanism`
+- `baseline_to_beat`
+- `success_threshold`
+- `kill_condition`
+- `expected_artifacts`
+- `required_evidence`
+- `estimated_runtime_class`
+- `expected_token_budget`
+- `machine_target`
+- `likely_failure_modes`
+- `novelty_comparison` (when similar prior projects exist)
+
+The deterministic planner rejects candidates that miss the core contract, lack required grounding, look like shallow incremental sludge, or attempt to re-run known negatives without explaining the new mechanism or evidence.
+
+## Dashboard workflow
+
+The dashboard Research Facility panel separates concerns:
+
+- **Generate smoke batch** — dry-runs first, then writes only Research Facility source/candidate/admission/lineage rows.
+- **Generate provider batch** — dry-runs a provider quota preflight first. The live action spends one provider request, then writes only Research Facility source/candidate/admission/lineage rows.
+- **Promote selected candidate** — dry-runs first, then promotes exactly one already-admitted candidate into `enoch.ideas`, `enoch.projects`, and `enoch.queue_items`.
+- **Run bounded cycle** — the first policy-gated automation layer. Requires an explicit live `enabled` flag, checks provider budget, can spend one provider request, can promote up to one admitted candidate, can optionally dispatch at most one selected queued item, and can optionally draft/finalize at most one paper.
+
+## Bounded cycle endpoint
+
+```text
+POST /control/api/research/run-cycle
+```
+
+Default policy:
+
+```json
+{
+  "enabled": false,
+  "max_provider_requests_per_run": 1,
+  "max_promotions_per_run": 1,
+  "max_dispatches_per_run": 0,
+  "wait_for_completion": false,
+  "max_paper_drafts_per_run": 0,
+  "max_publication_rewrites_per_run": 0,
+  "min_admission_score": 72,
+  "require_budget_ok": true,
+  "stop_if_queue_active": true,
+  "stop_if_dashboard_attention": true
+}
+```
+
+Live calls must set `enabled: true`. Dry-runs do not spend provider requests or write rows. Paper drafting/finalization is disabled by default and must be explicitly bounded.
+
+## Provider-backed generation
+
+The provider-backed generation endpoint (`POST /control/api/research/generate-provider-batch`) is fail-closed:
+
+1. Query provider quota first.
+2. Refuse generation if remaining credit/rolling request reserve is too low.
+3. Dry-run without spending a provider request.
+4. Live-run at most the bounded candidate count.
+5. Score candidates through the deterministic planner.
+6. Persist only Research Facility ledgers with `queue_admitted = false`.
+
+Do not store provider API keys in config files or command-line arguments. Use an HTTP proxy integration where available.
+
+## Guardrails
+
+- The Research Facility tables do not dispatch work by themselves.
+- Runtime queue mutation is idempotent and refuses to overwrite in-flight queue rows.
+- Dedupe uses a stable `dedupe_key`; duplicate keys in the same batch are rejected.
+- Similar prior projects require `novelty_comparison`.
+- Candidate lineage is recorded before queue promotion.
+
+## Relationship to intake
+
+The Research Facility is the upstream generation lane. [Idea intake](/guides/idea-intake) describes how scouted ideas become control-plane rows. A candidate must pass admission before it can become an idea row; an idea row must be queued before it can dispatch. Each transition has its own audit ledger.

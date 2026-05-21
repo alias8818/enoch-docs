@@ -23,7 +23,7 @@ When the store backend is Postgres, the same operator questions are answered fro
 
 ## What the dashboard shows first
 
-The redesigned control dashboard is a professional operator shell. It leads with simple questions:
+Dashboard V2 (`/control/dashboard-v2`) is the canonical React/TypeScript operator shell, merged to main as of 2026-05-21. It leads with bounded operator cards:
 
 - What needs my attention?
 - What is running?
@@ -32,7 +32,7 @@ The redesigned control dashboard is a professional operator shell. It leads with
 - What is ready to publish?
 - What is already imported?
 
-The shell uses cards, tables, search, pagination, and collapsed debug panels. Raw JSON, raw lifecycle labels, and artifact previews stay in drill-down views.
+The shell uses cards, tables, search, pagination, and collapsed debug panels. Raw JSON, raw lifecycle labels, and artifact previews stay in drill-down views. All operator lanes consume bounded `/control/api/v1/*` read models.
 
 ## Read-model semantics
 
