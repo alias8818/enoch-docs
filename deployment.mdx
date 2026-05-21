@@ -59,11 +59,13 @@ The script defaults to those paths when you omit the flags. Edit `/etc/enoch-con
 
 ## Configure required secrets
 
-Generate distinct values for `control_api_bearer_token`, `completion_callback_token`, and `worker_wake_gate_bearer_token`:
+Generate distinct values for `control_api_bearer_token` and `worker_wake_gate_bearer_token`:
 
 ```bash
 python3 -c "import secrets; print(secrets.token_urlsafe(48))"
 ```
+
+When `completion_callback_url` targets the control plane at `/control/api/worker-callback`, set worker-side `completion_callback_token` to the **same value** as `control_api_bearer_token`. Preflight checks that the worker callback token matches the control plane bearer fingerprint. Keep `completion_callback_token` as a separate secret only when the callback URL points at an external webhook that is not the control plane.
 
 Never commit live config files, legacy Notion tokens, Pushover credentials, provider API keys, private hostnames, or production logs.
 
@@ -107,11 +109,17 @@ curl -fsS -H "Authorization: Bearer $TOKEN" http://127.0.0.1:8787/control/health
 
 ## Optional timers
 
-The repo includes systemd units for optional workflows:
+`scripts/install-control-plane.sh` always installs `enoch-source-lineage-check.timer` and recommends enabling it as a provenance guard. It also installs `enoch-queue-alert-check.timer`. Additional units are opt-in at install time:
 
-- `enoch-queue-alert-check.timer` — periodically checks queue health and can send Pushover alerts when configured.
-- `enoch-notion-sync.timer` — legacy compatibility only; syncs Notion intake/projection data when those environment variables are configured.
-- `enoch-paper-draft-next.timer` — legacy unattended paper drafting path. Keep disabled unless you intentionally run a controlled, bounded drain and have verified the decision gate.
+| Timer | Install flag | Notes |
+|---|---|---|
+| `enoch-source-lineage-check.timer` | installed by default | Enable after install; validates source-lineage reports |
+| `enoch-queue-alert-check.timer` | installed by default | Optional Pushover alerts and queue pump when configured |
+| `enoch-paper-draft-next.timer` | `ENOCH_INSTALL_PAPER_DRAFT_NEXT_UNITS=1` | Legacy unattended paper drafting; keep disabled unless intentionally tested |
+| `enoch-research-autopilot.timer` | `ENOCH_INSTALL_RESEARCH_AUTOPILOT_UNITS=1` | Bounded Research Facility autopilot |
+| `enoch-notion-sync.timer` | `ENOCH_INSTALL_LEGACY_NOTION_UNITS=1` | Legacy Notion compatibility only |
+
+The repo also ships `enoch-corpus-import-autopilot.timer`, but the install script does not enable it automatically. Copy and enable that unit separately when you have tested corpus import automation.
 
 Enable only the timers you have configured and tested.
 

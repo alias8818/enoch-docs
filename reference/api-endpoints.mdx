@@ -5,7 +5,7 @@ description: "A source-derived map of the main Enoch API surfaces."
 
 Enoch serves control-plane and worker APIs from FastAPI apps that commonly listen on port `8787`. All endpoints except root `GET /healthz`, `GET /dashboard`, and `GET /control/dashboard` require a bearer token. The control-plane health endpoint is `GET /control/health` and does require authentication. The dashboard shell is unauthenticated for the initial page load; it prompts for a bearer token and stores it in `localStorage` for subsequent API calls. Read the Authentication section below before making your first request.
 
-This page maps the main endpoint groups present in the local source snapshot. It is not a generated OpenAPI reference; verify request and response models against the code before building clients. The operator dashboard now prefers bounded `/control/api/v1/*` read models, while older broad status surfaces remain available for compatibility and debug.
+This page maps the main endpoint groups present in the local source snapshot. It is not a generated OpenAPI reference; verify request and response models against the code before building clients. The operator dashboard prefers bounded `/control/api/v1/*` read models, while older broad status surfaces remain available for compatibility and debug. Major groups not fully documented here include `POST /control/dispatch-one`, `POST /control/api/alerts/queue-check`, Research Facility routes under `/control/api/research/*`, and legacy dashboard routes such as `/dashboard/api`.
 For current runtime topology and compatibility boundaries, see
 [current runtime snapshot](/current-runtime-snapshot).
 
@@ -14,7 +14,7 @@ For current runtime topology and compatibility boundaries, see
 - `/control/api/v1/*` is the preferred bounded read API for dashboards, scripts, and external integrations.
 - Older broad status and dashboard endpoints are compatibility/debug surfaces.
 - Command endpoints are behavior-stable, but clients should verify request and response models against source until generated OpenAPI docs are published.
-- Legacy `/omx/event` remains available as an event-ingest compatibility hook; new docs should describe the product as Enoch Control Plane.
+- Legacy event model alias `OmxEvent` (`ControlPlaneEvent`) remains for historical payloads; the HTTP route `POST /omx/event` was removed. Worker completion callbacks use `POST /control/api/worker-callback`.
 
 ## Authentication
 
@@ -266,7 +266,7 @@ Request body (`DispatchNextRequest`):
 }
 ```
 
-Response `action` values: `"paused"`, `"noop"`, `"dry_run_dispatch"`, `"live_dispatch"`, `"dispatch_blocked"`.
+Response `action` values: `"paused"`, `"noop"`, `"dry_run_dispatch"`, `"live_dispatch"`. Live dispatch failures return HTTP `409`/`501`/`502` rather than an `action` of `dispatch_blocked`.
 
 ---
 
@@ -400,7 +400,7 @@ Query parameters:
 | `page` | `1` | Page number |
 | `page_size` | `50` | Rows per page (1–500) |
 | `search` | `""` | Full-text filter |
-| `review_status` | `""` | Raw compatibility/detail filter. Values include `triage_ready`, `unreviewed`, `in_review`, `changes_requested`, `blocked`, `approved_for_finalization`, `finalized`, and `rejected`. Do not present these as the operator workflow. |
+| `review_status` | `""` | Automation state filter. Canonical values: `queued`, `claimed`, `blocked`, `finalized`, `deferred`, `rejected`. Legacy imported rows may still use values such as `triage_ready`, `unreviewed`, `in_review`, `changes_requested`, and `approved_for_finalization`. |
 | `paper_status` | `""` | One of `eligible`, `draft_generating`, `draft_review`, `publication_generating`, `publication_draft`, `human_review_required`, `archived` |
 | `include_rank_reasons` | `true` | Include per-item rank reason arrays |
 | `sort` | `-rank_score` | Sort column; prefix with `-` for descending (e.g. `rank_score`) |
@@ -624,43 +624,9 @@ Receives idempotent worker completion callbacks from the worker gate. Callbacks 
 
 These endpoints are served by the worker process and are called by the agent runtime and by the control plane during live dispatch.
 
-### `POST /omx/event`
+### Legacy `POST /omx/event` (removed)
 
-Receives legacy OMX-compatible/Codex lifecycle events from the agent runtime. The worker gate uses these events to track process state and determine when a quiet window has been reached.
-
-```bash
-curl -fsS \
-  -H "Authorization: Bearer $TOKEN" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "event": "session-end",
-    "run_id": "my-project-20250501T120000Z",
-    "session_id": "sess-abc123",
-    "project_id": "my-project",
-    "project_name": "My Project"
-  }' \
-  http://worker.example:8787/omx/event
-```
-
-Request body (`ControlPlaneEvent`; `OmxEvent` remains a deprecated compatibility alias) key fields:
-
-```json
-{
-  "event": "session-end",
-  "run_id": "...",
-  "session_id": "...",
-  "project_id": null,
-  "project_name": null,
-  "question": null,
-  "root_pid": null,
-  "process_group_id": null,
-  "timestamp": "2025-05-01T12:00:00+00:00",
-  "tmux_session": null,
-  "message": null
-}
-```
-
-Valid `event` values: `session-start`, `session-idle`, `session-stop`, `session-end`, `ask-user-question`.
+The `ControlPlaneEvent` model remains in code (`OmxEvent` is a deprecated alias), but current releases do **not** register an HTTP route at `/omx/event`. Worker completion callbacks should target `POST /control/api/worker-callback` on the control plane with a bearer token that matches `control_api_bearer_token`.
 
 ---
 

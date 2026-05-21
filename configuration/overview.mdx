@@ -5,17 +5,15 @@ description: "Required and optional Enoch config fields, with safe defaults and 
 
 Enoch reads its configuration from a single JSON file whose path you set in the `ENOCH_CONFIG` environment variable, with `ENOCH_CONTROL_PLANE_CONFIG` accepted as a secondary explicit config variable. Every field is validated at startup using Pydantic; the service refuses to start if a required field is missing or a value is out of range. This page documents the core configuration fields, shows you how to generate the secure tokens the service needs, and walks through the annotated `config.example.json` used as the repository baseline. Worker, evidence-sync, and paper-writer fields are covered on their respective sub-pages.
 
-Enoch reads JSON configuration from the path in `ENOCH_CONFIG`. The app validates required fields at startup with Pydantic.
-
 Start from `config.example.json`, then replace every placeholder before running a live deployment.
 For current runtime topology and compatibility naming, see
 [current runtime snapshot](/current-runtime-snapshot).
 
 ## Required fields
 
-- `control_api_bearer_token` — bearer token for dashboard/control API calls and incoming worker event posts.
-- `completion_callback_url` — URL called when a worker-gated run completes.
-- `completion_callback_token` — bearer token sent to the completion callback endpoint.
+- `control_api_bearer_token` — bearer token for dashboard/control API calls and for accepting worker completion posts at `/control/api/worker-callback`.
+- `completion_callback_url` — URL called when a worker-gated run completes. On control-plane deployments this should be `/control/api/worker-callback`.
+- `completion_callback_token` — bearer token the worker sends when posting to `completion_callback_url`. When that URL targets the control plane, set this equal to `control_api_bearer_token`.
 
 The config model also requires sensible paths for state, projects, and dispatch: `state_dir`, `project_root`, and `dispatch_script_path`.
 
@@ -172,6 +170,7 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
     "gpu_required": "gb10"
   },
   "log_events": true,
+  "live_dispatch_enabled": false,
   "pushover_alerts_enabled": false,
   "pushover_app_token": "",
   "pushover_user_key": "",

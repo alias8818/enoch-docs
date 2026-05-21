@@ -26,7 +26,7 @@ For the current runtime topology and compatibility boundary, see
 - Preferred config variable is `ENOCH_CONFIG`; `ENOCH_CONTROL_PLANE_CONFIG` is accepted when an explicit control-plane name is useful.
 - Preferred API/dashboard token field is `control_api_bearer_token`.
 - Preferred worker decision artifact path is `.enoch/project_decision.json`.
-- Legacy `.omx/project_decision.json`, `omx_inbound_bearer_token`, and `/omx/event` remain compatibility surfaces for older runs and integrations.
+- Legacy `.omx/project_decision.json`, `omx_inbound_bearer_token`, and the `OmxEvent` model alias remain for older runs; the HTTP route `POST /omx/event` was removed — use `POST /control/api/worker-callback` instead.
 
 ## 0.1.0 — 2026-05-04
 

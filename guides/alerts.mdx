@@ -39,7 +39,7 @@ sudo ENOCH_CONFIG=/etc/enoch-control-plane/config.json \
 
 ## Dispatch pump note
 
-When `"queue_pump_enabled": true`, the queue alert checker can also dispatch queued work when the lane is safe. Optional flags control follow-up launch and paper drafting:
+When `"queue_pump_enabled": true`, the queue alert checker can also dispatch queued work when the lane is safe. If `queue_pump_enabled` is omitted or false, the checker still enables pumping when legacy `live_dispatch_enabled` is true — review both flags before enabling live automation. Optional flags control follow-up launch and paper drafting:
 
 - `queue_pump_followup_launch_enabled` — dry-run and launch one bounded follow-up when no queued candidate exists (defaults off).
 - `queue_pump_paper_draft_enabled` — draft one eligible paper before dispatch (defaults off; compatibility path).

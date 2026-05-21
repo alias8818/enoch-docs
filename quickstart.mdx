@@ -27,17 +27,18 @@ data = json.loads(p.read_text())
 data['state_dir'] = str(pathlib.Path('.local/state').resolve())
 data['project_root'] = str(pathlib.Path('.local/projects').resolve())
 data['dispatch_script_path'] = str(pathlib.Path('deploy/enoch_codex_dispatch.sh').resolve())
-data['control_api_bearer_token'] = secrets.token_urlsafe(48)
-data['completion_callback_token'] = secrets.token_urlsafe(48)
-data['completion_callback_url'] = 'http://127.0.0.1:8787/omx/event'
+token = secrets.token_urlsafe(48)
+data['control_api_bearer_token'] = token
+data['completion_callback_token'] = token
+data['completion_callback_url'] = 'http://127.0.0.1:8787/control/api/worker-callback'
 data['worker_wake_gate_url'] = 'http://127.0.0.1:8787'
-data['worker_wake_gate_bearer_token'] = data['control_api_bearer_token']
+data['worker_wake_gate_bearer_token'] = token
 p.write_text(json.dumps(data, indent=2) + '\n')
-print(data['control_api_bearer_token'])
+print(token)
 PY
 ```
 
-Copy the printed token. The dashboard and control API expect it as a bearer token.
+Copy the printed token. The dashboard, control API, and worker callback path all expect it as a bearer token when the control plane receives callbacks at `/control/api/worker-callback`.
 
 ## 3. Start the API
 

@@ -35,7 +35,7 @@ papers/<run_id>/paper_manifest.json
 
 The HTTP sync retrieves specific high-signal files from `results/` (e.g. `hot_cold_sim_results.json`, `smoke.json`) rather than the entire directory. The SSH fallback syncs the entire `papers/` directory plus specific result files.
 
-If `paper_evidence_sync_enabled` is `true` in your config and no local evidence is found after sync, the rewrite request returns HTTP 424 with an `evidence_sync` detail object explaining what was tried.
+If `paper_evidence_sync_enabled` is `true` in your config and no local evidence is found after sync, `POST /control/api/paper-reviews/{paper_id}/rewrite-draft` returns HTTP 424 with an `evidence_sync` detail object explaining what was tried. `POST /control/papers/draft-next` skips those candidates and returns `action: "noop"` with skipped details instead of HTTP 424.
 
 
 ## 2. Generate Markdown and LaTeX

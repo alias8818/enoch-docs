@@ -23,7 +23,7 @@ A run should only advance when relevant processes are gone or stale-safe, and te
 
 ## Callback behavior
 
-When the gate is satisfied, the app can send a completion callback to `completion_callback_url` using `completion_callback_token`. Deprecated `n8n_*` config aliases exist for older private prototypes, but new docs and configs should use `completion_callback_*`.
+When the gate is satisfied, the worker posts a completion callback to `completion_callback_url` using `completion_callback_token`. On control-plane deployments the URL should be `/control/api/worker-callback`, and that token must match the control plane's `control_api_bearer_token`. See [configuration overview](/configuration/overview) and [deployment](/deployment) for token wiring. Deprecated `n8n_*` config aliases exist for older private prototypes, but new docs and configs should use `completion_callback_*`.
 
 ## Stale process reaper
 
