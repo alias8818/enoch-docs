@@ -4,6 +4,17 @@
 
 # Documentation project instructions
 
+This documentation project inherits `/home/jeremy/Desktop/projects/enoch-release/AGENTS.md`.
+For current issue status, release readiness, paper production, worker health,
+findings, evidence, or "what next" decisions, follow the parent Linear
+source-of-truth and freshness-marker rule. The marker is:
+
+`/home/jeremy/.codex/state/enoch-linear-last-check.json`
+
+The marker only records when Linear was last checked. It is not a distilled issue
+snapshot and must not be used as issue status. Query Linear when the marker is
+missing, stale, or insufficient for the exact issue fields needed.
+
 ## About this project
 
 - This is a documentation site built on [Mintlify](https://mintlify.com)
