@@ -29,6 +29,10 @@ data['project_root'] = str(pathlib.Path('.local/projects').resolve())
 data['dispatch_script_path'] = str(pathlib.Path('deploy/enoch_codex_dispatch.sh').resolve())
 data['control_api_bearer_token'] = secrets.token_urlsafe(48)
 data['completion_callback_token'] = secrets.token_urlsafe(48)
+
+<Note>
+The source repository quickstart uses `secrets.token_urlsafe(32)` for both tokens; either length is acceptable because the token is opaque to the runtime. The deployment guide uses 48 bytes for stronger entropy on long-lived deployments. Do not commit any token value.
+</Note>
 data['completion_callback_url'] = 'http://127.0.0.1:8787/omx/event'
 data['worker_wake_gate_url'] = 'http://127.0.0.1:8787'
 data['worker_wake_gate_bearer_token'] = data['control_api_bearer_token']
@@ -46,9 +50,13 @@ export ENOCH_CONFIG=$PWD/.local/config/config.json
 uv run uvicorn enoch_control_plane.app:app --host 127.0.0.1 --port 8787
 ```
 
-Open `http://127.0.0.1:8787/control/dashboard`.
+Open the **canonical** operator console:
 
-If you use the shorter `/dashboard` URL, it redirects to the same operator shell.
+```text
+http://127.0.0.1:8787/control/dashboard-v2
+```
+
+If you use the shorter `/dashboard` URL, it redirects to `/control/dashboard-v2` (the canonical V2 shell) on current deployments. `/control/dashboard` also 307-redirects to `/control/dashboard-v2`.
 
 The dashboard opens as a professional operator console. It leads with attention, running work, paper-writing, finalization, and publish/import cards instead of raw JSON.
 

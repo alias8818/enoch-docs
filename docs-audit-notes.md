@@ -1,4 +1,31 @@
-# Docs audit notes — 2026-05-21
+# Docs audit notes
+
+This file summarizes the docs audit history against the three source repositories and what remains uncertain.
+
+## 2026-06-20 refresh — findings still open
+
+This audit was re-run against the live source repos on 2026-06-20. Key drift from the prior (2026-05-21) audit:
+
+1. **Runtime version drift**: System repo `VERSION` and `pyproject.toml` report `1.41.25` (released 2026-06-20). The docs `release-notes.mdx` listed milestones only through `0.3.0`. Docs now point readers to the canonical `CHANGELOG.md` and surface the current version via an `<Info>` block. The detailed milestone entries for `0.1.0`, `0.2.0`, and `0.3.0` are retained for the terminology changes they introduced (ENOCH_CONFIG, control_api_bearer_token, project_decision.json contract) but new entries from `1.0.0` through `1.41.25` are not mirrored here — they are best read in the canonical `CHANGELOG.md`.
+
+2. **Dashboard cutover**: The source repo's `docs/current-runtime-snapshot.md` (merged 2026-05-21) and `docs/dashboard-v2-deploy.md` establish `/control/dashboard` as a 307 redirect to `/control/dashboard-v2`. Older docs said `/dashboard` redirected to `/control/dashboard` (the legacy URL). All `quickstart`, `deployment`, and `current-runtime-snapshot` references now point to `/control/dashboard-v2` as the canonical URL.
+
+3. **Corpus count drift**: `introduction.mdx` previously said `388/388` for packaging/provenance; `quality/packaging_provenance_report.json` and `quality/claim_evidence_audit.json` both report `389/389`. Updated. `guides/paper-artifacts.mdx` already said `389/389` and was kept. A `<Note>` was added to flag that both numbers must be re-verified from the canonical JSON before quoting externally.
+
+4. **Configuration field drift**: Source `config.example.json` and `enoch_control_plane/config.py` include `operational_trace_*` and `hermes_alert_webhook_*` field groups. The docs `configuration/overview.mdx` did not list them. Both groups were added.
+
+5. **Screenshot redaction — public-repo safety**: All five PNGs in `images/` (`dashboard-status-blocked.png`, `dashboard-active-queue.png`, `dashboard-queued-queue.png`, `dashboard-paper-reviews.png`, `dashboard-papers.png`) currently expose:
+   - A UI footer reading "Bounded Supabase read models · raw states stay in drill-down views" that conflicts with the public docs framing that Supabase Cloud is compatibility-only.
+   - Internal paper IDs and counts that drift over time (e.g. `acceptance-length-cuda-graph-bank`, 496/498 corpus counts).
+   - Pre-cutover dashboard URLs (visible in `Open localhost:51111.pdf` style links).
+
+   Each guide page that uses a screenshot now has an explicit `<Info>` placeholder noting the image is pending replacement with a redacted, public-safe capture. The replacement PNGs need to be re-captured from a public-safe dashboard view (after the V2 cutover and after the dashboard footer is updated to drop the "Supabase" label). Until then, treat the existing PNGs as layout references only.
+
+6. **Source repo quickstart token length**: The source repo `docs/quickstart.md` uses `secrets.token_urlsafe(32)` while the docs `quickstart.mdx` and source `docs/deployment-guide.md` use `48`. Both are operationally valid. Added a `<Note>` explaining the difference; no change to the example value.
+
+7. **Private deploy alias**: The source repo references a private deploy host alias. This is not a public fact. The docs `current-runtime-snapshot.mdx` describes `enoch-core` only as the reference control VM and intentionally omits the private alias.
+
+## 2026-05-21 audit — historical
 
 This file summarizes what was reconciled during the enoch-docs audit against the three source repositories and what remains uncertain.
 
@@ -32,7 +59,7 @@ This file summarizes what was reconciled during the enoch-docs audit against the
 - `TODO` / `FIXME`: None found in any .mdx file.
 - `coming soon`: None found.
 - Private LAN IPs (192.168.x, 10.x, 172.16-31.x): None found in docs text (only in SVG path data in logo files).
-- Internal hostnames (`enoch-core.exe.xyz`): Not present in any docs file.
+- Internal hostnames/private deploy aliases: Not present in any docs file.
 - Placeholder screenshots: All 5 images reference real PNG files in `images/`.
 
 ### Link validation

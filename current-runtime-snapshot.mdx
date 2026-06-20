@@ -8,12 +8,26 @@ description: "Canonical short reference for Enoch's current runtime hosts, stora
 This page is the canonical short reference for current Enoch runtime facts. If
 longer runbooks or guides drift, update this page first and link back here.
 
+<Info>
+The canonical snapshot in the system repository at [`docs/current-runtime-snapshot.md`](https://github.com/alias8818/enoch-agentic-research-system/blob/main/docs/current-runtime-snapshot.md) is the source of truth for runtime hosts, paths, and dashboard cutover state. This page mirrors the public-safe facts and intentionally omits private deploy hostnames, LAN IPs, and live credentials. If the two pages disagree, the system-repo page wins.
+</Info>
+
 ## Runtime hosts
 
 | Host | Role | Path | Notes |
 | --- | --- | --- | --- |
-| `enoch-core` | Control plane | `/opt/enoch-control-plane` | Runs the FastAPI control plane, dashboard/API, local Postgres runtime storage, automation timers, and paper/corpus tooling. |
+| `enoch-core` (reference control VM) | Control plane | `/opt/enoch-control-plane` | Runs the FastAPI control plane, dashboard/API, local Postgres runtime storage, automation timers, and paper/corpus tooling. Public docs intentionally omit private deploy aliases. |
 | GB10 | Worker gate | `~/projects/enoch_testing_ground/enoch-control-plane` | Runs native Codex worker execution, process/telemetry tracking, project workspaces, evidence, and worker callbacks. |
+
+## Operator dashboard
+
+| Path | Role |
+| --- | --- |
+| `/control/dashboard-v2` | **Canonical** operator console (React/TypeScript Dashboard V2). Use this URL for day-to-day operations. |
+| `/control/dashboard` | Legacy URL; **307 redirect** to `/control/dashboard-v2` (hash preserved) after the 2026-05-21 cutover. |
+| `/dashboard` | Legacy worker-gate shell; redirects to `/control/dashboard-v2` on current deployments. |
+
+For local development, the canonical V2 URL is `http://127.0.0.1:8787/control/dashboard-v2`.
 
 ## Storage/source of truth
 
@@ -21,7 +35,9 @@ Local Postgres/control-plane storage on `enoch-core` is the current runtime
 source of truth for ideas, projects, queue items, runs, papers, events, and the
 corpus import ledger. Notion is a legacy provenance/intake compatibility path.
 Supabase Cloud is not current runtime intake or storage; `supabase_*` names in
-code and scripts are compatibility or migration-adapter naming.
+code and scripts are compatibility or migration-adapter naming. If a UI label
+or dashboard footer still mentions "Supabase", treat it as a compatibility
+label for the local Postgres adapter, not Supabase Cloud.
 
 ## Worker execution path
 

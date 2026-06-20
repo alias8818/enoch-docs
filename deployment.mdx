@@ -76,13 +76,13 @@ sudo systemctl status enoch-control-plane.service
 curl -fsS http://127.0.0.1:8787/healthz
 ```
 
-Open the dashboard and authenticate with the configured inbound token:
+Open the **canonical** operator console and authenticate with the configured inbound token:
 
 ```text
-http://<control-vm>:8787/control/dashboard
+http://<control-vm>:8787/control/dashboard-v2
 ```
 
-`/dashboard` redirects to the same shell. The dashboard uses bounded `/control/api/v1/*` read models by default, so the first screen stays focused on operator questions rather than raw JSON.
+`/control/dashboard` 307-redirects to `/control/dashboard-v2`. The shorter `/dashboard` legacy worker-gate shell also redirects to V2. The dashboard uses bounded `/control/api/v1/*` read models by default, so the first screen stays focused on operator questions rather than raw JSON.
 
 ## Configure the worker
 

@@ -17,6 +17,10 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 
 Review `dispatch_safe` and `dispatch_blockers` before proceeding. The operator dashboard UI is at `http://<control-vm>:8787/control/dashboard`. The shorter `/dashboard` URL redirects to the same shell on current deployments.
 
+<Info>
+The dashboard screenshot in this section is pending replacement with a public-safe, redacted capture. The current `images/dashboard-status-blocked.png` includes an internal UI footer ("Bounded Supabase read models") that conflicts with the public-facing compatibility-only framing in [current runtime snapshot](/current-runtime-snapshot), and may include internal paper IDs. Treat the existing PNG as illustrative of layout only, not as a verified public-safe reference.
+</Info>
+
 ![Current operator overview showing attention, running work, paper-writing, and publish/import cards](/images/dashboard-status-blocked.png)
 
 Use the dashboard as a fast visual check, but trust the API response as the source of truth for automation.
@@ -62,6 +66,10 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 ## What the control plane checks
 
 The queue tabs show the same read model from different operator angles. Empty active and queued views are useful during smoke testing because they prove the dashboard can read canonical queue state without launching work.
+
+<Info>
+The two queue-tab screenshots below are pending replacement. Both contain the same compatibility-only "Supabase" footer string and reference counts that may drift over time. Until redacted replacements land, use them as layout references only.
+</Info>
 
 ![Current active queue tab showing bounded active-work rows](/images/dashboard-active-queue.png)
 
