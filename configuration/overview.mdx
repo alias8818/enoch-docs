@@ -39,12 +39,14 @@ Supported workload classes are `unknown`, `cpu_only`, `gpu_required`, `inference
 ## Optional integrations
 
 - Pushover queue alerts: `pushover_alerts_enabled`, `pushover_app_token`, `pushover_user_key`, `pushover_api_url`, `queue_alert_*`.
+- Hermes alert webhook (optional): `hermes_alert_webhook_enabled`, `hermes_alert_webhook_url`, `hermes_alert_webhook_secret`, `hermes_alert_webhook_timeout_sec`.
 - Queue pump (timer-driven dispatch): `queue_pump_enabled`, `queue_pump_followup_launch_enabled`, `queue_pump_paper_draft_enabled`.
 - Multi-worker routing: `worker_targets`, `workload_machine_targets` (maps workload classes such as `cpu_only` and `gpu_required` to named worker targets).
 - Store backend: `control_plane_store_backend` (`sqlite`, `supabase_readonly`, or `supabase`), `enoch_core_store_backend`, `supabase_database_url`. Production on `enoch-core` uses `supabase` with local Postgres; the setting name is a compatibility adapter label.
 - Paper writer: `paper_writer_provider`, `paper_writer_base_url`, `paper_writer_model`, `paper_writer_api_key`, `paper_writer_*` tuning, and fallback.
 - Evidence sync: `paper_evidence_sync_enabled`, `paper_evidence_sync_ssh_host`, `paper_evidence_sync_remote_root`, `paper_evidence_sync_timeout_sec`.
 - Route observability (private diagnostics): `route_observability_enabled`, `route_observability_log_path`, `route_observability_slow_ms`, `route_observability_memory_warn_rss_mib`.
+- Operational trace (private diagnostics): `operational_trace_enabled`, `operational_trace_log_path`, `operational_trace_max_payload_bytes` (minimum 1024). Keep disabled unless you intentionally want raw request/response payloads captured.
 
 ## Deprecated aliases
 
@@ -193,6 +195,9 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
   "route_observability_log_path": "",
   "route_observability_slow_ms": 1000,
   "route_observability_memory_warn_rss_mib": 0,
+  "operational_trace_enabled": false,
+  "operational_trace_log_path": "",
+  "operational_trace_max_payload_bytes": 16384,
   "control_plane_store_backend": "sqlite",
   "enoch_core_store_backend": "control_plane",
   "supabase_database_url": "",

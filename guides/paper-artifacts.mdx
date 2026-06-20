@@ -68,6 +68,10 @@ If `paper_writer_fallback_enabled` is `true`, the writer falls back to a determi
 
 After the artifact is written, a publication automation record may still expose legacy fields such as `review_status` with values like `unreviewed` or `triage_ready`. Treat those as raw compatibility/detail fields, not the operator work queue. The packaging/provenance check includes a ranked checklist of items the automation lane must pass, fail, or accept as a recorded risk before the paper can be finalized. It does not validate peer review, scientific correctness, or independent replication.
 
+<Info>
+The publication automation screenshot below is pending replacement. The current `images/dashboard-paper-reviews.png` shows internal paper IDs, score details, and a compatibility-only "Supabase" footer string. Until redacted, treat as layout-only.
+</Info>
+
 ![Current publication automation queue showing automation states, paper states, rank score, and checklist progress](/images/dashboard-paper-reviews.png)
 
 
@@ -85,6 +89,10 @@ Use dry-run first. In current deployments this path should remain explicit and b
 ## 4. Finalize generated drafts
 
 Paper automation APIs support claiming automation items, updating checklist items, changing raw automation state, rewriting drafts, marking papers ready for finalization, and preparing finalization packages. The dashboard presents the simpler operator lanes: write, finalize, publish/import, published/imported, and done/no paper. Generated prose remains AI-generated and not peer-reviewed.
+
+<Info>
+The papers queue screenshot below is pending replacement. It currently exposes paper paths and counts that drift over time, and a compatibility-only "Supabase" footer string. Until redacted, treat as layout-only.
+</Info>
 
 ![Current papers queue showing generated draft paths, claim ledger paths, and manifest paths](/images/dashboard-papers.png)
 
