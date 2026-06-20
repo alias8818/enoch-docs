@@ -16,7 +16,7 @@ The canonical snapshot in the system repository at [`docs/current-runtime-snapsh
 
 | Host | Role | Path | Notes |
 | --- | --- | --- | --- |
-| `enoch-core` (reference control VM, host alias in source repo: `enoch-core.exe.xyz`) | Control plane | `/opt/enoch-control-plane` | Runs the FastAPI control plane, dashboard/API, local Postgres runtime storage, automation timers, and paper/corpus tooling. The `.exe.xyz` form is a private deploy alias; do not publish it elsewhere. |
+| `enoch-core` (reference control VM) | Control plane | `/opt/enoch-control-plane` | Runs the FastAPI control plane, dashboard/API, local Postgres runtime storage, automation timers, and paper/corpus tooling. Public docs intentionally omit private deploy aliases. |
 | GB10 | Worker gate | `~/projects/enoch_testing_ground/enoch-control-plane` | Runs native Codex worker execution, process/telemetry tracking, project workspaces, evidence, and worker callbacks. |
 
 ## Operator dashboard
