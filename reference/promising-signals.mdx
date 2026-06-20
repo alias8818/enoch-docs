@@ -11,7 +11,7 @@ For current runtime source-of-truth details, see the [Current Runtime Snapshot](
 
 ## What it is
 
-Promising signals are generated records for Enoch runs with deterministic control-plane statuses such as `useful_signal`, `promising_if_scaled`, or `compute_scale_blocked`. They preserve small local signals, stopped follow-ups, and larger-compute next-step ideas.
+Promising signals are generated records for Enoch runs with deterministic control-plane statuses such as `useful_signal`, `promising_if_scaled`, or `compute_scale_blocked`. They preserve small local signals, stopped follow-ups, and larger-compute next-step ideas. They are the safety valve that keeps useful-but-not-paper work visible without inflating the paper corpus or implying external validation.
 
 The current export (v1 schema) contains **519 deterministic, contract-clean signals** exported from the Enoch control plane.
 
@@ -36,7 +36,7 @@ These entries are not validated papers, not peer reviewed, not publication-posit
 
 ## Public release rule
 
-Public linking is allowed only when the generated JSONL, schema validator, public trust validator, and release-bundle validation pass. A promising signal can become a paper only through a separate future run that independently satisfies the paper-positive publication gate.
+Public linking is allowed only when the generated JSONL, schema validator, public trust validator, and release-bundle validation pass. A promising signal can become a paper only through a separate future run that independently satisfies the paper-positive publication gate and the [quality-floor contract](/concepts/quality-floor).
 
 ## Regeneration
 

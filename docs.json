@@ -70,7 +70,8 @@
               "concepts/control-plane",
               "concepts/worker-gate",
               "concepts/evidence-and-artifacts",
-              "concepts/research-facility"
+              "concepts/research-facility",
+              "concepts/quality-floor"
             ]
           },
           {

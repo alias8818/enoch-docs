@@ -1,0 +1,118 @@
+---
+title: "Quality floor and signal visibility"
+description: "How Enoch separates operational success, useful research signal, paper readiness, and public-facing trust."
+---
+
+# Quality floor and signal visibility
+
+Enoch is useful only if operators can tell the difference between **a run that completed**, **a signal worth preserving**, **an artifact ready for the paper corpus**, and **a result that is safe to reference publicly**.
+
+This page is the public-facing quality-floor contract behind the ALI-15, ALI-20, and ALI-17 risk track:
+
+- ALI-15: operator visibility into research quality and signal strength was too low.
+- ALI-20: the system depended too heavily on agents to explain its own research quality.
+- ALI-17: low-quality or trivial generated output could damage public perception without stronger gates and framing.
+
+The response is to make the review boundary explicit everywhere: dashboard/status surfaces, docs, launch copy, corpus framing, and promising-signal exports.
+
+## The four-layer contract
+
+Enoch uses four different review layers. They should not be collapsed into one green checkmark.
+
+| Layer | Question answered | Public meaning |
+| --- | --- | --- |
+| Operational health | Did the control plane, worker, queue, and alerts behave correctly? | The system ran without known infrastructure failure. |
+| Signal preservation | Is there a bounded useful observation or follow-up lead? | Preserve it as a promising signal; do not call it a paper. |
+| Paper-corpus readiness | Does the artifact have required metadata, evidence, provenance, and claim-ledger structure? | It can enter the generated-artifact corpus. |
+| Public trust posture | Is it framed with enough caveats for a human reviewer to inspect without being misled? | It may be referenced as an AI-generated, evidence-bounded artifact, not as peer-reviewed science. |
+
+A run can be operationally healthy and still be scientifically weak. A signal can be useful and still not be a paper. A paper-corpus artifact can pass structural gates and still require independent replication before anyone treats it as truth.
+
+## What operators should look for
+
+When reviewing Enoch output, check these in order:
+
+1. **Run state and worker state** — queue state, run id, worker callback, process-tree completion, and telemetry quiet-window evidence.
+2. **Evidence bundle** — run notes, metrics, result files, logs, and declared-unavailable public surrogates.
+3. **Claim ledger** — every material claim should point to evidence or be explicitly bounded as a hypothesis/limitation.
+4. **Decision artifact** — the project decision should say whether the run is paper-positive, useful-signal-only, scale-blocked, negative, or inconclusive.
+5. **Public bucket** — papers, promising signals, and private/archived weak signals must remain separate.
+
+If any of those are missing, the right outcome is usually **do not promote**. Keep the record for diagnosis or follow-up, but do not let it become public proof.
+
+## Public buckets
+
+### Paper corpus
+
+The paper corpus is for generated research artifacts that pass the current packaging/provenance and strict claim/evidence gates. They remain AI-generated artifacts, not peer-reviewed papers.
+
+Use this bucket when:
+
+- the artifact has complete provenance metadata,
+- material claims map to evidence references,
+- limitations are visible,
+- missing-public-evidence cases use declared-unavailable hashes or surrogates,
+- the release validators pass.
+
+### Promising signals
+
+Promising signals preserve useful or scale-blocked leads that are **not** paper-corpus artifacts.
+
+Use this bucket when:
+
+- the run found a bounded signal worth remembering,
+- compute scale, scope, or evidence maturity blocks publication,
+- follow-up is plausible,
+- public evidence is not copied,
+- the record should guide future work rather than persuade an external audience.
+
+### Archive / low-value preservation
+
+Low-signal, stale, local-only, or embarrassing outputs should not be promoted. Keeping them internally can still be useful for debugging model routes, worker behavior, prompt contracts, or quality gates.
+
+## Quality-floor language
+
+Preferred language:
+
+- "AI-generated research artifact"
+- "evidence-bounded"
+- "strict claim/evidence audit"
+- "promising signal"
+- "compute-scale blocked"
+- "requires independent replication"
+- "not peer reviewed"
+
+Avoid language that implies:
+
+- human authorship of generated reports,
+- peer review,
+- scientific correctness from a passing package check,
+- that all preserved signals are publication-ready,
+- that agent confidence is equivalent to evidence.
+
+## Release checklist
+
+Before a public surface advertises an Enoch artifact or metric, verify:
+
+- [ ] the count or claim matches the current corpus/promising-signal manifests,
+- [ ] the page distinguishes packaging/provenance from strict claim/evidence audit,
+- [ ] promising signals are not counted as papers,
+- [ ] weak/local-only records are not advertised as external research results,
+- [ ] links point to source repositories or generated evidence files,
+- [ ] caveats are visible without requiring a private dashboard.
+
+## What this fixes
+
+This contract reduces the ALI-15/20/17 risk by moving judgment out of agent prose and into inspectable surfaces:
+
+- operators get a direct checklist for research quality and signal strength,
+- public readers see what the system claims and what it does not claim,
+- weak outputs have a safe bucket instead of an accidental launch path,
+- the launch story becomes engineering-first: control plane, evidence, gates, and humility before generated output.
+
+## Related pages
+
+- [Authorship and provenance](/reference/authorship-provenance)
+- [Promising signals export](/reference/promising-signals)
+- [Paper artifacts guide](/guides/paper-artifacts)
+- [Research facility](/concepts/research-facility)
