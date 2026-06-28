@@ -4,12 +4,12 @@ description: "Sync evidence from the worker, run the artifact writer, scan packa
 sidebarTitle: "Paper Artifacts"
 ---
 
-After a research run completes on the worker, the control plane on the VM can generate or rewrite structured paper artifacts when paper rows and evidence context are available. This process - optional evidence sync, artifact writing, packaging/provenance scanning, and publication automation - is the finalization stage of the Enoch research loop. The output is a Markdown and LaTeX draft that should be grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
+After a research run completes on the worker, the control plane on the VM can generate structured paper artifacts when paper-positive rows and evidence context are available. This process - optional evidence sync, artifact writing, packaging/provenance scanning, finalization, corpus import, and public corpus push - is the finalization stage of the Enoch research loop. The output is a Markdown and LaTeX artifact grounded in run notes, metrics, evidence bundles, and claim ledgers collected during the experiment.
 For current runtime topology, worker path, and decision-artifact boundaries,
 see [current runtime snapshot](/current-runtime-snapshot).
 
 <Warning>
-Do not publish generated artifacts until corpus import, index building, packaging/provenance lint, and strict claim/evidence audit status are explicit. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
+Do not publish generated artifacts until corpus import, index building, packaging/provenance lint, and strict claim/evidence audit status are explicit. Once those deterministic gates pass, paper-positive artifacts are auto-pushed as written; do not add a normal manual editorial approval or taste-review hold. Every artifact produced by this pipeline is AI-generated from automated run data. It is not human-authored and has not been peer-reviewed. The operator claims no personal authorship credit for generated prose or claims.
 </Warning>
 
 ## 1. Confirm evidence exists
@@ -40,7 +40,7 @@ If `paper_evidence_sync_enabled` is `true` in your config and no local evidence 
 
 ## 2. Generate Markdown and LaTeX
 
-Once sufficient local evidence is present, the artifact writer runs against the evidence bundle and claim ledger to produce:
+Once sufficient local evidence is present, the artifact writer runs against the evidence bundle and claim ledger to produce the as-written corpus candidate:
 
 - `papers/<run_id>/paper.md` — Markdown draft
 - `papers/<run_id>/paper.tex` — LaTeX draft
@@ -61,12 +61,12 @@ The writer uses the model and provider configured under `paper_writer_*` setting
 }
 ```
 
-If `paper_writer_fallback_enabled` is `true`, the writer falls back to a deterministic MVP draft if the configured provider is unavailable or returns an error.
+If `paper_writer_fallback_enabled` is `true`, the writer falls back to a deterministic MVP artifact if the configured provider is unavailable or returns an error. The selected writer output is the generated artifact; Enoch gates it structurally instead of waiting for human prose edits.
 
 
 ## 3. Scan packaging/provenance checks
 
-After the artifact is written, a publication automation record may still expose legacy fields such as `review_status` with values like `unreviewed` or `triage_ready`. Treat those as raw compatibility/detail fields, not the operator work queue. The packaging/provenance check includes a ranked checklist of items the automation lane must pass, fail, or accept as a recorded risk before the paper can be finalized. It does not validate peer review, scientific correctness, or independent replication.
+After the artifact is written, a publication automation record may still expose legacy fields such as `review_status` with values like `unreviewed` or `triage_ready`. Treat those as raw compatibility/detail fields, not an operator review queue. The packaging/provenance check includes a ranked checklist of items the automation lane must pass, fail, or accept as a recorded risk before the paper can be finalized. It does not validate peer review, scientific correctness, or independent replication.
 
 <Info>
 The publication automation screenshot below is pending replacement. The current `images/dashboard-paper-reviews.png` shows internal paper IDs, score details, and a compatibility-only "Supabase" footer string. Until redacted, treat as layout-only.
@@ -84,11 +84,11 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
   "$ENOCH_BASE_URL/control/papers/draft-next" | python3 -m json.tool
 ```
 
-Use dry-run first. In current deployments this path should remain explicit and bounded; unattended timers should stay disabled unless you intentionally re-enable them for a controlled drain.
+Use dry-run for diagnosis and spot checks. In production, the intended policy is that paper-positive rows progress automatically through drafting, finalization, corpus import, and public corpus push as written once deterministic evidence/provenance/claim-ledger gates pass. If the flow stops, investigate the concrete failed gate rather than inserting manual editorial review.
 
 ## 4. Finalize generated drafts
 
-Paper automation APIs support claiming automation items, updating checklist items, changing raw automation state, rewriting drafts, marking papers ready for finalization, and preparing finalization packages. The dashboard presents the simpler operator lanes: write, finalize, publish/import, published/imported, and done/no paper. Generated prose remains AI-generated and not peer-reviewed.
+Paper automation APIs support claiming automation items, updating checklist items, changing raw automation state, marking papers ready for finalization, and preparing finalization packages. These are automation mechanics, not a normal human approval workflow. The dashboard presents the simpler operator lanes: write, finalize, publish/import, published/imported, and done/no paper. Generated prose remains AI-generated and not peer-reviewed.
 
 <Info>
 The papers queue screenshot below is pending replacement. It currently exposes paper paths and counts that drift over time, and a compatibility-only "Supabase" footer string. Until redacted, treat as layout-only.
@@ -99,7 +99,7 @@ The papers queue screenshot below is pending replacement. It currently exposes p
 
 ## 5. Rewrite with an optional provider
 
-If configured, `synthetic.new` can rewrite draft content through an OpenAI-compatible endpoint. Keep `paper_writer_fallback_enabled` and deterministic fallback behavior in mind when interpreting output.
+If configured, `synthetic.new` can produce the generated artifact through an OpenAI-compatible endpoint. Keep `paper_writer_fallback_enabled` and deterministic fallback behavior in mind when interpreting output. The result is still pushed as written after gates pass; do not add a separate human rewrite requirement.
 
 ## 6. Apply corpus gates
 

@@ -1,10 +1,10 @@
 ---
 title: "Paper writer provider and AI model config settings"
-description: "Configure the provider Enoch can use to rewrite research artifacts, from the deterministic template to an optional Synthetic.new/GLM-5.1 writer."
+description: "Configure the provider Enoch can use to write research artifacts, from the deterministic template to an optional Synthetic.new/GLM-5.1 writer."
 sidebarTitle: "Paper Writer"
 ---
 
-When a research run has a paper row and evidence context, the Enoch control plane can rewrite and package generated paper artifacts. You control which provider performs that rewrite through the `paper_writer_provider` field. The `deterministic` mode produces a fixed bounded template with no external dependencies, while `synthetic.new` connects to a hosted OpenAI-compatible API using the configured model. Treat provider-backed rewriting as an automated packaging/finalization path, not a publication guarantee or a substitute for independent validation. If claim extraction is unavailable, the writer must preserve existing ledgers or write a blocked empty ledger that cannot pass strict claim/evidence audit.
+When a research run has a paper-positive row and evidence context, the Enoch control plane can write and package generated paper artifacts. You control which provider performs that write through the `paper_writer_provider` field. The `deterministic` mode produces a fixed bounded template with no external dependencies, while `synthetic.new` connects to a hosted OpenAI-compatible API using the configured model. Treat provider-backed writing as an automated packaging/finalization path, not a publication guarantee or a substitute for independent validation. If claim extraction is unavailable, the writer must preserve existing ledgers or write a blocked empty ledger that cannot pass strict claim/evidence audit.
 
 ## Providers
 
@@ -14,7 +14,7 @@ The default provider. It produces template-based output without calling an exter
 
 ### `synthetic.new`
 
-Optional provider-backed rewriting path. Enoch sends paper context to the Synthetic.new API endpoint using the OpenAI-compatible chat-completion interface, using GLM-5.1 (`hf:zai-org/GLM-5.1`) as the default model in `config.example.json`. The response replaces the draft paper body. If the provider request fails and `paper_writer_fallback_enabled` is `true`, Enoch falls back to the `deterministic` template rather than failing the paper-write step.
+Optional provider-backed writing path. Enoch sends paper context to the Synthetic.new API endpoint using the OpenAI-compatible chat-completion interface, using GLM-5.1 (`hf:zai-org/GLM-5.1`) as the default model in `config.example.json`. The response becomes the paper body. If the provider request fails and `paper_writer_fallback_enabled` is `true`, Enoch falls back to the `deterministic` template rather than failing the paper-write step.
 
 ## Fields
 
@@ -35,6 +35,8 @@ When fallback is enabled, provider failure can fall back to deterministic output
 
 ## Publication rule
 
+Paper-positive artifacts are intended to be auto-pushed as written after deterministic gates pass: evidence bundle, claim ledger, manifest, packaging/provenance lint, strict claim/evidence audit, corpus import ledger, and generated public indexes/manifests. Do not add a normal human editorial approval or taste-review stage between writer output and corpus push. If output is blocked, block on the concrete failed gate.
+
 <ParamField path="paper_writer_timeout_sec" type="number" default="180">
   Maximum seconds to wait for a response from the provider before treating the request as failed. Minimum value is `10`. Increase this for very long papers or slow network links.
 </ParamField>
@@ -53,7 +55,7 @@ When fallback is enabled, provider failure can fall back to deterministic output
 
 ## Synthetic.new config
 
-Add the following fields to your control VM's config file to test provider-backed paper rewriting with Synthetic.new and GLM-5.1. Confirm corpus packaging/provenance scans and strict claim/evidence audit status before treating any output as release-ready:
+Add the following fields to your control VM's config file to test provider-backed paper writing with Synthetic.new and GLM-5.1. Confirm corpus packaging/provenance scans and strict claim/evidence audit status before treating any output as release-ready:
 
 ```json
 {
@@ -67,5 +69,5 @@ Add the following fields to your control VM's config file to test provider-backe
 ```
 
 <Note>
-  Do not publish generated paper artifacts until corpus packaging/provenance lint and strict claim/evidence audit status are explicit. The paper-writer output is a draft; a packaging/provenance pass is not a deep claim audit.
+  Do not publish generated paper artifacts until corpus packaging/provenance lint and strict claim/evidence audit status are explicit. Once those deterministic gates pass, the artifact is pushed as written. A packaging/provenance pass is not a deep claim audit.
 </Note>
