@@ -22,7 +22,7 @@ uv run python -m compileall -q enoch_control_plane tests
 
 ## Dashboard returns unauthorized
 
-Use the configured `control_api_bearer_token` as a bearer token. Do not confuse it with `completion_callback_token` or `worker_wake_gate_bearer_token`. The HTML shell is served at `/dashboard`; dashboard data routes require token-bearing requests.
+Use the configured `control_api_bearer_token` as a bearer token. Do not confuse it with `completion_callback_token` or `worker_wake_gate_bearer_token`. The canonical HTML shell is served at `/control/dashboard-v2`; dashboard data routes require token-bearing requests or a scoped backend dashboard session.
 
 ## Dispatch is blocked
 

@@ -5,8 +5,8 @@ description: "How Enoch separates upstream idea scouting, control-plane intake, 
 
 # Idea intake
 
-Enoch does not require ideas to originate in the control plane. An upstream LLM-assisted scouting process can review technical signals, frame candidate experiments, and write structured idea cards. The current preferred intake path is control-plane native: write idea, project, queue, and event rows together so the control plane can dispatch from one database-backed workbench. In production that database is local Postgres on `enoch-core`; Supabase-era wording is historical migration terminology.
-For current runtime topology and storage authority, see
+Enoch does not require ideas to originate in the control plane. An upstream LLM-assisted scouting process can review technical signals, frame candidate experiments, and write structured idea cards. The current preferred intake path is control-plane native: write idea, project, queue, and event rows together so the control plane can dispatch from one database-backed workbench. Current deployments use Postgres-backed control-plane storage; Supabase-era wording is historical migration terminology.
+For current runtime roles and storage authority, see
 [current runtime snapshot](/current-runtime-snapshot).
 
 Notion was an earlier intake and prioritization surface. Treat it as legacy compatibility unless you have explicitly enabled the Notion sync units for an older workflow.

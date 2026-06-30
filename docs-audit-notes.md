@@ -2,7 +2,23 @@
 
 This file summarizes the docs audit history against the three source repositories and what remains uncertain.
 
-## 2026-06-20 refresh — findings still open
+## 2026-06-30 refresh — public-safe docs and screenshot pass
+
+This audit was re-run after the public corpus and Hugging Face export were updated to include both corpus artifacts and promising signals.
+
+1. **Current public counts**: The public corpus reports **393** indexed AI-generated artifacts with **393/393** packaging/provenance lint pass and **393/393** strict claim/evidence audit pass. The promising-signals export reports **6,381** bounded signal rows. The Hugging Face dataset mirrors both `data/artifacts.jsonl` and `data/promising_signals.jsonl`.
+
+2. **Runtime version drift**: The system repo `VERSION` reports **1.41.94** (released 2026-06-28). `release-notes.mdx` was updated to that version and still points readers to the canonical source `CHANGELOG.md` for full version history.
+
+3. **Public topology redaction**: Public docs now describe runtime **roles** rather than private hostnames or deployment paths. Private network addresses, local operator paths, and live credentials belong only in the internal wiki and private runbooks.
+
+4. **Dashboard auth drift**: API docs no longer say the dashboard stores bearer tokens in `localStorage`. Current public docs describe memory-only bearer handling plus backend-mediated HttpOnly session-cookie refresh continuity.
+
+5. **Screenshot replacement**: The five dashboard PNGs in `images/` were replaced with redacted public-safe reference views using sample values. They intentionally avoid private hostnames, tokens, project IDs, internal paths, and live operator data.
+
+6. **Remaining watch item**: Public docs still document `/enoch-core/*` endpoint paths because those are API paths, not deployment hostnames. Keep descriptions framed as product endpoints, not private infrastructure.
+
+## 2026-06-20 refresh — historical, superseded by 2026-06-30
 
 This audit was re-run against the live source repos on 2026-06-20. Key drift from the prior (2026-05-21) audit:
 
@@ -23,7 +39,7 @@ This audit was re-run against the live source repos on 2026-06-20. Key drift fro
 
 6. **Source repo quickstart token length**: The source repo `docs/quickstart.md` uses `secrets.token_urlsafe(32)` while the docs `quickstart.mdx` and source `docs/deployment-guide.md` use `48`. Both are operationally valid. Added a `<Note>` explaining the difference; no change to the example value.
 
-7. **Private deploy alias**: The source repo references a private deploy host alias. This is not a public fact. The docs `current-runtime-snapshot.mdx` describes `enoch-core` only as the reference control VM and intentionally omits the private alias.
+7. **Private deploy alias**: The source repo references a private deploy host alias. This is not a public fact. The docs `current-runtime-snapshot.mdx` intentionally omits private deployment aliases.
 
 ## 2026-05-21 audit — historical
 
@@ -58,7 +74,7 @@ This file summarizes what was reconciled during the enoch-docs audit against the
 - `omx_wake_gate`: Appears only under historical/compatibility-only section of `current-runtime-snapshot.mdx`. No stale public references.
 - `TODO` / `FIXME`: None found in any .mdx file.
 - `coming soon`: None found.
-- Private LAN IPs (192.168.x, 10.x, 172.16-31.x): None found in docs text (only in SVG path data in logo files).
+- Private address ranges: None found in docs text (only in SVG path data in logo files).
 - Internal hostnames/private deploy aliases: Not present in any docs file.
 - Placeholder screenshots: All 5 images reference real PNG files in `images/`.
 

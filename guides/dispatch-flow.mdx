@@ -15,10 +15,10 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
   "$ENOCH_BASE_URL/control/api/status" | python3 -m json.tool
 ```
 
-Review `dispatch_safe` and `dispatch_blockers` before proceeding. The operator dashboard UI is at `http://<control-vm>:8787/control/dashboard`. The shorter `/dashboard` URL redirects to the same shell on current deployments.
+Review `dispatch_safe` and `dispatch_blockers` before proceeding. The operator dashboard UI is at `http://<control-vm>:8787/control/dashboard-v2`. The older `/control/dashboard` and `/dashboard` URLs redirect to the canonical V2 shell on current deployments.
 
 <Info>
-The dashboard screenshot in this section is pending replacement with a public-safe, redacted capture. The current `images/dashboard-status-blocked.png` includes an internal UI footer ("Bounded Supabase read models") that conflicts with the public-facing compatibility-only framing in [current runtime snapshot](/current-runtime-snapshot), and may include internal paper IDs. Treat the existing PNG as illustrative of layout only, not as a verified public-safe reference.
+The dashboard image in this section is a redacted, public-safe reference view with sample values. It shows the current V2 information architecture without exposing private hostnames, tokens, project IDs, or live operator data.
 </Info>
 
 ![Current operator overview showing attention, running work, paper-writing, and publish/import cards](/images/dashboard-status-blocked.png)
@@ -68,7 +68,7 @@ curl -fsS -H "Authorization: Bearer $ENOCH_CONTROL_TOKEN" \
 The queue tabs show the same read model from different operator angles. Empty active and queued views are useful during smoke testing because they prove the dashboard can read canonical queue state without launching work.
 
 <Info>
-The two queue-tab screenshots below are pending replacement. Both contain the same compatibility-only "Supabase" footer string and reference counts that may drift over time. Until redacted replacements land, use them as layout references only.
+The two queue-tab images below are redacted, public-safe reference views with sample values. Use them to understand the queue layout, not as live queue evidence.
 </Info>
 
 ![Current active queue tab showing bounded active-work rows](/images/dashboard-active-queue.png)

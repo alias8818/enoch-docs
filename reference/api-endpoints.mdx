@@ -3,7 +3,7 @@ title: "API endpoints"
 description: "A source-derived map of the main Enoch API surfaces."
 ---
 
-Enoch serves control-plane and worker APIs from FastAPI apps that commonly listen on port `8787`. All endpoints except root `GET /healthz`, `GET /dashboard`, `GET /control/dashboard`, and `GET /control/dashboard-v2` require a bearer token. The control-plane health endpoint is `GET /control/health` and does require authentication. The dashboard shell is unauthenticated for the initial page load; it prompts for a bearer token and stores it in `localStorage` for subsequent API calls. Read the Authentication section below before making your first request.
+Enoch serves control-plane and worker APIs from FastAPI apps that commonly listen on port `8787`. All endpoints except root `GET /healthz`, `GET /dashboard`, `GET /control/dashboard`, and `GET /control/dashboard-v2` require a bearer token. The control-plane health endpoint is `GET /control/health` and does require authentication. The dashboard shell is unauthenticated for the initial page load; it prompts for a bearer token and keeps the bearer token in memory for API calls. Current deployments can also use a backend-mediated HttpOnly dashboard session cookie for refresh continuity. Read the Authentication section below before making your first request.
 
 This page maps the main endpoint groups present in the local source snapshot. It is not a generated OpenAPI reference; verify request and response models against the code before building clients. The operator dashboard now prefers bounded `/control/api/v1/*` read models, while older broad status surfaces remain available for compatibility and debug.
 For current runtime topology and compatibility boundaries, see
@@ -22,7 +22,7 @@ For current runtime topology and compatibility boundaries, see
 
 <Accordion title="Authentication">
 
-Unauthenticated routes include `GET /healthz`, `GET /dashboard`, `GET /control/dashboard`, and `GET /favicon.ico`. Dashboard data APIs and most control-plane routes require a bearer token or an explicit token bootstrap path where the dashboard code supports it.
+Unauthenticated routes include `GET /healthz`, `GET /dashboard`, `GET /control/dashboard`, `GET /control/dashboard-v2`, and `GET /favicon.ico`. Dashboard data APIs and most control-plane routes require a bearer token or a scoped dashboard session path where the dashboard code supports it.
 
 ```http
 Authorization: Bearer <control_api_bearer_token>
@@ -36,7 +36,7 @@ curl -fsS \
   http://127.0.0.1:8787/control/api/status
 ```
 
-The dashboard stores the token in browser `localStorage` after the operator enters and saves it. Do not pass bearer tokens in dashboard URLs.
+The dashboard keeps the operator bearer token in memory and scrubs legacy browser storage/cookies when the token is entered. A backend-mediated HttpOnly session cookie can preserve dashboard refresh continuity without exposing the bearer token to JavaScript. Do not pass bearer tokens in dashboard URLs or persist them in localStorage/sessionStorage.
 
 </Accordion>
 
@@ -78,7 +78,7 @@ Response:
 }
 ```
 
-Production on `enoch-core` sets `store_backend` to `supabase` with local Postgres; treat that value as a compatibility adapter label, not Supabase Cloud.
+Current deployments may set `store_backend` to `supabase` while using Postgres-backed storage; treat that value as a compatibility adapter label, not a Supabase Cloud claim.
 
 ---
 
@@ -713,19 +713,25 @@ Valid `mode` values: `exec`, `resume`. Valid `reasoning_effort` values: `low`, `
 
 <Accordion title="Dashboard">
 
-### `GET /control/dashboard`
+### `GET /control/dashboard-v2`
 
-Returns the browser-based Enoch control dashboard shell as an HTML page. No authentication is required to load the page; the dashboard prompts for a bearer token and stores it in `localStorage`.
+Returns the canonical browser-based Enoch control dashboard shell as an HTML page. No authentication is required to load the page; the dashboard prompts for a bearer token and keeps it in memory for API calls. When the backend session endpoints are enabled, the dashboard can use an HttpOnly session cookie to recover after refresh without storing the bearer token in JavaScript-readable storage.
 
 ```bash
-open http://127.0.0.1:8787/control/dashboard
+open http://127.0.0.1:8787/control/dashboard-v2
 ```
+
+---
+
+### `GET /control/dashboard`
+
+Legacy dashboard URL. Current deployments redirect to `/control/dashboard-v2`.
 
 ---
 
 ### `GET /dashboard`
 
-Redirects to `/control/dashboard`.
+Legacy worker-gate dashboard URL. Current deployments redirect to `/control/dashboard-v2`.
 
 ---
 

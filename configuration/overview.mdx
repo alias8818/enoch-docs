@@ -42,7 +42,7 @@ Supported workload classes are `unknown`, `cpu_only`, `gpu_required`, `inference
 - Hermes alert webhook (optional): `hermes_alert_webhook_enabled`, `hermes_alert_webhook_url`, `hermes_alert_webhook_secret`, `hermes_alert_webhook_timeout_sec`.
 - Queue pump (timer-driven dispatch): `queue_pump_enabled`, `queue_pump_followup_launch_enabled`, `queue_pump_paper_draft_enabled`.
 - Multi-worker routing: `worker_targets`, `workload_machine_targets` (maps workload classes such as `cpu_only` and `gpu_required` to named worker targets).
-- Store backend: `control_plane_store_backend` (`sqlite`, `supabase_readonly`, or `supabase`), `enoch_core_store_backend`, `supabase_database_url`. Production on `enoch-core` uses `supabase` with local Postgres; the setting name is a compatibility adapter label.
+- Store backend: `control_plane_store_backend` (`sqlite`, `supabase_readonly`, or `supabase`), `enoch_core_store_backend`, `supabase_database_url`. Current deployments use the `supabase` adapter name for Postgres-backed storage; treat the setting name as a compatibility adapter label, not a Supabase Cloud claim.
 - Paper writer: `paper_writer_provider`, `paper_writer_base_url`, `paper_writer_model`, `paper_writer_api_key`, `paper_writer_*` tuning, and fallback.
 - Evidence sync: `paper_evidence_sync_enabled`, `paper_evidence_sync_ssh_host`, `paper_evidence_sync_remote_root`, `paper_evidence_sync_timeout_sec`.
 - Route observability (private diagnostics): `route_observability_enabled`, `route_observability_log_path`, `route_observability_slow_ms`, `route_observability_memory_warn_rss_mib`.

@@ -4,12 +4,12 @@
 
 # Documentation project instructions
 
-This documentation project inherits `/home/jeremy/Desktop/projects/enoch-release/AGENTS.md`.
+This documentation project inherits the parent repository operating instructions.
 For current issue status, release readiness, paper production, worker health,
 findings, evidence, or "what next" decisions, follow the parent Linear
 source-of-truth and freshness-marker rule. The marker is:
 
-`/home/jeremy/.codex/state/enoch-linear-last-check.json`
+Use the local Linear freshness marker configured by the parent workspace.
 
 The marker only records when Linear was last checked. It is not a distilled issue
 snapshot and must not be used as issue status. Query Linear when the marker is
@@ -25,7 +25,7 @@ missing, stale, or insufficient for the exact issue fields needed.
 
 ## Terminology
 
-- Use **control plane** for the FastAPI runtime authority on `enoch-core`.
+- Use **control plane** for the FastAPI runtime authority. Do not name private deployment hosts in public docs.
 - Use **worker gate** for the worker-side reliability check (older code/config names may say `wake_gate`; treat that as compatibility naming).
 - Use **Dashboard V2** for the current React/TypeScript operator shell at `/control/dashboard-v2`.
 - Use **Research Facility** for the auditable candidate generation/admission/promotion lane.

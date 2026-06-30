@@ -13,18 +13,9 @@ For current runtime source-of-truth details, see the [Current Runtime Snapshot](
 
 Promising signals are generated records for Enoch runs with deterministic control-plane statuses such as `useful_signal`, `promising_if_scaled`, or `compute_scale_blocked`. They preserve small local signals, stopped follow-ups, and larger-compute next-step ideas. They are the safety valve that keeps useful-but-not-paper work visible without inflating the paper corpus or implying external validation.
 
-The current export (v1 schema) contains **519 deterministic, contract-clean signals** exported from the Enoch control plane.
+The current export (v1 schema) contains **6,381 deterministic, contract-clean signals** exported from the Enoch control plane.
 
-Status breakdown:
-- `useful_signal`: 452
-- `compute_scale_blocked`: 67
-
-Deterministic curation buckets:
-- Top external-researcher candidates: 129
-- Compute-scale blocked: 67
-- Follow-up recommended: 212
-- Weak/local-only preserved: 61
-- Likely stale/low-value archive: 50
+Use the generated manifest for the current status breakdown and curation buckets. Counts change as the control plane exports new bounded signals; the release validator checks that public docs, schema validation, and trust-surface validation stay in sync with the generated repository.
 
 Start with the generated [ranked index](https://github.com/alias8818/enoch-promising-signals/blob/main/signals/ranked-index.md). The machine-readable source of truth is [`data/signals.jsonl`](https://github.com/alias8818/enoch-promising-signals/blob/main/data/signals.jsonl), ranking metadata is in [`data/ranking.json`](https://github.com/alias8818/enoch-promising-signals/blob/main/data/ranking.json), and count/status accounting is in [`data/manifest.json`](https://github.com/alias8818/enoch-promising-signals/blob/main/data/manifest.json).
 
@@ -44,6 +35,7 @@ The exporter lives in the system repo:
 
 ```bash
 python3 scripts/export_promising_signals.py --output-repo ../enoch-promising-signals --clean-only
+python3 scripts/export_promising_signals.py --output-repo ../enoch-promising-signals --validate-output-repo
 ```
 
 Validate the generated repository with:

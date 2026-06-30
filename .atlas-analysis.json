@@ -88,7 +88,7 @@
     "GET /dashboard/api — dashboard snapshot API",
     "POST /prepare-project — prepare worker project workspace",
     "POST /dispatch — dispatch agent run to worker",
-    "GET /enoch-core/health — enoch-core mode and DB status",
+    "GET /enoch-core/health — Enoch Core mode and DB status",
     "POST /enoch-core/snapshots/n8n-queue — ingest queue snapshot",
     "GET /enoch-core/projections/queue — queue projection"
   ]

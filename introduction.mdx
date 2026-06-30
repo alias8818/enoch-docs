@@ -33,9 +33,9 @@ LLM-assisted idea scouting
   -> corpus quality and provenance gates
 ```
 
-Control-plane intake and the upstream scouting workflow are intake surfaces. Notion sync remains a legacy compatibility path. Runtime authority begins when an idea becomes an Enoch queue item. Current production storage is local Postgres on `enoch-core`; older Supabase wording is migration/compatibility terminology.
+Control-plane intake and the upstream scouting workflow are intake surfaces. Notion sync remains a legacy compatibility path. Runtime authority begins when an idea becomes an Enoch queue item. Current runtime storage is Postgres-backed control-plane storage; older Supabase wording is migration/compatibility terminology.
 
-For the canonical current host, storage, worker, decision-artifact, automation,
+For the canonical current runtime roles, storage, worker, decision-artifact, automation,
 and compatibility boundaries, see
 [current runtime snapshot](/current-runtime-snapshot).
 
@@ -51,7 +51,7 @@ and compatibility boundaries, see
 
 ## What Enoch is not
 
-Enoch is not a peer-review system, a guarantee of scientific novelty, a replacement for expert review, or a collection of old workflow-tool exports. The corpus is useful because it preserves generated work and evidence boundaries, not because every generated claim is true. The current public status separates 389/389 packaging/provenance lint from 393/393 strict claim/evidence audit pass. For the full review boundary, read [quality floor and signal visibility](/concepts/quality-floor).
+Enoch is not a peer-review system, a guarantee of scientific novelty, a replacement for expert review, or a collection of old workflow-tool exports. The corpus is useful because it preserves generated work and evidence boundaries, not because every generated claim is true. The current public status separates 393/393 packaging/provenance lint from 393/393 strict claim/evidence audit pass. For the full review boundary, read [quality floor and signal visibility](/concepts/quality-floor).
 
 <Note>
 The packaging/provenance and strict audit counts above are the values reported by `enoch-ai-research-corpus` `quality/packaging_provenance_report.json` and `quality/claim_evidence_audit.json` at the time this page was last audited. Re-run the corpus release validators or check the canonical JSON before quoting them externally; counts can change as the corpus is re-imported.
