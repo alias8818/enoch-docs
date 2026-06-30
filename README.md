@@ -1,19 +1,29 @@
 # Enoch Docs
 
-This repository is the source for the **Enoch documentation website** at <https://solo-09d10f60.mintlify.app/>. It is a Mintlify site written in MDX for people who want to understand, review, run, or deploy Enoch.
+**Source for the public Enoch documentation site:** <https://solo-09d10f60.mintlify.app/>
 
 Enoch is an agentic research control plane. It queues research ideas, checks whether local AI workers are safe to use, supervises long-running runs, preserves evidence, and packages AI-generated research artifacts with explicit provenance.
 
+## Current public facts
+
+| Surface | Current fact |
+| --- | ---: |
+| Runtime version | `1.41.94` |
+| Public corpus | `393` artifacts |
+| Packaging/provenance gate | `393/393` pass |
+| Strict claim/evidence audit | `393/393` pass |
+| Promising signals | `6,381` rows |
+
 ## What this repo is
 
-- **Documentation website source** for Enoch operators, contributors, and reviewers.
-- **Mintlify configuration and MDX pages** in `docs.json`, `*.mdx`, and supporting assets.
-- **Source-grounded guidance** for learning the system, running a local smoke test, deploying the control plane and worker, and reviewing generated-artifact provenance.
+- **Mintlify documentation source** for Enoch operators, contributors, and reviewers.
+- **Source-grounded guidance** for understanding, running, deploying, and reviewing Enoch.
+- **Public-safe screenshots and diagrams** that describe roles and product behavior without exposing private infrastructure.
 
 ## What this repo is not
 
-- Not the Enoch application code. Use [`alias8818/enoch-agentic-research-system`](https://github.com/alias8818/enoch-agentic-research-system) for the FastAPI control plane, dashboard, deployment scripts, and tests.
-- Not the generated research corpus. Use [`alias8818/enoch-ai-research-corpus`](https://github.com/alias8818/enoch-ai-research-corpus) for generated artifacts, evidence bundles, claim ledgers, manifests, packaging/provenance reports, and strict claim/evidence audit reports.
+- Not the Enoch application code. Use [`alias8818/enoch-agentic-research-system`](https://github.com/alias8818/enoch-agentic-research-system).
+- Not the generated research corpus. Use [`alias8818/enoch-ai-research-corpus`](https://github.com/alias8818/enoch-ai-research-corpus).
 - Not a place for live secrets, private runtime state, production configs, or unreleased run data.
 
 ## Start here
@@ -28,40 +38,22 @@ Enoch is an agentic research control plane. It queues research ideas, checks whe
 | Review paper/provenance boundaries | <https://solo-09d10f60.mintlify.app/reference/authorship-provenance> |
 | Troubleshoot common failures | <https://solo-09d10f60.mintlify.app/reference/troubleshooting> |
 
-If you are evaluating whether Enoch is worth deploying, read in this order:
-
-1. [Introduction](https://solo-09d10f60.mintlify.app/introduction) — what problem the system solves.
-2. [Quickstart](https://solo-09d10f60.mintlify.app/quickstart) — a one-machine local smoke test.
-3. [Deployment](https://solo-09d10f60.mintlify.app/deployment) — the conservative two-machine deployment path.
-4. [Authorship and provenance](https://solo-09d10f60.mintlify.app/reference/authorship-provenance) — how to interpret generated research artifacts.
-
 ## Related Enoch surfaces
 
-- **Hosted docs website:** <https://solo-09d10f60.mintlify.app/>
-- **Docs source:** <https://github.com/alias8818/enoch-docs>
-- **System repository:** <https://github.com/alias8818/enoch-agentic-research-system>
-- **Research corpus:** <https://github.com/alias8818/enoch-ai-research-corpus>
-- **Launch site:** <https://alias8818.github.io/enoch-agentic-research-system/>
-- **Profile / project index:** <https://alias8818.github.io/>
+- System repository: <https://github.com/alias8818/enoch-agentic-research-system>
+- Research corpus: <https://github.com/alias8818/enoch-ai-research-corpus>
+- Promising signals: <https://github.com/alias8818/enoch-promising-signals>
+- Hugging Face dataset: <https://huggingface.co/datasets/aliasocracy/enoch-ai-research-corpus>
+- Launch site: <https://alias8818.github.io/enoch-agentic-research-system/>
 
 ## Preview and validate locally
 
-Use an LTS Node.js version supported by the Mintlify CLI. Then preview the docs locally from this repository:
-
 ```bash
 npx mint dev
-```
-
-Run the repository validation script before committing docs changes:
-
-```bash
 node scripts/validate-docs.mjs
 ```
 
-The validator checks that `docs.json` navigation points to existing MDX pages,
-that image references resolve, that obsolete placeholder assets are not
-referenced, and that current-runtime topology claims link to the canonical
-Current Runtime Snapshot.
+The validator checks navigation, MDX pages, image references, obsolete placeholder assets, and current-runtime topology links.
 
 ## Content rules
 

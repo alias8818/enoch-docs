@@ -18,6 +18,8 @@ This audit was re-run after the public corpus and Hugging Face export were updat
 
 6. **Remaining watch item**: Public docs still document `/enoch-core/*` endpoint paths because those are API paths, not deployment hostnames. Keep descriptions framed as product endpoints, not private infrastructure.
 
+7. **Async audit follow-up**: A later local-public-surface sweep found additional stale `389`, `496/496`, and `3/496` anchors plus placeholder-host examples outside the hosted docs repo. Follow-up edits updated `configuration/overview.mdx`, the personal landing/profile repos, the corpus reproducibility note, promising-signals export policy, `enoch-mcp/scripts/run_codex_mcp.sh`, the system README deploy-link summary, the landing-page social card, and two public corpus paper/evidence bundles to the current `393/393` corpus and `6,381` signal facts with generic public-safe host/path placeholders.
+
 ## 2026-06-20 refresh — historical, superseded by 2026-06-30
 
 This audit was re-run against the live source repos on 2026-06-20. Key drift from the prior (2026-05-21) audit:

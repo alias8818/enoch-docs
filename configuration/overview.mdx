@@ -162,15 +162,15 @@ The following JSON mirrors the repository `config.example.json` baseline at the 
       "bearer_token": "replace-with-gb10-worker-token",
       "role": "gpu_worker"
     },
-    "cpu-proxmox-1": {
-      "wake_gate_url": "http://cpu-proxmox-1.example:8787",
+    "cpu-worker": {
+      "wake_gate_url": "http://cpu-worker.example:8787",
       "bearer_token": "replace-with-cpu-worker-token",
       "role": "cpu_worker",
       "min_memory_available_mib": 16384
     }
   },
   "workload_machine_targets": {
-    "cpu_only": "cpu-proxmox-1",
+    "cpu_only": "cpu-worker",
     "gpu_required": "gb10"
   },
   "log_events": true,
